@@ -108,98 +108,119 @@ function renderChains() {
         }).join('')}`;
 }
 
-// ── Hodlers with chain toggles (Dolomite-style UX) ──
+// ── Hodlers — exact Dolomite UX ──
 const CHAIN_KEYS = ['ethereum','arbitrum','base','bsc','optimism','polygon','avalanche'];
-let activeChains = new Set(['ethereum','arbitrum']); // start with main chains
-function initChainToggles() {
-    const el=document.getElementById('chain-toggles');
-    el.innerHTML=CHAIN_KEYS.map(k=>{
-        const c=DATA.chains[k];
-        const cnt=DATA.top_holders.filter(h=>h.balances[k]>0).length;
-        return `<button class="chain-toggle ${activeChains.has(k)?'active':''}" data-chain="${k}" style="--toggle-color:${c.color}" onclick="toggleChain('${k}')"><span class="toggle-dot"></span>${c.short}<span class="toggle-count">${fmt(cnt)}</span></button>`;
-    }).join('');
-}
-function toggleChain(k) {
-    if(activeChains.has(k)) { if(activeChains.size>1) activeChains.delete(k); }
-    else activeChains.add(k);
-    document.querySelectorAll('.chain-toggle').forEach(b=>b.classList.toggle('active',activeChains.has(b.dataset.chain)));
-    holdersPage=1; renderHolders();
+const CHAIN_COLORS = {ethereum:'#627EEA',arbitrum:'#2D374B',base:'#0052FF',bsc:'#F0B90B',optimism:'#FF0420',polygon:'#8247E5',avalanche:'#E84142'};
+const CHAIN_EXPLORERS = {
+    ethereum:'https://etherscan.io/address/',arbitrum:'https://arbiscan.io/address/',
+    base:'https://basescan.org/address/',bsc:'https://bscscan.com/address/',
+    optimism:'https://optimistic.etherscan.io/address/',polygon:'https://polygonscan.com/address/',
+    avalanche:'https://snowtrace.io/address/'
+};
+let activeChains = new Set(['ethereum','arbitrum','base','bsc','optimism','polygon','avalanche']);
+
+function zro_toggleChain(chain) {
+    const cb = document.getElementById('zro-filter-'+chain);
+    if(cb.checked) activeChains.add(chain); else activeChains.delete(chain);
+    renderHolders();
 }
 function getFilteredHolders() {
     let items=[...DATA.top_holders];
-    if (holdersSearchQuery) {
-        const q=holdersSearchQuery.toLowerCase();
-        items=items.filter(h=>h.address.toLowerCase().includes(q)||(h.label&&h.label.toLowerCase().includes(q)));
-    }
+    if(holdersSearchQuery) { const q=holdersSearchQuery.toLowerCase(); items=items.filter(h=>h.address.toLowerCase().includes(q)||(h.label&&h.label.toLowerCase().includes(q))); }
     items.sort((a,b)=>{
-        if(holdersSortKey==='address'){
-            const va=(a.label||a.address).toLowerCase(),vb=(b.label||b.address).toLowerCase();
-            return holdersSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
-        }
-        if(holdersSortKey==='chains'){
-            const va=Object.keys(a.balances).length,vb=Object.keys(b.balances).length;
-            return holdersSortDir==='asc'?va-vb:vb-va;
-        }
-        const va=holdersSortKey==='total'?a.total:(a.balances[holdersSortKey]||0);
-        const vb=holdersSortKey==='total'?b.total:(b.balances[holdersSortKey]||0);
+        if(holdersSortKey==='address'){const va=(a.label||a.address).toLowerCase(),vb=(b.label||b.address).toLowerCase();return holdersSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);}
+        const va=holdersSortKey==='total'?getDisplayBalance(a):(a.balances[holdersSortKey]||0);
+        const vb=holdersSortKey==='total'?getDisplayBalance(b):(b.balances[holdersSortKey]||0);
         return holdersSortDir==='asc'?va-vb:vb-va;
     });
     return items;
 }
-function sortArrow(key) {
-    if(holdersSortKey!==key) return '<span class="sort-arrow">⇅</span>';
-    return `<span class="sort-arrow active">${holdersSortDir==='desc'?'▼':'▲'}</span>`;
+function getDisplayBalance(h) {
+    let total=0;
+    for(const k of activeChains) total+=(h.balances[k]||0);
+    return total;
 }
-function balCell(bal, chain) {
-    if(!bal) return '<td class="right"><span class="val-dash">—</span></td>';
-    const c=DATA.chains[chain];
-    const usd=bal*(DATA.meta.price_usd||0);
-    return `<td class="right"><div class="bal-stack"><span class="bal-primary">${fmt(bal)}</span><span class="bal-secondary">${fmtUSD(usd)}</span></div></td>`;
-}
-function chainDots(h) {
-    return CHAIN_KEYS.filter(k=>h.balances[k]>0).map(k=>{
-        const c=DATA.chains[k];
-        return `<span class="chain-micro-dot" style="background:${c.color}" title="${c.name}: ${fmt(h.balances[k])} ZRO"></span>`;
-    }).join('');
-}
+function initChainToggles() {} // toggles are now in thead
 function renderHolders() {
     const chains=[...activeChains];
-    const price=DATA.meta.price_usd||0;
-    // Build thead
-    let thead='<tr>';
-    thead+='<th class="col-rank">#</th>';
-    thead+=`<th class="col-addr" onclick="sortHolders('address')">Address ${sortArrow('address')}</th>`;
-    thead+=`<th class="col-chains" onclick="sortHolders('chains')">Chains ${sortArrow('chains')}</th>`;
-    chains.forEach(k=>{
-        const c=DATA.chains[k];
-        thead+=`<th class="right col-bal" onclick="sortHolders('${k}')"><span class="th-chain"><span class="chain-dot-sm" style="background:${c.color}"></span>${c.short}</span> ${sortArrow(k)}</th>`;
+    const allChains=CHAIN_KEYS;
+    // Colgroup — Dolomite style
+    const numChainCols=allChains.length;
+    document.getElementById('holders-colgroup').innerHTML=
+        `<col style="width:32px"><col style="width:40%">` +
+        allChains.map(()=>`<col style="width:calc((100% - 32px - 40%) / ${numChainCols+1})">`).join('') +
+        `<col style="width:calc((100% - 32px - 40%) / ${numChainCols+1})">`;
+    // Thead — Dolomite style with chain icon + toggle checkbox
+    let thead=`<tr>
+        <th class="h-th" onclick="sortHolders('rank')"># <span class="sort-arrow">${holdersSortKey==='rank'?'▲':'⇅'}</span></th>
+        <th class="h-th" onclick="sortHolders('address')">Address <span class="sort-arrow${holdersSortKey==='address'?' active':''}">${holdersSortKey==='address'?(holdersSortDir==='desc'?'▼':'▲'):'⇅'}</span></th>`;
+    allChains.forEach(k=>{
+        const c=DATA.chains[k]; const checked=activeChains.has(k)?'checked':'';
+        thead+=`<th class="h-th h-th-chain" style="color:${c.color}">
+            <div class="h-chain-header">
+                <span class="h-chain-dot" style="background:${c.color}"></span>
+                <span class="h-chain-name">${c.short}</span>
+                <label class="h-chain-toggle" title="Toggle ${c.name}">
+                    <input type="checkbox" id="zro-filter-${k}" ${checked} onchange="zro_toggleChain('${k}')">
+                    <span class="h-toggle-slider" style="--tc:${c.color}"></span>
+                </label>
+            </div>
+        </th>`;
     });
-    thead+=`<th class="right col-total" onclick="sortHolders('total')">⚪ ALL ${sortArrow('total')}</th>`;
-    thead+='</tr>';
+    thead+=`<th class="h-th h-th-chain" style="color:#fff" onclick="sortHolders('total')">⚪ <span id="holders-bal-header">Balance</span> <span class="sort-arrow${holdersSortKey==='total'?' active':''}">${holdersSortKey==='total'?(holdersSortDir==='desc'?'▼':'▲'):'⇅'}</span></th></tr>`;
     document.getElementById('holders-thead').innerHTML=thead;
-    const colCount=3+chains.length+1;
-    // Build tbody
+    // Update balance header
+    const balH=document.getElementById('holders-bal-header');
+    if(balH){ if(chains.length===1) balH.textContent='Balance ('+DATA.chains[chains[0]].short+')'; else balH.textContent='Balance'; }
+    // Tbody
     const items=getFilteredHolders(), totalPages=Math.max(1,Math.ceil(items.length/HOLDERS_PER_PAGE));
     if(holdersPage>totalPages) holdersPage=totalPages;
     const start=(holdersPage-1)*HOLDERS_PER_PAGE, page=items.slice(start,start+HOLDERS_PER_PAGE);
-    document.getElementById('holders-count').textContent=`${items.toLocaleString().length>3?items.length.toLocaleString():items.length} hodlers`;
+    const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    const colCount=2+allChains.length+1;
     let html='';
-    page.forEach((h,i)=>{
-        const chainCount=Object.keys(h.balances).length;
-        const totalUsd=h.total*price;
-        html+='<tr>';
-        html+=`<td class="rank-cell">${start+i+1}</td>`;
-        html+=`<td>${addrCell(h)}</td>`;
-        html+=`<td class="chains-cell">${chainDots(h)}</td>`;
-        chains.forEach(k=>{ html+=balCell(h.balances[k]||0, k); });
-        html+=`<td class="right"><div class="bal-stack"><span class="bal-total">${fmt(h.total)}</span><span class="bal-secondary">${fmtUSD(totalUsd)}</span></div></td>`;
-        html+='</tr>';
+    page.forEach((h,idx)=>{
+        const dbUrl=`https://debank.com/profile/${h.address}`;
+        const shortA=h.address.slice(0,6)+'…'+h.address.slice(-4);
+        const dispBal=getDisplayBalance(h);
+        const dbIcon=`<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
+        // Address cell — Dolomite style
+        let addrTd;
+        if(h.label){
+            const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex'}[h.type]||'h-badge-wallet';
+            addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${h.label}</a><span class="h-badge ${bCls}">${h.type}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
+        } else {
+            addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
+        }
+        // Chain cells — colored values or dash
+        let chainCells='';
+        allChains.forEach(k=>{
+            const bal=h.balances[k]||0;
+            const show=activeChains.has(k);
+            if(!show){ chainCells+=`<td class="h-td h-td-right"><span class="h-dash-off">—</span></td>`; return; }
+            if(bal>0){
+                const expUrl=CHAIN_EXPLORERS[k]+h.address;
+                chainCells+=`<td class="h-td h-td-right"><a href="${expUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:${CHAIN_COLORS[k]};text-decoration:none;font-size:11px" title="${bal.toLocaleString('en-US')} ZRO on ${DATA.chains[k].name}">${fmt(bal)}</a></td>`;
+            } else {
+                chainCells+=`<td class="h-td h-td-right"><span class="h-dash">—</span></td>`;
+            }
+        });
+        // Balance cell
+        const balCell=`<td class="h-td h-td-right" title="${dispBal.toLocaleString('en-US')} ZRO"><span class="h-bal-total">${fmt(dispBal)}</span></td>`;
+        html+=`<tr class="h-row" onclick="window.open('${dbUrl}','_blank')"><td class="h-td h-td-rank">${start+idx+1}</td>${addrTd}${chainCells}${balCell}</tr>`;
     });
-    for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="empty-row">${('<td>&nbsp;</td>').repeat(colCount)}</tr>`;
+    for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="h-row-empty">${('<td class="h-td">&nbsp;</td>').repeat(colCount)}</tr>`;
     document.getElementById('holders-tbody').innerHTML=html;
-    // Pager with info
-    const showing=`${start+1}–${Math.min(start+HOLDERS_PER_PAGE,items.length)} of ${items.length.toLocaleString()}`;
-    document.getElementById('holders-pager').innerHTML=`<span class="pager-info">${showing}</span><div class="pager-btns"><button onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button><button onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹ Prev</button><span class="pager-current">${holdersPage} / ${totalPages}</span><button onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>Next ›</button><button onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button></div>`;
+    // Count
+    document.getElementById('holders-count').textContent=`(${items.length.toLocaleString()})`;
+    // Pagination — Dolomite style
+    if(totalPages<=1){ document.getElementById('holders-pager').innerHTML=''; return; }
+    document.getElementById('holders-pager').innerHTML=
+        `<button class="h-pager-btn" onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button>`+
+        `<button class="h-pager-btn" onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹ Prev</button>`+
+        `<span class="h-pager-info">Page ${holdersPage} of ${totalPages.toLocaleString()} · Showing ${start+1}–${Math.min(start+HOLDERS_PER_PAGE,items.length)} of ${items.length.toLocaleString()}</span>`+
+        `<button class="h-pager-btn" onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>Next ›</button>`+
+        `<button class="h-pager-btn" onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button>`;
 }
 function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==='asc'?'desc':'asc'; else {holdersSortKey=k;holdersSortDir='desc';} holdersPage=1;renderHolders(); }
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
