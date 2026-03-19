@@ -53,25 +53,21 @@
             </div>
         </div>
 
-        <!-- TOP HOLDERS -->
+        <!-- HODLERS -->
         <div class="card anim anim-d2" id="holders-card">
-            <div class="card-header"><h3><img src="zro-logo.svg" width="22" height="22" alt="ZRO"> Top ZRO Holders <span class="card-sub">Ethereum · Verified via Etherscan</span></h3></div>
+            <div class="card-header"><h3><img src="zro-logo.svg" width="22" height="22" alt="ZRO"> ZRO Hodlers <span class="card-sub">Multi-chain · Verified via Block Explorers</span></h3></div>
             <div class="flow-toolbar">
                 <div class="search-wrap">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     <input type="text" class="search-input" id="holders-search" placeholder="Search address 0x… or label" oninput="filterHolders()">
                 </div>
+                <div class="flow-toolbar-divider"></div>
+                <div class="chain-toggles" id="chain-toggles"></div>
                 <div class="toolbar-count" id="holders-count"></div>
             </div>
             <div style="overflow-x:auto">
                 <table class="data-table" id="holders-table">
-                    <colgroup><col style="width:36px"><col style="width:50%"><col style="width:calc((100% - 36px - 50%) / 2)"><col style="width:calc((100% - 36px - 50%) / 2)"></colgroup>
-                    <thead><tr>
-                        <th>#</th>
-                        <th onclick="sortHolders('address')">Address <span class="sort-arrow">⇅</span></th>
-                        <th class="right" onclick="sortHolders('ethereum')" style="color:#627EEA">ETH Balance <span class="sort-arrow">⇅</span></th>
-                        <th class="right" onclick="sortHolders('total')" style="color:#fff">⚪ Total <span class="sort-arrow active">▼</span></th>
-                    </tr></thead>
+                    <thead id="holders-thead"></thead>
                     <tbody id="holders-tbody"></tbody>
                 </table>
             </div>

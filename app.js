@@ -108,7 +108,22 @@ function renderChains() {
         }).join('')}`;
 }
 
-// ── Holders ──
+// ── Hodlers with chain toggles ──
+const CHAIN_KEYS = ['ethereum','arbitrum','base','bsc','optimism','polygon','avalanche'];
+let activeChains = new Set(['ethereum']); // start with ETH active
+function initChainToggles() {
+    const el=document.getElementById('chain-toggles');
+    el.innerHTML=CHAIN_KEYS.map(k=>{
+        const c=DATA.chains[k];
+        return `<button class="chain-toggle ${activeChains.has(k)?'active':''}" data-chain="${k}" style="--toggle-color:${c.color}" onclick="toggleChain('${k}')"><span class="toggle-dot"></span>${c.short}</button>`;
+    }).join('');
+}
+function toggleChain(k) {
+    if(activeChains.has(k)) { if(activeChains.size>1) activeChains.delete(k); }
+    else activeChains.add(k);
+    document.querySelectorAll('.chain-toggle').forEach(b=>b.classList.toggle('active',activeChains.has(b.dataset.chain)));
+    holdersPage=1; renderHolders();
+}
 function getFilteredHolders() {
     let items=[...DATA.top_holders];
     if (holdersSearchQuery) { const q=holdersSearchQuery.toLowerCase(); items=items.filter(h=>h.address.toLowerCase().includes(q)||(h.label&&h.label.toLowerCase().includes(q))); }
@@ -116,16 +131,25 @@ function getFilteredHolders() {
     return items;
 }
 function renderHolders() {
+    const chains=[...activeChains];
+    // Build thead
+    let thead=`<tr><th style="width:32px">#</th><th onclick="sortHolders('address')">Address <span class="sort-arrow">⇅</span></th>`;
+    chains.forEach(k=>{ const c=DATA.chains[k]; thead+=`<th class="right" onclick="sortHolders('${k}')" style="color:${c.color};min-width:80px">${c.short} <span class="sort-arrow${holdersSortKey===k?' active':''}">⇅</span></th>`; });
+    thead+=`<th class="right" onclick="sortHolders('total')" style="color:#fff;min-width:80px">ALL <span class="sort-arrow${holdersSortKey==='total'?' active':''}">▼</span></th></tr>`;
+    document.getElementById('holders-thead').innerHTML=thead;
+    const colCount=2+chains.length+1;
+    // Build tbody
     const items=getFilteredHolders(), totalPages=Math.max(1,Math.ceil(items.length/HOLDERS_PER_PAGE));
     if(holdersPage>totalPages) holdersPage=totalPages;
     const start=(holdersPage-1)*HOLDERS_PER_PAGE, page=items.slice(start,start+HOLDERS_PER_PAGE);
-    document.getElementById('holders-count').textContent=items.length+' holders';
+    document.getElementById('holders-count').textContent=items.length+' hodlers';
     let html='';
     page.forEach((h,i)=>{
-        const ethBal=h.balances.ethereum||0;
-        html+=`<tr><td class="rank-cell">${start+i+1}</td><td>${addrCell(h)}</td><td class="right" style="font-variant-numeric:tabular-nums;font-size:11px;color:${ethBal?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.15)'}">${ethBal?fmt(ethBal):'—'}</td><td class="right val-white" style="font-variant-numeric:tabular-nums">${fmt(h.total)}</td></tr>`;
+        html+=`<tr><td class="rank-cell">${start+i+1}</td><td>${addrCell(h)}</td>`;
+        chains.forEach(k=>{ const bal=h.balances[k]||0; html+=`<td class="right" style="font-variant-numeric:tabular-nums;font-size:11px;color:${bal?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.12)'}">${bal?fmt(bal):'—'}</td>`; });
+        html+=`<td class="right val-white" style="font-variant-numeric:tabular-nums">${fmt(h.total)}</td></tr>`;
     });
-    for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
+    for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="empty-row">${('<td>&nbsp;</td>').repeat(colCount)}</tr>`;
     document.getElementById('holders-tbody').innerHTML=html;
     document.getElementById('holders-pager').innerHTML=`<button onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button><button onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹</button><span>${holdersPage} / ${totalPages}</span><button onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>›</button><button onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button>`;
 }
@@ -235,7 +259,7 @@ function renderTimeline() {
 async function init() {
     try { DATA=await(await fetch('zro_data.json')).json(); }
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
-    renderMetrics(); renderNetworkStats(); renderChains(); renderHolders(); renderFlows();
+    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFlows();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
     initTabs(); initPeriodPills();
     document.getElementById('footer-updated').textContent='Last updated: '+new Date(DATA.meta.generated).toLocaleString();

@@ -95,6 +95,14 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .period-pills button.active { color:#fff; background:rgba(168,85,247,0.25); box-shadow:0 0 12px rgba(168,85,247,0.15); }
 .toolbar-count { font-size:11px; color:var(--text-muted); margin-left:auto; }
 
+/* ===== CHAIN TOGGLES ===== */
+.chain-toggles { display:flex; gap:4px; flex-wrap:wrap; }
+.chain-toggle { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:6px; font-size:10px; font-weight:600; cursor:pointer; border:1px solid var(--border-subtle); background:transparent; color:var(--text-muted); transition:all 0.2s; font-family:inherit; letter-spacing:0.3px; -webkit-user-select:none; user-select:none; }
+.chain-toggle:hover { border-color:rgba(255,255,255,0.15); color:var(--text-secondary); }
+.chain-toggle.active { border-color:var(--toggle-color,rgba(168,85,247,0.4)); background:color-mix(in srgb, var(--toggle-color,#a855f7) 12%, transparent); color:#fff; }
+.chain-toggle .toggle-dot { width:6px; height:6px; border-radius:50%; background:var(--toggle-color,#555); transition:box-shadow 0.2s; }
+.chain-toggle.active .toggle-dot { box-shadow:0 0 6px var(--toggle-color,#a855f7); }
+
 /* ===== FLOW GRID ===== */
 .flow-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; }
 .flow-column { min-width:0; }
