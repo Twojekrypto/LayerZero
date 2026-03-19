@@ -108,7 +108,7 @@ function renderChains() {
         }).join('')}`;
 }
 
-// ── Hodlers — exact Dolomite UX ──
+// ── Hodlers — pill-toggle chain filter + clean headers ──
 const CHAIN_KEYS = ['ethereum','arbitrum','base','bsc','optimism','polygon','avalanche'];
 const CHAIN_COLORS = {ethereum:'#627EEA',arbitrum:'#2D374B',base:'#0052FF',bsc:'#F0B90B',optimism:'#FF0420',polygon:'#8247E5',avalanche:'#E84142'};
 const CHAIN_EXPLORERS = {
@@ -126,12 +126,18 @@ const CHAIN_ICONS = {
     polygon:'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg',
     avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'
 };
-let activeChains = new Set(['ethereum','arbitrum','base','bsc','optimism','polygon','avalanche']);
-
-function zro_toggleChain(chain) {
-    const cb = document.getElementById('zro-filter-'+chain);
-    if(cb.checked) activeChains.add(chain); else activeChains.delete(chain);
-    renderHolders();
+let activeChains = new Set(CHAIN_KEYS);
+function initChainToggles() {
+    const el=document.getElementById('chain-pills');
+    el.innerHTML=CHAIN_KEYS.map(k=>{
+        const c=DATA.chains[k];
+        return `<button class="chain-pill active" data-chain="${k}" style="--pill-color:${c.color}" onclick="toggleChainPill('${k}')"><img src="${CHAIN_ICONS[k]}" width="14" height="14" class="pill-icon">${c.short}</button>`;
+    }).join('');
+}
+function toggleChainPill(k) {
+    if(activeChains.has(k)) activeChains.delete(k); else activeChains.add(k);
+    document.querySelectorAll('.chain-pill').forEach(b=>b.classList.toggle('active',activeChains.has(b.dataset.chain)));
+    holdersPage=1; renderHolders();
 }
 function getFilteredHolders() {
     let items=[...DATA.top_holders];
@@ -145,57 +151,42 @@ function getFilteredHolders() {
     return items;
 }
 function getDisplayBalance(h) {
-    let total=0;
-    for(const k of activeChains) total+=(h.balances[k]||0);
-    return total;
+    let total=0; for(const k of activeChains) total+=(h.balances[k]||0); return total;
 }
-function initChainToggles() {} // toggles are now in thead
 function renderHolders() {
-    const chains=[...activeChains];
-    const allChains=CHAIN_KEYS;
-    // Colgroup — Dolomite style
-    const numChainCols=allChains.length;
+    const visChains=CHAIN_KEYS.filter(k=>activeChains.has(k));
+    const numCols=visChains.length;
+    // Colgroup — only visible chains
     document.getElementById('holders-colgroup').innerHTML=
-        `<col style="width:32px"><col style="width:40%">` +
-        allChains.map(()=>`<col style="width:calc((100% - 32px - 40%) / ${numChainCols+1})">`).join('') +
-        `<col style="width:calc((100% - 32px - 40%) / ${numChainCols+1})">`;
-    // Thead — Dolomite style with chain icon + toggle checkbox
+        `<col class="hcol-rank"><col class="hcol-addr">` +
+        visChains.map(()=>`<col class="hcol-chain">`).join('') +
+        `<col class="hcol-total">`;
+    // Thead — clean: just icon + name + sort arrow
+    const sa=k=>{
+        if(holdersSortKey!==k) return '<span class="sort-arrow">⇅</span>';
+        return `<span class="sort-arrow active">${holdersSortDir==='desc'?'▼':'▲'}</span>`;
+    };
     let thead=`<tr>
-        <th class="h-th" onclick="sortHolders('rank')"># <span class="sort-arrow">${holdersSortKey==='rank'?'▲':'⇅'}</span></th>
-        <th class="h-th" onclick="sortHolders('address')">Address <span class="sort-arrow${holdersSortKey==='address'?' active':''}">${holdersSortKey==='address'?(holdersSortDir==='desc'?'▼':'▲'):'⇅'}</span></th>`;
-    allChains.forEach(k=>{
-        const c=DATA.chains[k]; const checked=activeChains.has(k)?'checked':'';
-        const arrow=holdersSortKey===k?`<span class="sort-arrow active">${holdersSortDir==='desc'?'▼':'▲'}</span>`:'<span class="sort-arrow">⇅</span>';
-        thead+=`<th class="h-th h-th-chain" style="color:${c.color}" onclick="sortHolders('${k}')">
-            <div class="h-chain-header">
-                <img src="${CHAIN_ICONS[k]}" width="16" height="16" class="h-chain-icon" alt="${c.short}">
-                <span class="h-chain-name">${c.short}</span>
-                ${arrow}
-                <label class="h-chain-toggle" title="Toggle ${c.name}" onclick="event.stopPropagation()">
-                    <input type="checkbox" id="zro-filter-${k}" ${checked} onchange="zro_toggleChain('${k}')">
-                    <span class="h-toggle-slider" style="--tc:${c.color}"></span>
-                </label>
-            </div>
-        </th>`;
+        <th class="h-th" onclick="sortHolders('rank')"># ${sa('rank')}</th>
+        <th class="h-th" onclick="sortHolders('address')">Address ${sa('address')}</th>`;
+    visChains.forEach(k=>{
+        const c=DATA.chains[k];
+        thead+=`<th class="h-th h-th-chain" style="color:${c.color}" onclick="sortHolders('${k}')"><img src="${CHAIN_ICONS[k]}" width="14" height="14" class="h-chain-icon"> ${c.short} ${sa(k)}</th>`;
     });
-    thead+=`<th class="h-th h-th-chain" style="color:#fff" onclick="sortHolders('total')">⚪ <span id="holders-bal-header">Balance</span> <span class="sort-arrow${holdersSortKey==='total'?' active':''}">${holdersSortKey==='total'?(holdersSortDir==='desc'?'▼':'▲'):'⇅'}</span></th></tr>`;
+    thead+=`<th class="h-th h-th-chain" style="color:#fff" onclick="sortHolders('total')">⚪ Balance ${sa('total')}</th></tr>`;
     document.getElementById('holders-thead').innerHTML=thead;
-    // Update balance header
-    const balH=document.getElementById('holders-bal-header');
-    if(balH){ if(chains.length===1) balH.textContent='Balance ('+DATA.chains[chains[0]].short+')'; else balH.textContent='Balance'; }
     // Tbody
     const items=getFilteredHolders(), totalPages=Math.max(1,Math.ceil(items.length/HOLDERS_PER_PAGE));
     if(holdersPage>totalPages) holdersPage=totalPages;
     const start=(holdersPage-1)*HOLDERS_PER_PAGE, page=items.slice(start,start+HOLDERS_PER_PAGE);
     const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
-    const colCount=2+allChains.length+1;
+    const colCount=2+numCols+1;
     let html='';
     page.forEach((h,idx)=>{
         const dbUrl=`https://debank.com/profile/${h.address}`;
         const shortA=h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dispBal=getDisplayBalance(h);
         const dbIcon=`<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
-        // Address cell — Dolomite style
         let addrTd;
         if(h.label){
             const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex'}[h.type]||'h-badge-wallet';
@@ -203,12 +194,9 @@ function renderHolders() {
         } else {
             addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
         }
-        // Chain cells — colored values or dash
         let chainCells='';
-        allChains.forEach(k=>{
+        visChains.forEach(k=>{
             const bal=h.balances[k]||0;
-            const show=activeChains.has(k);
-            if(!show){ chainCells+=`<td class="h-td h-td-right"><span class="h-dash-off">—</span></td>`; return; }
             if(bal>0){
                 const expUrl=CHAIN_EXPLORERS[k]+h.address;
                 chainCells+=`<td class="h-td h-td-right"><a href="${expUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:${CHAIN_COLORS[k]};text-decoration:none;font-size:11px" title="${bal.toLocaleString('en-US')} ZRO on ${DATA.chains[k].name}">${fmt(bal)}</a></td>`;
@@ -216,20 +204,18 @@ function renderHolders() {
                 chainCells+=`<td class="h-td h-td-right"><span class="h-dash">—</span></td>`;
             }
         });
-        // Balance cell
         const balCell=`<td class="h-td h-td-right" title="${dispBal.toLocaleString('en-US')} ZRO"><span class="h-bal-total">${fmt(dispBal)}</span></td>`;
         html+=`<tr class="h-row" onclick="window.open('${dbUrl}','_blank')"><td class="h-td h-td-rank">${start+idx+1}</td>${addrTd}${chainCells}${balCell}</tr>`;
     });
     for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="h-row-empty">${('<td class="h-td">&nbsp;</td>').repeat(colCount)}</tr>`;
     document.getElementById('holders-tbody').innerHTML=html;
-    // Count
-    document.getElementById('holders-count').textContent=`(${items.length.toLocaleString()})`;
-    // Pagination — Dolomite style
+    document.getElementById('holders-count').textContent=`${items.length.toLocaleString()} hodlers`;
+    // Pagination
     if(totalPages<=1){ document.getElementById('holders-pager').innerHTML=''; return; }
     document.getElementById('holders-pager').innerHTML=
         `<button class="h-pager-btn" onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button>`+
         `<button class="h-pager-btn" onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹ Prev</button>`+
-        `<span class="h-pager-info">Page ${holdersPage} of ${totalPages.toLocaleString()} · Showing ${start+1}–${Math.min(start+HOLDERS_PER_PAGE,items.length)} of ${items.length.toLocaleString()}</span>`+
+        `<span class="h-pager-info">Page ${holdersPage} of ${totalPages.toLocaleString()} · ${start+1}–${Math.min(start+HOLDERS_PER_PAGE,items.length)} of ${items.length.toLocaleString()}</span>`+
         `<button class="h-pager-btn" onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>Next ›</button>`+
         `<button class="h-pager-btn" onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button>`;
 }

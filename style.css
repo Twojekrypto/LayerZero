@@ -146,28 +146,31 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .flow-pager button:hover:not(:disabled) { background:rgba(168,85,247,0.15); border-color:rgba(168,85,247,0.3); color:#fff; }
 .flow-pager button:disabled { opacity:0.3; cursor:not-allowed; }
 
-/* ===== HODLERS TABLE — DOLOMITE UX ===== */
+/* ===== CHAIN PILLS (toolbar) ===== */
+.chain-pills { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+.chain-pill { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:600; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.35); cursor:pointer; transition:all 0.25s; font-family:inherit; text-transform:uppercase; letter-spacing:0.3px; }
+.chain-pill .pill-icon { border-radius:50%; opacity:0.4; transition:opacity 0.25s; }
+.chain-pill.active { border-color:var(--pill-color); color:#fff; background:color-mix(in srgb, var(--pill-color) 15%, transparent); box-shadow:0 0 8px color-mix(in srgb, var(--pill-color) 25%, transparent); }
+.chain-pill.active .pill-icon { opacity:1; }
+.chain-pill:hover { border-color:var(--pill-color); color:rgba(255,255,255,0.7); }
+.toolbar-count { font-size:11px; color:var(--text-muted); margin-left:auto; white-space:nowrap; }
+
+/* ===== HODLERS TABLE ===== */
 .holders-table { table-layout:fixed; width:100%; border-collapse:collapse; font-size:12px; }
 .table-scroll { overflow-x:auto; }
+.hcol-rank { width:36px; }
+.hcol-addr { width:auto; min-width:220px; }
+.hcol-chain { width:80px; }
+.hcol-total { width:90px; }
 .h-th { padding:8px 5px; text-align:left; color:rgba(255,255,255,0.4); font-size:10px; text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.08); cursor:pointer; user-select:none; position:sticky; top:0; z-index:2; background:var(--bg-card); }
-.h-th-chain { text-align:right; }
-.h-chain-header { display:flex; align-items:center; gap:5px; justify-content:flex-end; }
-.h-chain-icon { border-radius:50%; flex-shrink:0; }
-.h-chain-name { font-size:10px; font-weight:600; }
-/* Chain toggle checkbox slider — exact Dolomite pattern */
-.h-chain-toggle { position:relative; display:inline-flex; align-items:center; cursor:pointer; }
-.h-chain-toggle input { position:absolute; opacity:0; width:0; height:0; }
-.h-toggle-slider { width:26px; height:14px; border-radius:7px; background:rgba(255,255,255,0.15); transition:background 0.3s; position:relative; display:inline-block; }
-.h-toggle-slider::after { content:''; position:absolute; top:2px; left:2px; width:10px; height:10px; border-radius:50%; background:#fff; transition:transform 0.3s; }
-.h-chain-toggle input:checked + .h-toggle-slider { background:var(--tc); }
-.h-chain-toggle input:checked + .h-toggle-slider::after { transform:translateX(12px); }
+.h-th-chain { text-align:right; white-space:nowrap; }
+.h-chain-icon { border-radius:50%; vertical-align:middle; margin-right:2px; }
 /* Row styles */
 .h-row { border-bottom:1px solid rgba(255,255,255,0.04); transition:transform 0.15s, background 0.15s; cursor:pointer; }
 .h-row:hover { transform:scale(1.003); background:rgba(255,255,255,0.03); }
 .h-row-empty td { border-bottom:1px solid rgba(255,255,255,0.04); height:36px; }
 .h-td { padding:5px 6px; white-space:nowrap; overflow:visible; }
 .h-td-rank { color:rgba(255,255,255,0.3); width:32px; }
-.h-td-addr { }
 .h-td-right { text-align:right; font-size:11px; }
 /* Address cells */
 .h-addr-wrap { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
@@ -188,9 +191,8 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .h-badge-wallet { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.12); }
 /* Balance cells */
 .h-dash { opacity:0.3; font-size:11px; }
-.h-dash-off { opacity:0.12; font-size:11px; }
 .h-bal-total { font-weight:600; font-size:11px; color:#fff; }
-/* Pagination — Dolomite table-footer */
+/* Pagination */
 .table-footer { display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 16px; border-top:1px solid rgba(255,255,255,0.06); font-size:11px; }
 .h-pager-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6); border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; transition:all 0.2s; font-family:inherit; }
 .h-pager-btn:hover:not(:disabled) { background:rgba(168,85,247,0.15); border-color:rgba(168,85,247,0.3); color:#fff; }
