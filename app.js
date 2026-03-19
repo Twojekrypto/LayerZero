@@ -1,6 +1,6 @@
 /* ZRO Analytics Dashboard — app.js */
 let DATA = null, currentPeriod = '30d', holdersPage = 1;
-const HOLDERS_PER_PAGE = 10, FLOW_PER_PAGE = 5;
+const HOLDERS_PER_PAGE = 25, FLOW_PER_PAGE = 5;
 let holdersSortKey = 'total', holdersSortDir = 'desc', holdersSearchQuery = '';
 
 function fmt(n, d=0) {
@@ -127,18 +127,7 @@ const CHAIN_ICONS = {
     avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'
 };
 let activeChains = new Set(CHAIN_KEYS);
-function initChainToggles() {
-    const el=document.getElementById('chain-pills');
-    el.innerHTML=CHAIN_KEYS.map(k=>{
-        const c=DATA.chains[k];
-        return `<button class="chain-pill active" data-chain="${k}" style="--pill-color:${c.color}" onclick="toggleChainPill('${k}')"><img src="${CHAIN_ICONS[k]}" width="14" height="14" class="pill-icon">${c.short}</button>`;
-    }).join('');
-}
-function toggleChainPill(k) {
-    if(activeChains.has(k)) activeChains.delete(k); else activeChains.add(k);
-    document.querySelectorAll('.chain-pill').forEach(b=>b.classList.toggle('active',activeChains.has(b.dataset.chain)));
-    holdersPage=1; renderHolders();
-}
+function initChainToggles() {}
 function getFilteredHolders() {
     let items=[...DATA.top_holders];
     if(holdersSearchQuery) { const q=holdersSearchQuery.toLowerCase(); items=items.filter(h=>h.address.toLowerCase().includes(q)||(h.label&&h.label.toLowerCase().includes(q))); }
@@ -151,7 +140,7 @@ function getFilteredHolders() {
     return items;
 }
 function getDisplayBalance(h) {
-    let total=0; for(const k of activeChains) total+=(h.balances[k]||0); return total;
+    let total=0; for(const k of CHAIN_KEYS) total+=(h.balances[k]||0); return total;
 }
 function renderHolders() {
     const visChains=CHAIN_KEYS.filter(k=>activeChains.has(k));

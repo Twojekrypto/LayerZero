@@ -146,13 +146,7 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .flow-pager button:hover:not(:disabled) { background:rgba(168,85,247,0.15); border-color:rgba(168,85,247,0.3); color:#fff; }
 .flow-pager button:disabled { opacity:0.3; cursor:not-allowed; }
 
-/* ===== CHAIN PILLS (toolbar) ===== */
-.chain-pills { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
-.chain-pill { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:20px; font-size:10px; font-weight:600; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.35); cursor:pointer; transition:all 0.25s; font-family:inherit; text-transform:uppercase; letter-spacing:0.3px; }
-.chain-pill .pill-icon { border-radius:50%; opacity:0.4; transition:opacity 0.25s; }
-.chain-pill.active { border-color:var(--pill-color); color:#fff; background:color-mix(in srgb, var(--pill-color) 15%, transparent); box-shadow:0 0 8px color-mix(in srgb, var(--pill-color) 25%, transparent); }
-.chain-pill.active .pill-icon { opacity:1; }
-.chain-pill:hover { border-color:var(--pill-color); color:rgba(255,255,255,0.7); }
+/* ===== TOOLBAR COUNT ===== */
 .toolbar-count { font-size:11px; color:var(--text-muted); margin-left:auto; white-space:nowrap; }
 
 /* ===== HODLERS TABLE ===== */
