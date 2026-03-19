@@ -86,16 +86,26 @@ function renderChains() {
     const totalSupply=entries.reduce((s,[,c])=>s+c.supply,0);
     const totalHolders=entries.reduce((s,[,c])=>s+c.holders,0);
     const maxSupply=entries[0][1].supply;
+    const maxHolders=Math.max(...entries.map(([,c])=>c.holders));
     document.getElementById('chain-bars').innerHTML=entries.map(([k,c])=>{
         const pct=(c.supply/maxSupply*100).toFixed(1), sPct=(c.supply/totalSupply*100).toFixed(1);
         return `<div class="chain-bar-row" onclick="window.open('${c.explorer}','_blank')"><div class="chain-bar-label"><span class="chain-dot" style="background:${c.color}"></span>${c.short}</div><div class="chain-bar-track"><div class="chain-bar-fill" style="width:${pct}%;background:${c.color}">${sPct}%</div></div><div class="chain-bar-value">${fmt(c.supply)}</div></div>`;
     }).join('');
     document.getElementById('chain-stats').innerHTML=`
-        <div class="chain-stat-row"><div class="chain-stat-label">🌐 Total Tracked</div><div class="chain-stat-value">${fmt(totalSupply)} ZRO</div></div>
-        <div class="chain-stat-row"><div class="chain-stat-label">💰 Total Value</div><div class="chain-stat-value">${fmtUSD(totalSupply*DATA.meta.price_usd)}</div></div>
-        <div class="chain-stat-row"><div class="chain-stat-label">👥 Total Holders</div><div class="chain-stat-value">${totalHolders.toLocaleString()}</div></div>
-        <div class="chain-stat-row" style="border-bottom:1px solid rgba(255,255,255,0.06)"><div class="chain-stat-label">🔗 Active Chains</div><div class="chain-stat-value">${entries.length}</div></div>
-        ${entries.map(([k,c])=>`<div class="chain-stat-row"><div class="chain-stat-label"><span class="chain-dot" style="background:${c.color};width:8px;height:8px"></span>${c.name}</div><div class="chain-stat-value">${c.holders.toLocaleString()}<span class="chain-stat-sub">${(c.supply/totalSupply*100).toFixed(1)}%</span></div></div>`).join('')}`;
+        <div style="text-align:center;padding:16px 0 12px">
+            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Total Holders (7 chains)</div>
+            <div style="font-size:32px;font-weight:800;color:var(--accent-cyan);font-variant-numeric:tabular-nums">${totalHolders.toLocaleString()}</div>
+        </div>
+        ${entries.map(([k,c])=>{
+            const hPct=(c.holders/maxHolders*100).toFixed(0);
+            const hShare=(c.holders/totalHolders*100).toFixed(1);
+            return `<div class="chain-stat-row" style="gap:8px;align-items:center">
+                <div class="chain-stat-label" style="width:70px;flex-shrink:0"><span class="chain-dot" style="background:${c.color};width:8px;height:8px"></span>${c.short}</div>
+                <div style="flex:1;height:6px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden"><div style="height:100%;width:${hPct}%;background:${c.color};border-radius:3px"></div></div>
+                <div style="width:75px;text-align:right;font-size:12px;font-weight:600;color:var(--text-primary);font-variant-numeric:tabular-nums">${c.holders.toLocaleString()}</div>
+                <div style="width:42px;text-align:right;font-size:10px;color:var(--text-muted)">${hShare}%</div>
+            </div>`;
+        }).join('')}`;
 }
 
 // ── Holders ──
