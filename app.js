@@ -117,6 +117,15 @@ const CHAIN_EXPLORERS = {
     optimism:'https://optimistic.etherscan.io/address/',polygon:'https://polygonscan.com/address/',
     avalanche:'https://snowtrace.io/address/'
 };
+const CHAIN_ICONS = {
+    ethereum:'https://icons.llamao.fi/icons/chains/rsz_ethereum.jpg',
+    arbitrum:'https://icons.llamao.fi/icons/chains/rsz_arbitrum.jpg',
+    base:'https://icons.llamao.fi/icons/chains/rsz_base.jpg',
+    bsc:'https://icons.llamao.fi/icons/chains/rsz_binance.jpg',
+    optimism:'https://icons.llamao.fi/icons/chains/rsz_optimism.jpg',
+    polygon:'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg',
+    avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'
+};
 let activeChains = new Set(['ethereum','arbitrum','base','bsc','optimism','polygon','avalanche']);
 
 function zro_toggleChain(chain) {
@@ -158,7 +167,7 @@ function renderHolders() {
         const c=DATA.chains[k]; const checked=activeChains.has(k)?'checked':'';
         thead+=`<th class="h-th h-th-chain" style="color:${c.color}">
             <div class="h-chain-header">
-                <span class="h-chain-dot" style="background:${c.color}"></span>
+                <img src="${CHAIN_ICONS[k]}" width="16" height="16" class="h-chain-icon" alt="${c.short}">
                 <span class="h-chain-name">${c.short}</span>
                 <label class="h-chain-toggle" title="Toggle ${c.name}">
                     <input type="checkbox" id="zro-filter-${k}" ${checked} onchange="zro_toggleChain('${k}')">
