@@ -44,15 +44,19 @@ function initTabs() {
     });
 }
 
-// ── Price ──
+// ── Price + Circulating Supply (live from CoinGecko) ──
 async function fetchPrice() {
     try {
-        const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=layerzero&vs_currencies=usd&include_24hr_change=true');
+        const r=await fetch('https://api.coingecko.com/api/v3/coins/layerzero?localization=false&tickers=false&community_data=false&developer_data=false');
         const j=await r.json();
-        if (j.layerzero) {
-            const p=j.layerzero.usd, ch=j.layerzero.usd_24h_change;
-            DATA.meta.price_usd=p; DATA.meta.market_cap=p*DATA.meta.circulating_supply; DATA.meta.fdv=p*DATA.meta.total_supply;
+        if (j.market_data) {
+            const md=j.market_data;
+            DATA.meta.price_usd=md.current_price.usd;
+            DATA.meta.circulating_supply=md.circulating_supply||DATA.meta.circulating_supply;
+            DATA.meta.market_cap=md.market_cap.usd||DATA.meta.market_cap;
+            DATA.meta.fdv=md.fully_diluted_valuation.usd||DATA.meta.fdv;
             renderMetrics();
+            const ch=md.price_change_percentage_24h;
             document.getElementById('m-price-src').innerHTML=`via CoinGecko · <span style="color:${ch>=0?'var(--accent-green)':'var(--accent-rose)'}">${ch>=0?'+':''}${ch.toFixed(2)}% 24h</span>`;
         }
     } catch(e) { console.warn('CoinGecko failed',e); }
