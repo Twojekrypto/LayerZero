@@ -165,11 +165,13 @@ function renderHolders() {
         <th class="h-th" onclick="sortHolders('address')">Address <span class="sort-arrow${holdersSortKey==='address'?' active':''}">${holdersSortKey==='address'?(holdersSortDir==='desc'?'▼':'▲'):'⇅'}</span></th>`;
     allChains.forEach(k=>{
         const c=DATA.chains[k]; const checked=activeChains.has(k)?'checked':'';
-        thead+=`<th class="h-th h-th-chain" style="color:${c.color}">
+        const arrow=holdersSortKey===k?`<span class="sort-arrow active">${holdersSortDir==='desc'?'▼':'▲'}</span>`:'<span class="sort-arrow">⇅</span>';
+        thead+=`<th class="h-th h-th-chain" style="color:${c.color}" onclick="sortHolders('${k}')">
             <div class="h-chain-header">
                 <img src="${CHAIN_ICONS[k]}" width="16" height="16" class="h-chain-icon" alt="${c.short}">
                 <span class="h-chain-name">${c.short}</span>
-                <label class="h-chain-toggle" title="Toggle ${c.name}">
+                ${arrow}
+                <label class="h-chain-toggle" title="Toggle ${c.name}" onclick="event.stopPropagation()">
                     <input type="checkbox" id="zro-filter-${k}" ${checked} onchange="zro_toggleChain('${k}')">
                     <span class="h-toggle-slider" style="--tc:${c.color}"></span>
                 </label>
