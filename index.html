@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZRO Analytics Dashboard — LayerZero Token Flows</title>
+    <meta name="description" content="Real-time analytics for ZRO (LayerZero) — multi-chain distribution, holder flows, tokenomics, vesting, buybacks.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page-wrapper">
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="header-logo"><img src="zro-logo.svg" alt="ZRO" width="72" height="72"></div>
+        <h1 class="header-title">ZRO Analytics</h1>
+        <p class="header-sub">LayerZero Token · Multi-Chain Flow Dashboard</p>
+        <div class="header-bar">
+            <span class="nav-badge"><span class="live-dot"></span> Live Data</span>
+            <span class="contract-badge" onclick="copyText('0x6985884c4392d348587b19cb9eaaf157f13271cd')" title="Click to copy">📋 0x6985…1cd (same on all chains)</span>
+            <a href="https://layerzero.network" target="_blank" rel="noopener" class="nav-badge" style="text-decoration:none;cursor:pointer">🌐 layerzero.network</a>
+        </div>
+        <!-- Tab Navigation -->
+        <nav class="tab-nav" id="tab-nav">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="flows">Flows</button>
+            <button class="tab-btn" data-tab="tokenomics">Tokenomics</button>
+        </nav>
+    </header>
+
+    <!-- ========== TAB: OVERVIEW ========== -->
+    <div id="view-overview" class="tab-view active">
+        <!-- METRICS STRIP -->
+        <div class="metrics-strip anim">
+            <div class="metric-cell"><div class="metric-label">Total Supply</div><div class="metric-value" style="font-size:24px">1,000,000,000</div><div class="metric-sub">ZRO</div></div>
+            <div class="metric-cell"><div class="metric-label">Circulating Supply</div><div class="metric-value" id="m-circ" style="font-size:24px">—</div><div class="metric-sub" id="m-circ-pct"></div></div>
+            <div class="metric-cell"><div class="metric-label">Price</div><div class="metric-value" id="m-price" style="font-size:24px;color:var(--accent-green)">—</div><div class="metric-sub" id="m-price-src">via CoinGecko</div></div>
+            <div class="metric-cell"><div class="metric-label">Market Cap</div><div class="metric-value" id="m-mcap" style="font-size:24px">—</div><div class="metric-sub">Circulating × Price</div></div>
+            <div class="metric-cell"><div class="metric-label">Fully Diluted</div><div class="metric-value" id="m-fdv" style="font-size:24px;color:var(--accent-purple)">—</div><div class="metric-sub">1B × Price</div></div>
+        </div>
+
+        <!-- NETWORK STATS -->
+        <div class="stats-row anim anim-d1">
+            <div class="stat-pill"><span class="stat-pill-val" id="s-volume">—</span><span class="stat-pill-lbl">Q4 Volume</span></div>
+            <div class="stat-pill"><span class="stat-pill-val" id="s-mau">—</span><span class="stat-pill-lbl">Monthly Users</span></div>
+            <div class="stat-pill"><span class="stat-pill-val" id="s-chains">—</span><span class="stat-pill-lbl">Connected Chains</span></div>
+            <div class="stat-pill"><span class="stat-pill-val" id="s-apps">—</span><span class="stat-pill-lbl">Apps Built</span></div>
+            <div class="stat-pill"><span class="stat-pill-val" id="s-stable">—</span><span class="stat-pill-lbl">Stablecoin Share</span></div>
+            <div class="stat-pill"><span class="stat-pill-val" id="s-oft">—</span><span class="stat-pill-lbl">OFT Tokens</span></div>
+        </div>
+
+        <!-- CHAIN DISTRIBUTION -->
+        <div class="card anim anim-d1" id="chain-card">
+            <div class="card-header"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> Chain Distribution <span class="card-sub">ZRO supply across 7 networks</span></h3></div>
+            <div class="chain-dist-grid">
+                <div class="chain-bar-section" id="chain-bars"></div>
+                <div class="chain-stats-section" id="chain-stats"></div>
+            </div>
+        </div>
+
+        <!-- TOP HOLDERS -->
+        <div class="card anim anim-d2" id="holders-card">
+            <div class="card-header"><h3><img src="zro-logo.svg" width="22" height="22" alt="ZRO"> Top ZRO Holders <span class="card-sub">Ethereum · Verified via Etherscan</span></h3></div>
+            <div class="flow-toolbar">
+                <div class="search-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" class="search-input" id="holders-search" placeholder="Search address 0x… or label" oninput="filterHolders()">
+                </div>
+                <div class="toolbar-count" id="holders-count"></div>
+            </div>
+            <div style="overflow-x:auto">
+                <table class="data-table" id="holders-table">
+                    <colgroup><col style="width:36px"><col style="width:50%"><col style="width:calc((100% - 36px - 50%) / 2)"><col style="width:calc((100% - 36px - 50%) / 2)"></colgroup>
+                    <thead><tr>
+                        <th>#</th>
+                        <th onclick="sortHolders('address')">Address <span class="sort-arrow">⇅</span></th>
+                        <th class="right" onclick="sortHolders('ethereum')" style="color:#627EEA">ETH Balance <span class="sort-arrow">⇅</span></th>
+                        <th class="right" onclick="sortHolders('total')" style="color:#fff">⚪ Total <span class="sort-arrow active">▼</span></th>
+                    </tr></thead>
+                    <tbody id="holders-tbody"></tbody>
+                </table>
+            </div>
+            <div class="flow-pager" id="holders-pager"></div>
+        </div>
+    </div>
+
+    <!-- ========== TAB: FLOWS ========== -->
+    <div id="view-flows" class="tab-view">
+        <div class="card anim" id="flow-card">
+            <div class="card-header"><h3><img src="zro-logo.svg" width="22" height="22" alt="ZRO"> ZRO Flows — Accumulators vs Sellers</h3></div>
+            <div class="flow-toolbar">
+                <div class="search-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" class="search-input" id="flow-search" placeholder="Search address 0x… or label" oninput="filterFlows()">
+                </div>
+                <div class="flow-toolbar-divider"></div>
+                <div class="period-pills" id="flow-period-pills">
+                    <button data-period="1d">1D</button><button data-period="7d">7D</button>
+                    <button data-period="30d" class="active">30D</button><button data-period="90d">90D</button>
+                    <button data-period="all">ALL</button>
+                </div>
+            </div>
+            <div class="flow-grid">
+                <div class="flow-column">
+                    <div class="flow-col-header inflow">🟢 Top Accumulators <span class="count" id="acc-count">5</span></div>
+                    <table class="data-table"><colgroup><col style="width:32px"><col style="width:45%"><col style="width:calc((100% - 32px - 45%) / 2)"><col style="width:calc((100% - 32px - 45%) / 2)"></colgroup>
+                    <thead><tr><th>#</th><th>Address</th><th class="right" style="color:var(--accent-green)">🟢 Net Flow</th><th class="right">⚪ Balance</th></tr></thead>
+                    <tbody id="acc-tbody"></tbody></table>
+                </div>
+                <div class="flow-column">
+                    <div class="flow-col-header outflow">🔴 Top Sellers <span class="count" id="sell-count">5</span></div>
+                    <table class="data-table"><colgroup><col style="width:32px"><col style="width:45%"><col style="width:calc((100% - 32px - 45%) / 2)"><col style="width:calc((100% - 32px - 45%) / 2)"></colgroup>
+                    <thead><tr><th>#</th><th>Address</th><th class="right" style="color:var(--accent-rose)">🔴 Net Flow</th><th class="right">⚪ Balance</th></tr></thead>
+                    <tbody id="sell-tbody"></tbody></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TAB: TOKENOMICS ========== -->
+    <div id="view-tokenomics" class="tab-view">
+        <!-- ALLOCATION -->
+        <div class="card anim">
+            <div class="card-header"><h3>📊 Supply Allocation <span class="card-sub">1B ZRO Total</span></h3></div>
+            <div id="alloc-section" class="alloc-grid"></div>
+        </div>
+        <!-- VESTING -->
+        <div class="card anim anim-d1">
+            <div class="card-header"><h3>🔓 Vesting Schedule <span class="card-sub">CEO correction: real pressure ~2x lower</span></h3></div>
+            <div id="vesting-section" class="card-body-pad"></div>
+        </div>
+        <!-- BUYBACKS -->
+        <div class="card anim anim-d2">
+            <div class="card-header"><h3>🔄 Stargate Buybacks <span class="card-sub">100% revenue → ZRO</span></h3></div>
+            <div id="buyback-section" class="card-body-pad"></div>
+        </div>
+        <!-- INVESTORS -->
+        <div class="card anim anim-d3">
+            <div class="card-header"><h3>💰 Funding Rounds <span class="card-sub">$318M+ raised</span></h3></div>
+            <div style="overflow-x:auto"><table class="data-table" id="investor-table">
+                <colgroup><col style="width:12%"><col style="width:10%"><col style="width:12%"><col style="width:10%"><col style="width:10%"><col style="width:8%"><col style="width:38%"></colgroup>
+                <thead><tr><th>Round</th><th>Date</th><th>Raised</th><th>Est. Price</th><th>ROI Today</th><th>Sell Risk</th><th>Investors</th></tr></thead>
+                <tbody id="investor-tbody"></tbody>
+            </table></div>
+        </div>
+        <!-- VALUE STREAMS -->
+        <div class="card anim anim-d4">
+            <div class="card-header"><h3>⚡ Value Accrual — 8 Streams <span class="card-sub">CEO: "All value goes to ZRO"</span></h3></div>
+            <div id="value-section" class="card-body-pad"></div>
+        </div>
+        <!-- KEY DATES -->
+        <div class="card anim anim-d4">
+            <div class="card-header"><h3>📅 Key Dates Timeline</h3></div>
+            <div id="dates-section" class="card-body-pad"></div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <p>ZRO Analytics · Data via <a href="https://etherscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd" target="_blank">Etherscan</a> · Price via <a href="https://coingecko.com" target="_blank">CoinGecko</a> · Tokenomics from <a href="https://layerzero.foundation" target="_blank">LayerZero Foundation</a></p>
+        <p style="margin-top:4px" id="footer-updated"></p>
+    </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
