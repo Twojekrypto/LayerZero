@@ -108,14 +108,15 @@ function renderChains() {
         }).join('')}`;
 }
 
-// ── Hodlers with chain toggles ──
+// ── Hodlers with chain toggles (Dolomite-style UX) ──
 const CHAIN_KEYS = ['ethereum','arbitrum','base','bsc','optimism','polygon','avalanche'];
-let activeChains = new Set(['ethereum']); // start with ETH active
+let activeChains = new Set(['ethereum','arbitrum']); // start with main chains
 function initChainToggles() {
     const el=document.getElementById('chain-toggles');
     el.innerHTML=CHAIN_KEYS.map(k=>{
         const c=DATA.chains[k];
-        return `<button class="chain-toggle ${activeChains.has(k)?'active':''}" data-chain="${k}" style="--toggle-color:${c.color}" onclick="toggleChain('${k}')"><span class="toggle-dot"></span>${c.short}</button>`;
+        const cnt=DATA.top_holders.filter(h=>h.balances[k]>0).length;
+        return `<button class="chain-toggle ${activeChains.has(k)?'active':''}" data-chain="${k}" style="--toggle-color:${c.color}" onclick="toggleChain('${k}')"><span class="toggle-dot"></span>${c.short}<span class="toggle-count">${fmt(cnt)}</span></button>`;
     }).join('');
 }
 function toggleChain(k) {
@@ -126,32 +127,79 @@ function toggleChain(k) {
 }
 function getFilteredHolders() {
     let items=[...DATA.top_holders];
-    if (holdersSearchQuery) { const q=holdersSearchQuery.toLowerCase(); items=items.filter(h=>h.address.toLowerCase().includes(q)||(h.label&&h.label.toLowerCase().includes(q))); }
-    items.sort((a,b)=>{ if(holdersSortKey==='address'){const va=(a.label||a.address).toLowerCase(),vb=(b.label||b.address).toLowerCase();return holdersSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);} const va=holdersSortKey==='total'?a.total:(a.balances[holdersSortKey]||0),vb=holdersSortKey==='total'?b.total:(b.balances[holdersSortKey]||0); return holdersSortDir==='asc'?va-vb:vb-va; });
+    if (holdersSearchQuery) {
+        const q=holdersSearchQuery.toLowerCase();
+        items=items.filter(h=>h.address.toLowerCase().includes(q)||(h.label&&h.label.toLowerCase().includes(q)));
+    }
+    items.sort((a,b)=>{
+        if(holdersSortKey==='address'){
+            const va=(a.label||a.address).toLowerCase(),vb=(b.label||b.address).toLowerCase();
+            return holdersSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
+        }
+        if(holdersSortKey==='chains'){
+            const va=Object.keys(a.balances).length,vb=Object.keys(b.balances).length;
+            return holdersSortDir==='asc'?va-vb:vb-va;
+        }
+        const va=holdersSortKey==='total'?a.total:(a.balances[holdersSortKey]||0);
+        const vb=holdersSortKey==='total'?b.total:(b.balances[holdersSortKey]||0);
+        return holdersSortDir==='asc'?va-vb:vb-va;
+    });
     return items;
+}
+function sortArrow(key) {
+    if(holdersSortKey!==key) return '<span class="sort-arrow">⇅</span>';
+    return `<span class="sort-arrow active">${holdersSortDir==='desc'?'▼':'▲'}</span>`;
+}
+function balCell(bal, chain) {
+    if(!bal) return '<td class="right"><span class="val-dash">—</span></td>';
+    const c=DATA.chains[chain];
+    const usd=bal*(DATA.meta.price_usd||0);
+    return `<td class="right"><div class="bal-stack"><span class="bal-primary">${fmt(bal)}</span><span class="bal-secondary">${fmtUSD(usd)}</span></div></td>`;
+}
+function chainDots(h) {
+    return CHAIN_KEYS.filter(k=>h.balances[k]>0).map(k=>{
+        const c=DATA.chains[k];
+        return `<span class="chain-micro-dot" style="background:${c.color}" title="${c.name}: ${fmt(h.balances[k])} ZRO"></span>`;
+    }).join('');
 }
 function renderHolders() {
     const chains=[...activeChains];
+    const price=DATA.meta.price_usd||0;
     // Build thead
-    let thead=`<tr><th style="width:32px">#</th><th onclick="sortHolders('address')">Address <span class="sort-arrow">⇅</span></th>`;
-    chains.forEach(k=>{ const c=DATA.chains[k]; thead+=`<th class="right" onclick="sortHolders('${k}')" style="color:${c.color};min-width:80px">${c.short} <span class="sort-arrow${holdersSortKey===k?' active':''}">⇅</span></th>`; });
-    thead+=`<th class="right" onclick="sortHolders('total')" style="color:#fff;min-width:80px">ALL <span class="sort-arrow${holdersSortKey==='total'?' active':''}">▼</span></th></tr>`;
+    let thead='<tr>';
+    thead+='<th class="col-rank">#</th>';
+    thead+=`<th class="col-addr" onclick="sortHolders('address')">Address ${sortArrow('address')}</th>`;
+    thead+=`<th class="col-chains" onclick="sortHolders('chains')">Chains ${sortArrow('chains')}</th>`;
+    chains.forEach(k=>{
+        const c=DATA.chains[k];
+        thead+=`<th class="right col-bal" onclick="sortHolders('${k}')"><span class="th-chain"><span class="chain-dot-sm" style="background:${c.color}"></span>${c.short}</span> ${sortArrow(k)}</th>`;
+    });
+    thead+=`<th class="right col-total" onclick="sortHolders('total')">⚪ ALL ${sortArrow('total')}</th>`;
+    thead+='</tr>';
     document.getElementById('holders-thead').innerHTML=thead;
-    const colCount=2+chains.length+1;
+    const colCount=3+chains.length+1;
     // Build tbody
     const items=getFilteredHolders(), totalPages=Math.max(1,Math.ceil(items.length/HOLDERS_PER_PAGE));
     if(holdersPage>totalPages) holdersPage=totalPages;
     const start=(holdersPage-1)*HOLDERS_PER_PAGE, page=items.slice(start,start+HOLDERS_PER_PAGE);
-    document.getElementById('holders-count').textContent=items.length+' hodlers';
+    document.getElementById('holders-count').textContent=`${items.toLocaleString().length>3?items.length.toLocaleString():items.length} hodlers`;
     let html='';
     page.forEach((h,i)=>{
-        html+=`<tr><td class="rank-cell">${start+i+1}</td><td>${addrCell(h)}</td>`;
-        chains.forEach(k=>{ const bal=h.balances[k]||0; html+=`<td class="right" style="font-variant-numeric:tabular-nums;font-size:11px;color:${bal?'rgba(255,255,255,0.7)':'rgba(255,255,255,0.12)'}">${bal?fmt(bal):'—'}</td>`; });
-        html+=`<td class="right val-white" style="font-variant-numeric:tabular-nums">${fmt(h.total)}</td></tr>`;
+        const chainCount=Object.keys(h.balances).length;
+        const totalUsd=h.total*price;
+        html+='<tr>';
+        html+=`<td class="rank-cell">${start+i+1}</td>`;
+        html+=`<td>${addrCell(h)}</td>`;
+        html+=`<td class="chains-cell">${chainDots(h)}</td>`;
+        chains.forEach(k=>{ html+=balCell(h.balances[k]||0, k); });
+        html+=`<td class="right"><div class="bal-stack"><span class="bal-total">${fmt(h.total)}</span><span class="bal-secondary">${fmtUSD(totalUsd)}</span></div></td>`;
+        html+='</tr>';
     });
     for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="empty-row">${('<td>&nbsp;</td>').repeat(colCount)}</tr>`;
     document.getElementById('holders-tbody').innerHTML=html;
-    document.getElementById('holders-pager').innerHTML=`<button onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button><button onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹</button><span>${holdersPage} / ${totalPages}</span><button onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>›</button><button onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button>`;
+    // Pager with info
+    const showing=`${start+1}–${Math.min(start+HOLDERS_PER_PAGE,items.length)} of ${items.length.toLocaleString()}`;
+    document.getElementById('holders-pager').innerHTML=`<span class="pager-info">${showing}</span><div class="pager-btns"><button onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button><button onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹ Prev</button><span class="pager-current">${holdersPage} / ${totalPages}</span><button onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>Next ›</button><button onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button></div>`;
 }
 function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==='asc'?'desc':'asc'; else {holdersSortKey=k;holdersSortDir='desc';} holdersPage=1;renderHolders(); }
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
