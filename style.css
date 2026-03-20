@@ -146,6 +146,26 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .flow-pager button:hover:not(:disabled) { background:rgba(168,85,247,0.15); border-color:rgba(168,85,247,0.3); color:#fff; }
 .flow-pager button:disabled { opacity:0.3; cursor:not-allowed; }
 
+/* ===== HIDE TOGGLE (Dolomite exact) ===== */
+.hide-toggle { display:inline-flex; align-items:center; gap:7px; cursor:pointer; user-select:none; padding:7px 12px 7px 8px; border-radius:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); transition:background 0.15s; }
+.hide-toggle:hover { background:rgba(255,255,255,0.04); }
+.hide-toggle input { display:none; }
+.hide-toggle-track { width:30px; height:16px; border-radius:8px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.08); position:relative; transition:background 0.2s, border-color 0.2s; flex-shrink:0; }
+.hide-toggle-track::after { content:''; position:absolute; top:2px; left:2px; width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,0.35); transition:transform 0.2s, background 0.2s; }
+.hide-toggle input:checked+.hide-toggle-track { background:rgba(245,158,11,0.25); border-color:rgba(245,158,11,0.4); }
+.hide-toggle input:checked+.hide-toggle-track::after { transform:translateX(14px); background:#f59e0b; }
+.hide-toggle-label { font-size:11px; font-weight:500; color:#cbd5e1; letter-spacing:0.2px; transition:color 0.15s; }
+.hide-toggle:hover .hide-toggle-label { color:rgba(255,255,255,0.8); }
+
+/* ===== LABEL BADGES ===== */
+.h-badge { display:inline-block; font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; padding:2px 5px; border-radius:3px; vertical-align:middle; margin-left:4px; line-height:1; }
+.h-badge-cex { background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.25); }
+.h-badge-protocol { background:rgba(99,102,241,0.15); color:#818cf8; border:1px solid rgba(99,102,241,0.25); }
+.h-badge-team { background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.25); }
+.h-badge-vc { background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.25); }
+.h-badge-dex { background:rgba(168,85,247,0.15); color:#c084fc; border:1px solid rgba(168,85,247,0.25); }
+.h-badge-inst { background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); }
+
 /* ===== TOOLBAR COUNT ===== */
 .toolbar-count { font-size:11px; color:var(--text-muted); margin-left:auto; white-space:nowrap; }
 
