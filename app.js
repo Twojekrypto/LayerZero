@@ -248,18 +248,20 @@ function renderFreshWallets() {
             <td class="right">${srcLink}</td>
         </tr>`;
     });
-    for(let i=pageItems.length;i<FRESH_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(5)}</tr>`;
     if(!total) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
     document.getElementById('fresh-sub').textContent = `${total} wallets — Receiving ZRO from Token Unlocks`;
-    // Pager
+    // Pager — hide if single page
     const pagerEl = document.getElementById('fresh-pager');
-    if(pagerEl) pagerEl.innerHTML = `
-        <button class="pg-btn" onclick="goFreshPage(-999)" ${freshPage<=1?'disabled':''}>&laquo;</button>
-        <button class="pg-btn" onclick="goFreshPage(-1)" ${freshPage<=1?'disabled':''}>&lsaquo;</button>
-        <span class="pg-info">${freshPage} / ${totalPages}</span>
-        <button class="pg-btn" onclick="goFreshPage(1)" ${freshPage>=totalPages?'disabled':''}>&rsaquo;</button>
-        <button class="pg-btn" onclick="goFreshPage(999)" ${freshPage>=totalPages?'disabled':''}>&raquo;</button>`;
+    if(pagerEl) {
+        if(totalPages <= 1) { pagerEl.innerHTML = ''; }
+        else { pagerEl.innerHTML = `
+            <button class="pg-btn" onclick="goFreshPage(-999)" ${freshPage<=1?'disabled':''}>&laquo;</button>
+            <button class="pg-btn" onclick="goFreshPage(-1)" ${freshPage<=1?'disabled':''}>&lsaquo;</button>
+            <span class="pg-info">${freshPage} / ${totalPages}</span>
+            <button class="pg-btn" onclick="goFreshPage(1)" ${freshPage>=totalPages?'disabled':''}>&rsaquo;</button>
+            <button class="pg-btn" onclick="goFreshPage(999)" ${freshPage>=totalPages?'disabled':''}>&raquo;</button>`; }
+    }
 }
 function goFreshPage(delta) {
     const freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000);
