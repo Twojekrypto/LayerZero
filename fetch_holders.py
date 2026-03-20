@@ -173,10 +173,14 @@ def fetch_transfers_alchemy(chain_key, from_block="0x0"):
     all_txs = []
     page_key = None
     page = 0
+    MAX_PAGES = 500  # Cap at 500 pages to avoid timeout (500K transfers max)
     max_block = 0
 
     while True:
         page += 1
+        if page > MAX_PAGES:
+            print(f"  ⚠️ Reached max pages ({MAX_PAGES}), stopping")
+            break
         payload = {
             "id": 1,
             "jsonrpc": "2.0",
@@ -188,7 +192,7 @@ def fetch_transfers_alchemy(chain_key, from_block="0x0"):
                 "category": ["erc20"],
                 "withMetadata": False,
                 "excludeZeroValue": True,
-                "maxCount": "0x3E8",
+                "maxCount": "0x7D0",
             }]
         }
 
