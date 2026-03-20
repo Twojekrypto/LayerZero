@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-Generate real ZRO flow data from on-chain transfers.
+Generate real ZRO flow data from on-chain transfers (multi-chain).
 
-For each tracked wallet, fetch actual ZRO token transfers from Etherscan
-and compute real net_flow (IN - OUT) per period (1D, 7D, 30D, 90D, ALL).
+For each tracked wallet, fetch actual ZRO token transfers from Etherscan V2 API
+across all chains and compute real net_flow (IN - OUT) per period (1D, 7D, 30D, 90D, ALL).
 
-Replaces the fake random flow data from update_data.py.
+Per-chain wallet limits (sorted by balance on that chain):
+  Ethereum:  600
+  Arbitrum:  200
+  Others:    100 each
 """
 import json, os, time
 from urllib.request import urlopen, Request
@@ -14,10 +17,20 @@ from collections import defaultdict
 API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
 DECIMALS = 18
-TOP_N = 200  # Compute flows for top N holders (by balance)
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(DIR, "zro_data.json")
+
+# Chain configs: chain_id, block_time (s), top_n wallets to scan
+CHAINS = {
+    "ethereum":  {"id": 1,     "block_time": 12,  "top_n": 600},
+    "arbitrum":  {"id": 42161, "block_time": 0.25, "top_n": 200},
+    "base":      {"id": 8453,  "block_time": 2,    "top_n": 100},
+    "bsc":       {"id": 56,    "block_time": 3,    "top_n": 100},
+    "optimism":  {"id": 10,    "block_time": 2,    "top_n": 100},
+    "polygon":   {"id": 137,   "block_time": 2,    "top_n": 100},
+    "avalanche": {"id": 43114, "block_time": 2,    "top_n": 100},
+}
 
 # Period definitions in seconds
 PERIODS = {
@@ -25,7 +38,7 @@ PERIODS = {
     "7d":  7 * 86400,
     "30d": 30 * 86400,
     "90d": 90 * 86400,
-    "all": 365 * 5 * 86400,  # ~5 years = effectively "all"
+    "all": 365 * 5 * 86400,
 }
 
 
@@ -41,15 +54,14 @@ def fetch_json(url):
     return None
 
 
-def get_zro_transfers(address, start_block=0):
-    """Fetch all ZRO token transfers for an address since start_block.
-    Returns list of {from, to, value, timestamp}."""
+def get_zro_transfers(address, chain_id, start_block=0):
+    """Fetch ZRO token transfers for an address on a specific chain."""
     transfers = []
     page = 1
 
     while True:
         url = (
-            f"https://api.etherscan.io/v2/api?chainid=1"
+            f"https://api.etherscan.io/v2/api?chainid={chain_id}"
             f"&module=account&action=tokentx"
             f"&address={address}"
             f"&contractaddress={ZRO_CONTRACT}"
@@ -71,7 +83,6 @@ def get_zro_transfers(address, start_block=0):
                 "timestamp": int(tx.get("timeStamp", "0")),
             })
 
-        # If we got less than 1000, we've reached the end
         if len(results) < 1000:
             break
 
@@ -81,20 +92,16 @@ def get_zro_transfers(address, start_block=0):
     return transfers
 
 
-def estimate_block_for_timestamp(target_ts):
-    """Estimate Ethereum block number for a target timestamp."""
-    now_ts = int(time.time())
-    current_block_url = (
-        f"https://api.etherscan.io/v2/api?chainid=1"
+def get_current_block(chain_id):
+    """Get current block number for a chain."""
+    url = (
+        f"https://api.etherscan.io/v2/api?chainid={chain_id}"
         f"&module=proxy&action=eth_blockNumber"
         f"&apikey={API_KEY}"
     )
-    data = fetch_json(current_block_url)
+    data = fetch_json(url)
     if data and data.get("result"):
-        current_block = int(data["result"], 16)
-        seconds_ago = now_ts - target_ts
-        blocks_ago = seconds_ago // 12  # ~12s per block
-        return max(0, current_block - blocks_ago)
+        return int(data["result"], 16)
     return 0
 
 
@@ -109,38 +116,60 @@ def main():
     holders = data.get("top_holders", [])
     now = int(time.time())
 
-    # Sort by balance, take top N
-    holders_sorted = sorted(holders, key=lambda x: sum(x.get("balances", {}).values()), reverse=True)
-    top_holders = holders_sorted[:TOP_N]
-
-    print(f"📊 Real ZRO Flow Generator")
-    print(f"   Top {len(top_holders)} holders to process")
-
-    # Estimate start block for 90d (covers all periods)
-    start_ts = now - PERIODS["90d"]
-    start_block = estimate_block_for_timestamp(start_ts)
-    print(f"   Start block (90d ago): ~{start_block}")
-    time.sleep(0.25)
+    print(f"📊 Real ZRO Flow Generator (Multi-Chain)")
+    print(f"   Total holders in data: {len(holders)}")
 
     # Per-address flow data: address -> [{from, to, value, timestamp}]
-    address_flows = {}
-    processed = 0
-    errors = 0
+    address_flows = defaultdict(list)
+    total_requests = 0
 
-    for h in top_holders:
-        addr = h["address"].lower()
-        processed += 1
+    # Process each chain
+    for chain_name, chain_cfg in CHAINS.items():
+        chain_id = chain_cfg["id"]
+        block_time = chain_cfg["block_time"]
+        top_n = chain_cfg["top_n"]
 
-        transfers = get_zro_transfers(addr, start_block)
+        # Get wallets with balance on this chain, sorted by chain balance
+        chain_holders = [
+            h for h in holders
+            if h.get("balances", {}).get(chain_name, 0) > 0
+        ]
+        chain_holders.sort(key=lambda x: x.get("balances", {}).get(chain_name, 0), reverse=True)
+        chain_holders = chain_holders[:top_n]
+
+        if not chain_holders:
+            print(f"\n   {chain_name}: 0 holders — skipped")
+            continue
+
+        # Estimate start block for 90d
+        current_block = get_current_block(chain_id)
         time.sleep(0.22)
+        blocks_90d = int(PERIODS["90d"] / block_time)
+        start_block = max(0, current_block - blocks_90d)
 
-        if transfers:
-            address_flows[addr] = transfers
+        print(f"\n🔗 {chain_name.upper()} (chainid={chain_id})")
+        print(f"   Scanning top {len(chain_holders)} holders (block {start_block}→{current_block})")
 
-        if processed % 25 == 0:
-            print(f"   ... {processed}/{len(top_holders)} processed ({len(address_flows)} with transfers)")
+        processed = 0
+        for h in chain_holders:
+            addr = h["address"].lower()
+            processed += 1
 
-    print(f"\n   ✅ Fetched transfers for {len(address_flows)} wallets")
+            transfers = get_zro_transfers(addr, chain_id, start_block)
+            total_requests += 1
+            time.sleep(0.22)
+
+            if transfers:
+                address_flows[addr].extend(transfers)
+
+            if processed % 50 == 0:
+                print(f"   ... {processed}/{len(chain_holders)}")
+
+        with_transfers = sum(1 for h in chain_holders if h["address"].lower() in address_flows)
+        print(f"   ✅ {processed} scanned, {with_transfers} with transfers")
+
+    print(f"\n📈 Computing flows per period...")
+    print(f"   Total wallets with transfers: {len(address_flows)}")
 
     # Build label/type lookup
     label_map = {}
@@ -151,35 +180,29 @@ def main():
         balance_map[addr] = round(sum(h.get("balances", {}).values()))
 
     # Compute flows per period
-    print(f"\n📈 Computing flows per period...")
     new_flows = {}
 
     for period_key, period_secs in PERIODS.items():
         cutoff = now - period_secs
-        period_data = defaultdict(float)  # addr -> net_flow
+        period_data = defaultdict(float)
 
-        # Go through all fetched transfers
         for addr, transfers in address_flows.items():
             net = 0.0
             for tx in transfers:
                 if tx["timestamp"] < cutoff:
                     continue
                 if tx["to"] == addr:
-                    net += tx["value"]  # Inflow
+                    net += tx["value"]
                 if tx["from"] == addr:
-                    net -= tx["value"]  # Outflow
+                    net -= tx["value"]
             if abs(net) > 0.01:
                 period_data[addr] = round(net)
 
-        # Also include top holders with 0 flow (no transfers in period)
-        for h in top_holders:
-            addr = h["address"].lower()
-            if addr not in period_data:
-                period_data[addr] = 0
-
-        # Build sorted lists
+        # Build sorted lists (only include wallets with non-zero flow)
         all_items = []
         for addr, net_flow in period_data.items():
+            if net_flow == 0:
+                continue
             all_items.append({
                 "address": addr,
                 "label": label_map.get(addr, {}).get("label", ""),
@@ -201,9 +224,9 @@ def main():
     with open(DATA_PATH, "w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"\n✅ Real flow data saved to {DATA_PATH}")
-    print(f"   Processed: {processed} wallets")
-    print(f"   API calls: ~{processed + 1}")
+    print(f"\n✅ Real flow data saved!")
+    print(f"   Total API calls: ~{total_requests}")
+    print(f"   Wallets with transfers: {len(address_flows)}")
 
 
 if __name__ == "__main__":
