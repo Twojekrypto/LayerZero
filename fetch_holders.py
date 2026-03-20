@@ -309,14 +309,16 @@ def main():
                 start_block += 1  # Don't re-fetch the last block
             print(f"🔗 [{chain_info['short']}] Incremental from block {start_block:,}...")
 
-        # Try Etherscan first
-        transfers, max_block = fetch_transfers_etherscan(chainid, start_block)
-
-        # Fallback to Alchemy
-        if not transfers and ALCHEMY_KEY and chain_key in ALCHEMY_URLS:
-            print(f"  🔄 Etherscan empty — falling back to Alchemy...")
+        # Primary: Alchemy (full pagination, no 10K cap)
+        transfers = []
+        max_block = 0
+        if ALCHEMY_KEY and chain_key in ALCHEMY_URLS:
             from_hex = hex(start_block) if start_block > 0 else "0x0"
             transfers, max_block = fetch_transfers_alchemy(chain_key, from_hex)
+
+        # Fallback: Etherscan (only if Alchemy unavailable or returned nothing)
+        if not transfers:
+            transfers, max_block = fetch_transfers_etherscan(chainid, start_block)
 
         print(f"   Transfers fetched: {len(transfers)}")
 
