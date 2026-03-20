@@ -138,6 +138,8 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .val-green { color:var(--accent-green); } .val-red { color:var(--accent-rose); }
 .val-white { color:#fff; font-weight:600; } .val-muted { color:var(--text-muted); font-size:11px; }
 .empty-row td { border-bottom:1px solid rgba(255,255,255,0.04); height:38px; }
+.flow-column .data-table td { height:38px; box-sizing:border-box; }
+.flow-column .data-table { table-layout:fixed; }
 .flow-pager { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 20px; border-top:1px solid var(--border-subtle); font-size:12px; color:var(--text-muted); }
 .pager-info { font-size:11px; color:var(--text-muted); }
 .pager-btns { display:flex; align-items:center; gap:6px; }
