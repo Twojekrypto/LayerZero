@@ -24,9 +24,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Fetch holder data from Etherscan (full transfer scan)
+      - name: Fetch holder data from Etherscan + Alchemy fallback
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
         run: python fetch_holders.py
 
       - name: Merge with existing data (preserve labels)
