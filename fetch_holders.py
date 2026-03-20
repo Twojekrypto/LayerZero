@@ -22,6 +22,8 @@ CHAINS = {
     "base":      {"chainid": 8453,  "name": "Base",      "short": "BASE"},
     "bsc":       {"chainid": 56,    "name": "BNB Chain", "short": "BSC"},
     "optimism":  {"chainid": 10,    "name": "Optimism",  "short": "OP"},
+    "polygon":   {"chainid": 137,   "name": "Polygon",   "short": "POLY"},
+    "avalanche": {"chainid": 43114, "name": "Avalanche", "short": "AVAX"},
 }
 
 def fetch_json(url):
