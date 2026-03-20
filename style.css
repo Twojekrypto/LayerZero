@@ -189,10 +189,10 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 /* ===== HODLERS TABLE ===== */
 .holders-table { table-layout:fixed; width:100%; min-width:1200px; border-collapse:collapse; font-size:12px; }
 .table-scroll { overflow-x:auto; }
-.hcol-rank { width:36px; }
-.hcol-addr { width:auto; min-width:220px; }
+.hcol-rank { width:32px; }
+.hcol-addr { width:40%; min-width:220px; }
 .hcol-chain { width:100px; }
-.hcol-total { width:110px; }
+.hcol-total { width:120px; }
 .h-th { padding:8px 6px; text-align:left; color:rgba(255,255,255,0.4); font-size:10px; text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.08); cursor:pointer; user-select:none; position:sticky; top:0; z-index:2; background:var(--bg-card); }
 .h-th-chain { text-align:right; white-space:nowrap; }
 .h-chain-hdr { display:flex; align-items:center; gap:5px; justify-content:flex-end; }
@@ -201,11 +201,15 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 /* Row styles */
 .h-row { border-bottom:1px solid rgba(255,255,255,0.04); transition:transform 0.15s, background 0.15s; cursor:pointer; }
 .h-row:hover { transform:scale(1.003); background:rgba(255,255,255,0.03); }
-.h-row-empty td { border-bottom:1px solid rgba(255,255,255,0.04); height:36px; }
+.h-row-empty td { border-bottom:1px solid rgba(255,255,255,0.04); height:42px; }
 .h-td { padding:5px 6px; white-space:nowrap; overflow:visible; }
 .h-td-rank { color:rgba(255,255,255,0.3); width:32px; }
 .h-td-right { text-align:right; font-size:11px; }
-/* Address cells */
+/* Two-Line Address (Dolomite Address Hierarchy) */
+.h-addr-two-line { line-height:1.3; }
+.h-addr-line1 { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+.h-addr-line2 { display:flex; align-items:center; gap:4px; margin-top:1px; }
+.h-addr-hex-sm { font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(255,255,255,0.3); }
 .h-addr-wrap { display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
 .h-addr-label { color:#fff; font-size:11px; font-weight:600; text-decoration:none; transition:color 0.2s; }
 .h-addr-label:hover { color:#22d3ee; }
@@ -222,6 +226,8 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .h-badge-vc { background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.25); }
 .h-badge-dex { background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.25); }
 .h-badge-wallet { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.12); }
+/* Stacked USD Sub-value (Dolomite pattern) */
+.h-usd-sub { font-size:9px; color:rgba(255,255,255,0.25); font-weight:400; margin-top:1px; font-variant-numeric:tabular-nums; }
 /* Balance cells */
 .h-dash { opacity:0.3; font-size:11px; }
 .h-bal-total { font-weight:600; font-size:11px; color:#fff; }

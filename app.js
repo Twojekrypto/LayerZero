@@ -175,36 +175,38 @@ function renderHolders() {
     const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
     const colCount=2+numCols+1;
     let html='';
+    const price=DATA.meta.price_usd||0;
     page.forEach((h,idx)=>{
         const dbUrl=`https://debank.com/profile/${h.address}`;
         const shortA=h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dispBal=getDisplayBalance(h);
+        const usdVal=dispBal*price;
         const dbIcon=`<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
         let addrTd;
         if(h.label){
             const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[h.type]||'h-badge-whale';
-            addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${h.label}</a><span class="h-badge ${bCls}">${h.type}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
+            addrTd=`<td class="h-td h-td-addr"><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${h.label}</a><span class="h-badge ${bCls}">${h.type}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</div></div></td>`;
         } else {
-            addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
+            addrTd=`<td class="h-td h-td-addr"><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</div></div></div></td>`;
         }
         let chainCells='';
         visChains.forEach(k=>{
             const bal=h.balances[k]||0;
             if(bal>0){
                 const expUrl=CHAIN_EXPLORERS[k]+h.address;
-                chainCells+=`<td class="h-td h-td-right"><a href="${expUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:${CHAIN_COLORS[k]};text-decoration:none;font-size:11px" title="${bal.toLocaleString('en-US')} ZRO on ${DATA.chains[k].name}">${fmt(bal)}</a></td>`;
+                const chainUsd=bal*price;
+                chainCells+=`<td class="h-td h-td-right"><a href="${expUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:${CHAIN_COLORS[k]};text-decoration:none;font-size:11px" title="${bal.toLocaleString('en-US')} ZRO on ${DATA.chains[k].name}">${fmt(bal)}</a><div class="h-usd-sub">${fmtUSD(chainUsd)}</div></td>`;
             } else {
                 chainCells+=`<td class="h-td h-td-right"><span class="h-dash">—</span></td>`;
             }
         });
-        const balCell=`<td class="h-td h-td-right" title="${dispBal.toLocaleString('en-US')} ZRO"><span class="h-bal-total">${fmt(dispBal)}</span></td>`;
+        const balCell=`<td class="h-td h-td-right" title="${dispBal.toLocaleString('en-US')} ZRO"><span class="h-bal-total">${fmt(dispBal)}</span><div class="h-usd-sub">${fmtUSD(usdVal)}</div></td>`;
         html+=`<tr class="h-row" onclick="window.open('${dbUrl}','_blank')"><td class="h-td h-td-rank">${start+idx+1}</td>${addrTd}${chainCells}${balCell}</tr>`;
     });
     for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="h-row-empty">${('<td class="h-td">&nbsp;</td>').repeat(colCount)}</tr>`;
     document.getElementById('holders-tbody').innerHTML=html;
     document.getElementById('holders-count').textContent=`${items.length.toLocaleString()} hodlers`;
-    // Pagination — exact Dolomite style
-    if(totalPages<=1){ document.getElementById('holders-pager').innerHTML=''; return; }
+    // Pagination — always visible (Dolomite constant pager)
     document.getElementById('holders-pager').innerHTML=
         `<button class="pg-btn" onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button>`+
         `<button class="pg-btn" onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹</button>`+
@@ -333,7 +335,9 @@ function renderFlows() {
         const pageItems=items.slice(start,start+FLOW_PER_PAGE);
         let html='';
         pageItems.forEach((f,i)=>{
-            html+=`<tr><td class="rank-cell">${start+i+1}</td><td>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'}" style="font-variant-numeric:tabular-nums;font-weight:600">${isAcc?'+':''}${fmt(f.net_flow)}</td><td class="right val-muted" style="font-variant-numeric:tabular-nums">${fmt(f.balance)}</td></tr>`;
+            const flowUsd=Math.abs(f.net_flow)*(DATA.meta.price_usd||0);
+            const balUsd=(f.balance||0)*(DATA.meta.price_usd||0);
+            html+=`<tr><td class="rank-cell">${start+i+1}</td><td>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'}" style="font-variant-numeric:tabular-nums;font-weight:600">${isAcc?'+':''}${fmt(f.net_flow)}<div class="h-usd-sub">${fmtUSD(flowUsd)}</div></td><td class="right val-muted" style="font-variant-numeric:tabular-nums">${fmt(f.balance)}<div class="h-usd-sub">${fmtUSD(balUsd)}</div></td></tr>`;
         });
         for(let i=pageItems.length;i<FLOW_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
         document.getElementById(isAcc?'acc-tbody':'sell-tbody').innerHTML=html;

@@ -186,52 +186,56 @@ def main():
         total = sum(h.get("balances", {}).values())
         checked += 1
 
-        # Step 1: Check if it's a contract
-        contract = is_contract(addr)
-        time.sleep(0.25)
-
-        if contract:
-            # For contracts: check creation date and deployer
-            creation_ts, deployer = get_contract_creation_timestamp(addr)
+        try:
+            # Step 1: Check if it's a contract
+            contract = is_contract(addr)
             time.sleep(0.25)
 
-            if creation_ts and creation_ts > cutoff:
-                wallet_age = (now - creation_ts) // 86400
-                if deployer and deployer in KNOWN_DEPLOYERS:
-                    h["label"] = "New Institutional"
-                    h["type"] = "NEW_INST"
-                    new_inst += 1
-                    print(f"  🏛️ NEW INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old, deployer: {deployer[:10]}...)")
+            if contract:
+                # For contracts: check creation date and deployer
+                creation_ts, deployer = get_contract_creation_timestamp(addr)
+                time.sleep(0.25)
+
+                if creation_ts and creation_ts > cutoff:
+                    wallet_age = (now - creation_ts) // 86400
+                    if deployer and deployer in KNOWN_DEPLOYERS:
+                        h["label"] = "New Institutional"
+                        h["type"] = "NEW_INST"
+                        new_inst += 1
+                        print(f"  🏛️ NEW INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old, deployer: {deployer[:10]}...)")
+                    else:
+                        h["label"] = "Fresh Wallet"
+                        h["type"] = "FRESH"
+                        new_fresh += 1
+                        print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
+                elif deployer and deployer in KNOWN_DEPLOYERS:
+                    wallet_age = (now - creation_ts) // 86400 if creation_ts else 0
+                    skipped_contracts += 1
+                    print(f"  🏛️ OLD INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
+                elif creation_ts:
+                    wallet_age = (now - creation_ts) // 86400
+                    print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
                 else:
+                    print(f"  ❓ SKIP:  {addr[:14]}... ({total:,.0f} ZRO, contract, no creation data)")
+            else:
+                # For EOAs: check first transaction date
+                first_ts = get_first_tx_timestamp(addr)
+                time.sleep(0.25)
+
+                if first_ts and first_ts > cutoff:
+                    wallet_age = (now - first_ts) // 86400
                     h["label"] = "Fresh Wallet"
                     h["type"] = "FRESH"
                     new_fresh += 1
-                    print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
-            elif deployer and deployer in KNOWN_DEPLOYERS:
-                wallet_age = (now - creation_ts) // 86400 if creation_ts else 0
-                skipped_contracts += 1
-                print(f"  🏛️ OLD INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
-            elif creation_ts:
-                wallet_age = (now - creation_ts) // 86400
-                print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
-            else:
-                print(f"  ❓ SKIP:  {addr[:14]}... ({total:,.0f} ZRO, contract, no creation data)")
-        else:
-            # For EOAs: check first transaction date
-            first_ts = get_first_tx_timestamp(addr)
-            time.sleep(0.25)
-
-            if first_ts and first_ts > cutoff:
-                wallet_age = (now - first_ts) // 86400
-                h["label"] = "Fresh Wallet"
-                h["type"] = "FRESH"
-                new_fresh += 1
-                print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old)")
-            elif first_ts:
-                wallet_age = (now - first_ts) // 86400
-                print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old)")
-            else:
-                print(f"  ❓ SKIP:  {addr[:14]}... ({total:,.0f} ZRO, no TX found)")
+                    print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old)")
+                elif first_ts:
+                    wallet_age = (now - first_ts) // 86400
+                    print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old)")
+                else:
+                    print(f"  ❓ SKIP:  {addr[:14]}... ({total:,.0f} ZRO, no TX found)")
+        except Exception as e:
+            print(f"  ⚠️ ERROR: {addr[:14]}... — {e}")
+            time.sleep(2)  # Back off on errors
 
         # Progress
         if checked % 50 == 0:
