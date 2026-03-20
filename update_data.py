@@ -4,9 +4,7 @@ Merge freshly fetched holder data with existing zro_data.json labels.
 Preserves: labels, types, fresh_wallets metadata, flows, chains config, etc.
 Updates: balances, total counts, timestamp.
 """
-import json, os, time, random
-
-random.seed(int(time.time()))
+import json, os, time
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -102,12 +100,53 @@ def main():
         if chain_key in existing.get("chains", {}):
             existing["chains"][chain_key]["holders"] = stats.get("holders_gt10", 0)
 
+    # ── Data Validation ──
+    warnings = []
+    errors = []
+
+    # Check: holder count didn't drop more than 50%
+    old_count = len(label_map)  # how many labeled we had
+    new_count = len(new_holders)
+    if old_count > 100 and new_count < old_count * 0.5:
+        errors.append(f"Holder count dropped {old_count} → {new_count} (>50% drop!)")
+
+    # Check: top holder balance sanity
+    if new_holders:
+        top_bal = sum(new_holders[0].get("balances", {}).values())
+        if top_bal <= 0:
+            errors.append(f"Top holder has 0 balance: {new_holders[0]['address']}")
+
+    # Check: labeled wallets preserved
+    new_labeled = sum(1 for h in new_holders if h.get("label"))
+    old_labeled = sum(1 for v in label_map.values() if v.get("label"))
+    if old_labeled > 10 and new_labeled < old_labeled * 0.8:
+        warnings.append(f"Labels dropped: {old_labeled} → {new_labeled}")
+
+    # Check: total supply sanity
+    total = existing.get("total_supply", 0)
+    if total <= 0:
+        warnings.append("Total supply is 0")
+
+    # Print validation results
+    if warnings:
+        for w in warnings:
+            print(f"   ⚠️ WARNING: {w}")
+    if errors:
+        for e in errors:
+            print(f"   ❌ ERROR: {e}")
+        print("   🛑 Aborting save due to data validation errors!")
+        print("   Fix the issues and re-run, or use FORCE_SAVE=1 to override")
+        if not os.environ.get("FORCE_SAVE"):
+            return
+
     save_json(data_path, existing)
 
     print(f"✅ Updated zro_data.json")
     print(f"   Holders: {len(new_holders)}")
-    print(f"   Labeled: {sum(1 for h in new_holders if h['label'])}")
+    print(f"   Labeled: {new_labeled}")
     print(f"   Generated: {existing['meta']['generated']}")
+    if not warnings and not errors:
+        print(f"   ✅ All validation checks passed")
 
 if __name__ == "__main__":
     main()

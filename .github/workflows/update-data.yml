@@ -43,17 +43,24 @@ jobs:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
         run: python generate_flows.py
 
+      - name: Whale alerts (new whales, fresh wallets, large moves)
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python whale_alert.py
+
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet zro_data.json holders_multichain.json scan_state.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet zro_data.json holders_multichain.json scan_state.json whale_snapshot.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add zro_data.json holders_multichain.json scan_state.json
+          git add zro_data.json holders_multichain.json scan_state.json whale_snapshot.json
           git commit -m "📊 Daily holder scan $(date -u +'%Y-%m-%d %H:%M UTC')"
           git pull --rebase origin master
           git push

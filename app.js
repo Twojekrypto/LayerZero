@@ -452,6 +452,22 @@ function renderTimeline() {
     }).join('')}</div>`;
 }
 
+// ── Data Freshness ──
+function updateFreshness() {
+    const el = document.getElementById('footer-updated');
+    if(!el || !DATA || !DATA.meta) return;
+    const gen = new Date(DATA.meta.generated);
+    const now = new Date();
+    const diff = Math.floor((now - gen) / 1000);
+    let ago;
+    if(diff < 60) ago = 'just now';
+    else if(diff < 3600) ago = Math.floor(diff/60) + ' min ago';
+    else if(diff < 86400) ago = Math.floor(diff/3600) + 'h ' + Math.floor((diff%3600)/60) + 'min ago';
+    else ago = Math.floor(diff/86400) + 'd ago';
+    const fresh = diff < 7200; // <2h = fresh
+    el.innerHTML = `<span style="color:${fresh ? 'var(--accent-emerald)' : 'var(--accent-amber)'}">${fresh ? '🟢' : '🟡'}</span> Updated ${ago} <span style="color:var(--text-muted);font-size:11px">(${gen.toLocaleString()})</span>`;
+}
+
 // ── Init ──
 async function init() {
     try { DATA=await(await fetch('zro_data.json')).json(); }
@@ -459,7 +475,7 @@ async function init() {
     renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderNewInstitutional(); renderFlows();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
     initTabs(); initChainFilter(); initPeriodPills();
-    document.getElementById('footer-updated').textContent='Last updated: '+new Date(DATA.meta.generated).toLocaleString();
+    updateFreshness(); setInterval(updateFreshness, 30000);
     fetchPrice(); setInterval(fetchPrice,60000);
 }
 document.addEventListener('DOMContentLoaded', init);
