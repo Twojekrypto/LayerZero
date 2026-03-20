@@ -27,6 +27,21 @@ KNOWN_DEPLOYERS = {
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(DIR, "zro_data.json")
+CACHE_PATH = os.path.join(DIR, "fresh_cache.json")
+
+
+def load_cache():
+    """Load cached wallet age results to avoid redundant API calls."""
+    if os.path.exists(CACHE_PATH):
+        with open(CACHE_PATH) as f:
+            return json.load(f)
+    return {}
+
+
+def save_cache(cache):
+    """Save wallet age cache."""
+    with open(CACHE_PATH, "w") as f:
+        json.dump(cache, f, indent=2)
 
 
 def fetch_json(url):
@@ -180,11 +195,43 @@ def main():
     new_inst = 0
     skipped_contracts = 0
     checked = 0
+    cache_hits = 0
+
+    # Load cache of already-checked wallets
+    cache = load_cache()
+    now_ts = now
 
     for h in candidates:
-        addr = h["address"]
+        addr = h["address"].lower()
         total = sum(h.get("balances", {}).values())
         checked += 1
+
+        # Check cache first
+        cached = cache.get(addr)
+        if cached:
+            result = cached.get("result")  # OLD, FRESH, NEW_INST, SKIP
+            # OLD wallets stay OLD forever
+            if result == "OLD":
+                cache_hits += 1
+                continue
+            # FRESH/NEW_INST: re-check if they've aged out (>30 days since first_ts)
+            first_ts = cached.get("first_ts", 0)
+            if first_ts and (now_ts - first_ts) > (FRESH_AGE_DAYS * 86400):
+                # Aged out — remove label and mark as OLD
+                cache[addr] = {"result": "OLD", "checked": now_ts}
+                if h.get("type") in ("FRESH", "NEW_INST") and not h.get("label_manual"):
+                    h.pop("label", None)
+                    h.pop("type", None)
+                cache_hits += 1
+                continue
+            elif result in ("FRESH", "NEW_INST"):
+                # Still fresh — keep existing label, skip API call
+                cache_hits += 1
+                continue
+            # SKIP results: re-check periodically (every 7 days)
+            if result == "SKIP" and (now_ts - cached.get("checked", 0)) < 7 * 86400:
+                cache_hits += 1
+                continue
 
         try:
             # Step 1: Check if it's a contract
@@ -202,20 +249,25 @@ def main():
                         h["label"] = "New Institutional"
                         h["type"] = "NEW_INST"
                         new_inst += 1
+                        cache[addr] = {"result": "NEW_INST", "first_ts": creation_ts, "checked": now_ts}
                         print(f"  🏛️ NEW INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old, deployer: {deployer[:10]}...)")
                     else:
                         h["label"] = "Fresh Wallet"
                         h["type"] = "FRESH"
                         new_fresh += 1
+                        cache[addr] = {"result": "FRESH", "first_ts": creation_ts, "checked": now_ts}
                         print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
                 elif deployer and deployer in KNOWN_DEPLOYERS:
                     wallet_age = (now - creation_ts) // 86400 if creation_ts else 0
                     skipped_contracts += 1
+                    cache[addr] = {"result": "OLD", "checked": now_ts}
                     print(f"  🏛️ OLD INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
                 elif creation_ts:
                     wallet_age = (now - creation_ts) // 86400
+                    cache[addr] = {"result": "OLD", "checked": now_ts}
                     print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
                 else:
+                    cache[addr] = {"result": "SKIP", "checked": now_ts}
                     print(f"  ❓ SKIP:  {addr[:14]}... ({total:,.0f} ZRO, contract, no creation data)")
             else:
                 # For EOAs: check first transaction date
@@ -227,11 +279,14 @@ def main():
                     h["label"] = "Fresh Wallet"
                     h["type"] = "FRESH"
                     new_fresh += 1
+                    cache[addr] = {"result": "FRESH", "first_ts": first_ts, "checked": now_ts}
                     print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old)")
                 elif first_ts:
                     wallet_age = (now - first_ts) // 86400
+                    cache[addr] = {"result": "OLD", "checked": now_ts}
                     print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old)")
                 else:
+                    cache[addr] = {"result": "SKIP", "checked": now_ts}
                     print(f"  ❓ SKIP:  {addr[:14]}... ({total:,.0f} ZRO, no TX found)")
         except Exception as e:
             print(f"  ⚠️ ERROR: {addr[:14]}... — {e}")
@@ -243,9 +298,15 @@ def main():
 
     print()
     print(f"✅ Done!")
+    print(f"   Cache hits (skipped): {cache_hits}")
+    print(f"   API-checked: {checked - cache_hits}")
     print(f"   New FRESH wallets: {new_fresh}")
     print(f"   New INSTITUTIONAL wallets: {new_inst}")
     print(f"   Old institutional contracts: {skipped_contracts}")
+
+    # Always save cache (even if no fresh wallets found)
+    save_cache(cache)
+    print(f"💾 Cache saved ({len(cache)} entries)")
 
     if new_fresh > 0 or new_inst > 0:
         with open(DATA_PATH, "w") as f:
