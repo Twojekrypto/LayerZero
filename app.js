@@ -1,6 +1,6 @@
 /* ZRO Analytics Dashboard — app.js */
 let DATA = null, currentPeriod = '30d', holdersPage = 1;
-const HOLDERS_PER_PAGE = 25, FLOW_PER_PAGE = 5;
+const HOLDERS_PER_PAGE = 25, FLOW_PER_PAGE = 25;
 let holdersSortKey = 'total', holdersSortDir = 'desc', holdersSearchQuery = '';
 
 function fmt(n, d=0) {
