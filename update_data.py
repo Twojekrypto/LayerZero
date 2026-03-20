@@ -56,14 +56,20 @@ def main():
 
         new_holders.append(entry)
 
+    # Build balance map from existing data (to preserve balances for labeled wallets not in fresh)
+    balance_map = {}
+    for h in existing.get("top_holders", []):
+        addr = h["address"].lower()
+        balance_map[addr] = h.get("balances", {})
+
     # Ensure all labeled addresses are present (even if not in fresh data)
     fresh_addrs = {h["address"].lower() for h in new_holders}
     for addr, lbl in label_map.items():
         if addr not in fresh_addrs:
-            # Keep labeled address with 0 balances
+            # Keep labeled address with ORIGINAL balances (not empty)
             new_holders.append({
                 "address": addr,
-                "balances": {},
+                "balances": balance_map.get(addr, {}),
                 "label": lbl["label"],
                 "type": lbl["type"]
             })
