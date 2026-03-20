@@ -105,12 +105,20 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 
 /* ===== FLOW GRID ===== */
 .flow-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; }
-.flow-column { min-width:0; }
+.flow-column { min-width:0; display:flex; flex-direction:column; }
 .flow-column + .flow-column { border-left:1px solid var(--border-subtle); }
-.flow-col-header { padding:12px 20px; border-bottom:1px solid var(--border-subtle); font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; display:flex; align-items:center; gap:8px; }
+.flow-col-header { padding:12px 20px; border-bottom:1px solid var(--border-subtle); font-size:12px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .flow-col-header.inflow { color:var(--accent-green); }
 .flow-col-header.outflow { color:var(--accent-rose); }
 .flow-col-header .count { font-size:10px; font-weight:500; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:2px 8px; border-radius:10px; }
+.flow-table-wrap { flex:1; }
+
+/* ===== CHAIN FILTER PILLS ===== */
+.chain-filter { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.chain-pill { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:6px; font-size:10px; font-weight:600; cursor:pointer; border:1px solid var(--border-subtle); background:transparent; color:var(--text-muted); transition:all 0.2s; font-family:inherit; letter-spacing:0.3px; }
+.chain-pill:hover { border-color:rgba(255,255,255,0.2); color:var(--text-secondary); }
+.chain-pill.active { border-color:var(--pill-color,rgba(168,85,247,0.4)); background:color-mix(in srgb, var(--pill-color,#a855f7) 12%, transparent); color:#fff; }
+.chain-pill img { width:14px; height:14px; border-radius:50%; }
 
 /* ===== TABLE ===== */
 .data-table { width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed; }

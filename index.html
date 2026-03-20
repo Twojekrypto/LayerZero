@@ -90,25 +90,30 @@
                     <input type="text" class="search-input" id="flow-search" placeholder="Search address 0x… or label" oninput="filterFlows()">
                 </div>
                 <div class="flow-toolbar-divider"></div>
-                <div class="period-pills" id="flow-period-pills">
+                <div class="chain-filter" id="flow-chain-filter"></div>
+                <div class="period-pills" id="flow-period-pills" style="margin-left:auto">
                     <button data-period="1d">1D</button><button data-period="7d">7D</button>
                     <button data-period="30d" class="active">30D</button><button data-period="90d">90D</button>
                     <button data-period="all">ALL</button>
                 </div>
             </div>
             <div class="flow-grid">
-                <div class="flow-column">
+                <div class="flow-column" id="flow-col-acc">
                     <div class="flow-col-header inflow">🟢 Top Accumulators <span class="count" id="acc-count">0</span></div>
-                    <table class="data-table"><colgroup><col style="width:32px"><col style="width:45%"><col style="width:calc((100% - 32px - 45%) / 2)"><col style="width:calc((100% - 32px - 45%) / 2)"></colgroup>
-                    <thead><tr><th>#</th><th>Address</th><th class="right" style="color:var(--accent-green)">🟢 Net Flow</th><th class="right">⚪ Balance</th></tr></thead>
-                    <tbody id="acc-tbody"></tbody></table>
+                    <div class="flow-table-wrap">
+                        <table class="data-table"><colgroup><col style="width:32px"><col style="width:40%"><col style="width:calc((100% - 32px - 40%) / 2)"><col style="width:calc((100% - 32px - 40%) / 2)"></colgroup>
+                        <thead><tr><th>#</th><th>Address</th><th class="right" style="color:var(--accent-green)">Net Flow</th><th class="right">Balance</th></tr></thead>
+                        <tbody id="acc-tbody"></tbody></table>
+                    </div>
                     <div class="table-footer" id="acc-pager"></div>
                 </div>
-                <div class="flow-column">
+                <div class="flow-column" id="flow-col-sell">
                     <div class="flow-col-header outflow">🔴 Top Sellers <span class="count" id="sell-count">0</span></div>
-                    <table class="data-table"><colgroup><col style="width:32px"><col style="width:45%"><col style="width:calc((100% - 32px - 45%) / 2)"><col style="width:calc((100% - 32px - 45%) / 2)"></colgroup>
-                    <thead><tr><th>#</th><th>Address</th><th class="right" style="color:var(--accent-rose)">🔴 Net Flow</th><th class="right">⚪ Balance</th></tr></thead>
-                    <tbody id="sell-tbody"></tbody></table>
+                    <div class="flow-table-wrap">
+                        <table class="data-table"><colgroup><col style="width:32px"><col style="width:40%"><col style="width:calc((100% - 32px - 40%) / 2)"><col style="width:calc((100% - 32px - 40%) / 2)"></colgroup>
+                        <thead><tr><th>#</th><th>Address</th><th class="right" style="color:var(--accent-rose)">Net Flow</th><th class="right">Balance</th></tr></thead>
+                        <tbody id="sell-tbody"></tbody></table>
+                    </div>
                     <div class="table-footer" id="sell-pager"></div>
                 </div>
             </div>

@@ -216,13 +216,27 @@ function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
 
 // ── Flows ──
-let flowPageAcc=1, flowPageSell=1;
-function renderFlows() {
-    const flows=DATA.flows[currentPeriod]; if(!flows)return;
+let flowPageAcc=1, flowPageSell=1, flowChain='all';
+const CHAIN_ICONS_MAP={ethereum:'https://icons.llamao.fi/icons/chains/rsz_ethereum.jpg',arbitrum:'https://icons.llamao.fi/icons/chains/rsz_arbitrum.jpg',base:'https://icons.llamao.fi/icons/chains/rsz_base.jpg',bsc:'https://icons.llamao.fi/icons/chains/rsz_binance.jpg',optimism:'https://icons.llamao.fi/icons/chains/rsz_optimism.jpg',polygon:'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg',avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'};
+
+function getFlowItems(type){
+    const flows=DATA.flows[currentPeriod]; if(!flows) return [];
+    let items=flows[type]||[];
     const q=(document.getElementById('flow-search').value||'').trim().toLowerCase();
+    if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
+    if(flowChain!=='all'){
+        // Filter by chain: only show holders that have balance on selected chain
+        const holders=DATA.top_holders;
+        const addrSet=new Set(holders.filter(h=>(h.balances[flowChain]||0)>0).map(h=>h.address.toLowerCase()));
+        items=items.filter(f=>addrSet.has(f.address.toLowerCase()));
+    }
+    return items;
+}
+
+function renderFlows() {
     ['accumulators','sellers'].forEach(type=>{
-        const isAcc=type==='accumulators'; let items=flows[type]||[];
-        if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
+        const isAcc=type==='accumulators';
+        const items=getFlowItems(type);
         const total=items.length;
         document.getElementById(isAcc?'acc-count':'sell-count').textContent=total.toLocaleString();
         const page=isAcc?flowPageAcc:flowPageSell;
@@ -235,7 +249,6 @@ function renderFlows() {
         });
         for(let i=pageItems.length;i<FLOW_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
         document.getElementById(isAcc?'acc-tbody':'sell-tbody').innerHTML=html;
-        // Pagination
         const pagerEl=document.getElementById(isAcc?'acc-pager':'sell-pager');
         const pfx=isAcc?'acc':'sell';
         pagerEl.innerHTML=`
@@ -247,17 +260,28 @@ function renderFlows() {
     });
 }
 function goFlowPage(pfx,delta){
-    const flows=DATA.flows[currentPeriod]; if(!flows)return;
     const type=pfx==='acc'?'accumulators':'sellers';
-    const q=(document.getElementById('flow-search').value||'').trim().toLowerCase();
-    let items=flows[type]||[];
-    if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
+    const items=getFlowItems(type);
     const totalPages=Math.max(1,Math.ceil(items.length/FLOW_PER_PAGE));
-    if(pfx==='acc') { flowPageAcc=Math.max(1,Math.min(totalPages,delta===-999?1:delta===999?totalPages:flowPageAcc+delta)); }
-    else { flowPageSell=Math.max(1,Math.min(totalPages,delta===-999?1:delta===999?totalPages:flowPageSell+delta)); }
+    if(pfx==='acc') flowPageAcc=Math.max(1,Math.min(totalPages,delta===-999?1:delta===999?totalPages:flowPageAcc+delta));
+    else flowPageSell=Math.max(1,Math.min(totalPages,delta===-999?1:delta===999?totalPages:flowPageSell+delta));
     renderFlows();
 }
 function filterFlows() { flowPageAcc=1; flowPageSell=1; renderFlows(); }
+function setFlowChain(chain) {
+    flowChain=chain; flowPageAcc=1; flowPageSell=1;
+    document.querySelectorAll('#flow-chain-filter .chain-pill').forEach(p=>p.classList.toggle('active',p.dataset.chain===chain));
+    renderFlows();
+}
+function initChainFilter() {
+    const el=document.getElementById('flow-chain-filter');
+    let html=`<button class="chain-pill active" data-chain="all" onclick="setFlowChain('all')" style="--pill-color:#a855f7">All</button>`;
+    Object.entries(DATA.chains).forEach(([k,c])=>{
+        const icon=CHAIN_ICONS_MAP[k]||'';
+        html+=`<button class="chain-pill" data-chain="${k}" onclick="setFlowChain('${k}')" style="--pill-color:${c.color}">${icon?`<img src="${icon}" alt="${c.short}">`:''}${c.short}</button>`;
+    });
+    el.innerHTML=html;
+}
 function initPeriodPills() {
     document.getElementById('flow-period-pills').querySelectorAll('button').forEach(b=>{
         b.addEventListener('click',()=>{ document.querySelector('#flow-period-pills .active').classList.remove('active'); b.classList.add('active'); currentPeriod=b.dataset.period; flowPageAcc=1; flowPageSell=1; renderFlows(); });
@@ -346,7 +370,7 @@ async function init() {
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
     renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFlows();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
-    initTabs(); initPeriodPills();
+    initTabs(); initChainFilter(); initPeriodPills();
     document.getElementById('footer-updated').textContent='Last updated: '+new Date(DATA.meta.generated).toLocaleString();
     fetchPrice(); setInterval(fetchPrice,60000);
 }
