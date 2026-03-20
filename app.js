@@ -150,7 +150,7 @@ function renderHolders() {
         `<col class="hcol-rank"><col class="hcol-addr">` +
         visChains.map(()=>`<col class="hcol-chain">`).join('') +
         `<col class="hcol-total">`;
-    // Thead — clean: just icon + name + sort arrow
+    // Thead — exact Dolomite style
     const sa=k=>{
         if(holdersSortKey!==k) return '<span class="sort-arrow">⇅</span>';
         return `<span class="sort-arrow active">${holdersSortDir==='desc'?'▼':'▲'}</span>`;
@@ -160,7 +160,9 @@ function renderHolders() {
         <th class="h-th" onclick="sortHolders('address')">Address ${sa('address')}</th>`;
     visChains.forEach(k=>{
         const c=DATA.chains[k];
-        thead+=`<th class="h-th h-th-chain" style="color:${c.color}" onclick="sortHolders('${k}')"><img src="${CHAIN_ICONS[k]}" width="14" height="14" class="h-chain-icon"> ${c.short} ${sa(k)}</th>`;
+        thead+=`<th class="h-th h-th-chain" style="color:${c.color}" onclick="sortHolders('${k}')">
+            <div class="h-chain-hdr"><img src="${CHAIN_ICONS[k]}" width="16" height="16" class="h-chain-icon" alt="${c.short}"><span class="h-chain-name">${c.short}</span> ${sa(k)}</div>
+        </th>`;
     });
     thead+=`<th class="h-th h-th-chain" style="color:#fff" onclick="sortHolders('total')">⚪ Balance ${sa('total')}</th></tr>`;
     document.getElementById('holders-thead').innerHTML=thead;
@@ -199,14 +201,14 @@ function renderHolders() {
     for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="h-row-empty">${('<td class="h-td">&nbsp;</td>').repeat(colCount)}</tr>`;
     document.getElementById('holders-tbody').innerHTML=html;
     document.getElementById('holders-count').textContent=`${items.length.toLocaleString()} hodlers`;
-    // Pagination
+    // Pagination — exact Dolomite style
     if(totalPages<=1){ document.getElementById('holders-pager').innerHTML=''; return; }
     document.getElementById('holders-pager').innerHTML=
-        `<button class="h-pager-btn" onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button>`+
-        `<button class="h-pager-btn" onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹ Prev</button>`+
-        `<span class="h-pager-info">Page ${holdersPage} of ${totalPages.toLocaleString()} · ${start+1}–${Math.min(start+HOLDERS_PER_PAGE,items.length)} of ${items.length.toLocaleString()}</span>`+
-        `<button class="h-pager-btn" onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>Next ›</button>`+
-        `<button class="h-pager-btn" onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button>`;
+        `<button class="pg-btn" onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button>`+
+        `<button class="pg-btn" onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹</button>`+
+        `<span class="pg-info">${holdersPage} / ${totalPages.toLocaleString()}</span>`+
+        `<button class="pg-btn" onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>›</button>`+
+        `<button class="pg-btn" onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button>`;
 }
 function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==='asc'?'desc':'asc'; else {holdersSortKey=k;holdersSortDir='desc';} holdersPage=1;renderHolders(); }
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
