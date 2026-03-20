@@ -11,7 +11,7 @@ Supports two modes:
 
 State is stored in scan_state.json with lastBlock per chain.
 """
-import json, time, sys, os
+import json, time, sys, os, csv
 from urllib.request import urlopen, Request
 from collections import defaultdict
 from datetime import datetime
@@ -44,10 +44,20 @@ ALCHEMY_URLS = {
     "ethereum":  "eth-mainnet.g.alchemy.com",
     "arbitrum":  "arb-mainnet.g.alchemy.com",
     "base":      "base-mainnet.g.alchemy.com",
-    "bsc":       "bnb-mainnet.g.alchemy.com",
     "optimism":  "opt-mainnet.g.alchemy.com",
     "polygon":   "polygon-mainnet.g.alchemy.com",
-    "avalanche": "avax-mainnet.g.alchemy.com",
+}
+
+# CSV files for chains not covered by APIs
+CSV_DIR = os.path.join(DIR, "ZRO holders")
+CSV_FILES = {
+    "base":      "BASE.csv",
+    "bsc":       "bsc.csv",
+    "optimism":  "OPtymism.csv",
+    "avalanche": "AVAX.csv",
+    "polygon":   "polygon.csv",
+    "arbitrum":  "Arbitrum ZRO.csv",
+    "ethereum":  "ethereum.csv",
 }
 
 
@@ -192,7 +202,7 @@ def fetch_transfers_alchemy(chain_key, from_block="0x0"):
                 "category": ["erc20"],
                 "withMetadata": False,
                 "excludeZeroValue": True,
-                "maxCount": "0x7D0",
+                "maxCount": "0x3E8",
             }]
         }
 
@@ -303,15 +313,48 @@ def main():
         transfers, max_block = fetch_transfers_etherscan(chainid, start_block)
 
         # Fallback to Alchemy
-        if not transfers and ALCHEMY_KEY:
+        if not transfers and ALCHEMY_KEY and chain_key in ALCHEMY_URLS:
             print(f"  🔄 Etherscan empty — falling back to Alchemy...")
             from_hex = hex(start_block) if start_block > 0 else "0x0"
             transfers, max_block = fetch_transfers_alchemy(chain_key, from_hex)
 
         print(f"   Transfers fetched: {len(transfers)}")
 
+        # Fallback to CSV if both APIs failed
+        if not transfers:
+            csv_file = CSV_FILES.get(chain_key)
+            csv_path = os.path.join(CSV_DIR, csv_file) if csv_file else None
+            if csv_path and os.path.exists(csv_path):
+                print(f"  📁 APIs failed — loading from CSV: {csv_file}")
+                csv_balances = {}
+                with open(csv_path, "r", encoding="utf-8-sig") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        addr = row.get("HolderAddress", "").strip().strip('"').lower()
+                        bal_str = row.get("Balance", "").replace(",", "").replace('"', '').strip()
+                        if not addr or not bal_str:
+                            continue
+                        try:
+                            bal = float(bal_str)
+                        except ValueError:
+                            continue
+                        if bal > MIN_BALANCE:
+                            csv_balances[addr] = round(bal, 2)
+
+                print(f"   Holders from CSV: {len(csv_balances)}")
+                chain_stats[chain_key] = {"transfers": 0, "holders_gt10": len(csv_balances), "source": "CSV"}
+
+                for addr, balance in csv_balances.items():
+                    if addr not in all_holders:
+                        all_holders[addr] = {"balances": {}}
+                    all_holders[addr]["balances"][chain_key] = balance
+
+                print(f"   ✅ Done! (CSV fallback)")
+                print()
+                time.sleep(0.5)
+                continue
+
         if not transfers and not is_full:
-            # No new transfers — keep existing data
             print(f"   No new transfers — keeping existing data")
             chain_stats[chain_key] = chain_state.get("stats", {"transfers": 0, "holders_gt10": 0})
             continue
