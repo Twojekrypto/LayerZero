@@ -46,14 +46,14 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet zro_data.json holders_multichain.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet zro_data.json holders_multichain.json scan_state.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add zro_data.json holders_multichain.json
-          git commit -m "📊 Daily full holder scan $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git add zro_data.json holders_multichain.json scan_state.json
+          git commit -m "📊 Daily holder scan $(date -u +'%Y-%m-%d %H:%M UTC')"
           git pull --rebase origin master
           git push
