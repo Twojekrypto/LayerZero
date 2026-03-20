@@ -182,7 +182,7 @@ function renderHolders() {
         const dbIcon=`<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
         let addrTd;
         if(h.label){
-            const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm'}[h.type]||'h-badge-whale';
+            const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock'}[h.type]||'h-badge-whale';
             addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${h.label}</a><span class="h-badge ${bCls}">${h.type}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
         } else {
             addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
@@ -214,6 +214,38 @@ function renderHolders() {
 }
 function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==='asc'?'desc':'asc'; else {holdersSortKey=k;holdersSortDir='desc';} holdersPage=1;renderHolders(); }
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
+// ── Fresh Wallets ──
+function renderFreshWallets() {
+    const freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH').sort((a,b) => {
+        const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
+        const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
+        return bTotal - aTotal;
+    });
+    const totalSupply = DATA.total_supply || 1000000000;
+    const unlockWallet = DATA.top_holders.find(h => h.type === 'UNLOCK');
+    const unlockLabel = unlockWallet ? unlockWallet.label : 'Token Unlocks';
+    const unlockAddr = unlockWallet ? unlockWallet.address : '';
+    const copySvg='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    let html = '';
+    freshHolders.forEach((h, i) => {
+        const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
+        const pct = (bal / totalSupply * 100).toFixed(4);
+        const short = h.address.slice(0,6)+'…'+h.address.slice(-4);
+        const dbUrl = `https://debank.com/profile/${h.address}`;
+        const srcShort = unlockAddr ? unlockAddr.slice(0,6)+'…'+unlockAddr.slice(-4) : '—';
+        const srcLink = unlockAddr ? `<a href="https://debank.com/profile/${unlockAddr}" target="_blank" rel="noopener" class="h-addr-hex" style="font-size:10px">${unlockLabel}</a>` : '—';
+        html += `<tr>
+            <td class="rank-cell">${i+1}</td>
+            <td><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" class="h-addr-hex">${short}</a><span class="h-badge h-badge-fresh">FRESH</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span></span></td>
+            <td class="right val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</td>
+            <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
+            <td class="right">${srcLink}</td>
+        </tr>`;
+    });
+    if(!freshHolders.length) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
+    document.getElementById('fresh-tbody').innerHTML = html;
+    document.getElementById('fresh-sub').textContent = `${freshHolders.length} wallets — Receiving ZRO from Token Unlocks`;
+}
 
 // ── Flows ──
 let flowPageAcc=1, flowPageSell=1, flowChain='all';
@@ -368,7 +400,7 @@ function renderTimeline() {
 async function init() {
     try { DATA=await(await fetch('zro_data.json')).json(); }
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
-    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFlows();
+    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderFlows();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
     initTabs(); initChainFilter(); initPeriodPills();
     document.getElementById('footer-updated').textContent='Last updated: '+new Date(DATA.meta.generated).toLocaleString();
