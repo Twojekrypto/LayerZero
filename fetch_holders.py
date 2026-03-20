@@ -183,7 +183,7 @@ def fetch_transfers_alchemy(chain_key, from_block="0x0"):
     all_txs = []
     page_key = None
     page = 0
-    MAX_PAGES = 500  # Cap at 500 pages to avoid timeout (500K transfers max)
+    MAX_PAGES = 2000  # Cap at 2000 pages = 2M transfers max (safe within 60min timeout)
     max_block = 0
 
     while True:
