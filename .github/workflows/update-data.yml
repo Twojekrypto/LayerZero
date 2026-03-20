@@ -1,17 +1,17 @@
-name: Update ZRO Holder Data
+name: Daily Full Holder Scan
 
 on:
   schedule:
-    # Run every 2 hours
-    - cron: '0 */2 * * *'
+    # Run once daily at 06:00 UTC (full transfer scan + fresh detection)
+    - cron: '0 6 * * *'
   workflow_dispatch:
-    # Allow manual trigger from GitHub UI
+    # Allow manual trigger
 
 permissions:
   contents: write
 
 jobs:
-  update-data:
+  full-scan:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Fetch holder data from Etherscan
+      - name: Fetch holder data from Etherscan (full transfer scan)
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
         run: python fetch_holders.py
@@ -40,7 +40,7 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet zro_data.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet zro_data.json holders_multichain.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
@@ -48,5 +48,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add zro_data.json holders_multichain.json
-          git commit -m "📊 Auto-update ZRO holder data $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git commit -m "📊 Daily full holder scan $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git pull --rebase origin master
           git push
