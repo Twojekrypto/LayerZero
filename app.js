@@ -182,7 +182,7 @@ function renderHolders() {
         const dbIcon=`<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
         let addrTd;
         if(h.label){
-            const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock'}[h.type]||'h-badge-whale';
+            const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[h.type]||'h-badge-whale';
             addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${h.label}</a><span class="h-badge ${bCls}">${h.type}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
         } else {
             addrTd=`<td class="h-td h-td-addr"><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</span></td>`;
@@ -270,7 +270,40 @@ function goFreshPage(delta) {
     renderFreshWallets();
 }
 
-// ── Flows ──
+// ── New Institutional Wallets ──
+function renderNewInstitutional() {
+    const instHolders = DATA.top_holders.filter(h => h.type === 'NEW_INST' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
+        const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
+        const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
+        return bTotal - aTotal;
+    });
+    const totalSupply = DATA.total_supply || 1000000000;
+    const copySvg='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    const total = instHolders.length;
+    let html = '';
+    instHolders.forEach((h, i) => {
+        const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
+        const pct = (bal / totalSupply * 100).toFixed(4);
+        const short = h.address.slice(0,6)+'…'+h.address.slice(-4);
+        const dbUrl = `https://debank.com/profile/${h.address}`;
+        html += `<tr>
+            <td class="rank-cell">${i+1}</td>
+            <td><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" class="h-addr-hex">${short}</a><span class="h-badge h-badge-inst">NEW INST</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span></span></td>
+            <td class="right val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</td>
+            <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
+            <td class="right" style="font-size:10px;color:var(--text-muted)">BitGo / Gnosis Safe</td>
+        </tr>`;
+    });
+    if(!total) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No new institutional wallets detected</td></tr>';
+    const tbody = document.getElementById('inst-tbody');
+    if(tbody) tbody.innerHTML = html;
+    const sub = document.getElementById('inst-sub');
+    if(sub) sub.textContent = `${total} wallets — BitGo / Gnosis Safe MultiSig created in last 30 days`;
+    // Hide card if no institutional wallets
+    const card = document.getElementById('inst-card');
+    if(card) card.style.display = total ? '' : 'none';
+}
+
 let flowPageAcc=1, flowPageSell=1, flowChain='all';
 const CHAIN_ICONS_MAP={ethereum:'https://icons.llamao.fi/icons/chains/rsz_ethereum.jpg',arbitrum:'https://icons.llamao.fi/icons/chains/rsz_arbitrum.jpg',base:'https://icons.llamao.fi/icons/chains/rsz_base.jpg',bsc:'https://icons.llamao.fi/icons/chains/rsz_binance.jpg',optimism:'https://icons.llamao.fi/icons/chains/rsz_optimism.jpg',polygon:'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg',avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'};
 
@@ -423,7 +456,7 @@ function renderTimeline() {
 async function init() {
     try { DATA=await(await fetch('zro_data.json')).json(); }
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
-    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderFlows();
+    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderNewInstitutional(); renderFlows();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
     initTabs(); initChainFilter(); initPeriodPills();
     document.getElementById('footer-updated').textContent='Last updated: '+new Date(DATA.meta.generated).toLocaleString();

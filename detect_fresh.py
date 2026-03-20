@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Auto-detect Fresh Wallets.
+Auto-detect Fresh & New Institutional Wallets.
 For every ZRO holder with >10K balance that has no label yet,
 check Etherscan for their wallet creation date (first TX or contract creation).
-If the wallet is younger than 30 days → label it FRESH permanently.
 
 Detection logic:
   1. Skip already-labeled wallets (CEX, FRESH, UNLOCK, CUSTODY, etc.)
   2. For CONTRACTS: check contract creation timestamp (not first exec TX!)
-  3. For EOAs: check first-ever transaction timestamp
-  4. Exclude known multi-sig deployers (BitGo, etc.)
-  5. Only wallets created in last 30 days qualify as FRESH
+     - If deployed by known institutional deployer → label NEW_INST
+     - Otherwise → label FRESH
+  3. For EOAs: check first-ever transaction timestamp → label FRESH
+  4. Only wallets created in last 30 days qualify
 """
 import json, os, time
 from urllib.request import urlopen, Request
@@ -19,7 +19,7 @@ API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 MIN_BALANCE_FOR_CHECK = 10_000  # Only check wallets with >10K ZRO
 FRESH_AGE_DAYS = 30  # Wallet younger than this = FRESH
 
-# Known multi-sig deployers — wallets created by these are institutional, not fresh
+# Known multi-sig deployers — wallets created by these are institutional
 KNOWN_DEPLOYERS = {
     "0x5e2e302ba028f33845fcb107dd8a6b55f42e92a0",  # BitGo deployer
     "0x41274f7674333a7e5b3215e4c7af51eb4cc7cedb",  # Gnosis Safe deployer (LZ)
@@ -177,6 +177,7 @@ def main():
         return
 
     new_fresh = 0
+    new_inst = 0
     skipped_contracts = 0
     checked = 0
 
@@ -194,17 +195,22 @@ def main():
             creation_ts, deployer = get_contract_creation_timestamp(addr)
             time.sleep(0.25)
 
-            if deployer and deployer in KNOWN_DEPLOYERS:
-                skipped_contracts += 1
-                print(f"  🏛️ INST:  {addr[:14]}... ({total:,.0f} ZRO) — deployed by known institutional deployer")
-                continue
-
             if creation_ts and creation_ts > cutoff:
                 wallet_age = (now - creation_ts) // 86400
-                h["label"] = "Fresh Wallet"
-                h["type"] = "FRESH"
-                new_fresh += 1
-                print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
+                if deployer and deployer in KNOWN_DEPLOYERS:
+                    h["label"] = "New Institutional"
+                    h["type"] = "NEW_INST"
+                    new_inst += 1
+                    print(f"  🏛️ NEW INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old, deployer: {deployer[:10]}...)")
+                else:
+                    h["label"] = "Fresh Wallet"
+                    h["type"] = "FRESH"
+                    new_fresh += 1
+                    print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
+            elif deployer and deployer in KNOWN_DEPLOYERS:
+                wallet_age = (now - creation_ts) // 86400 if creation_ts else 0
+                skipped_contracts += 1
+                print(f"  🏛️ OLD INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
             elif creation_ts:
                 wallet_age = (now - creation_ts) // 86400
                 print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
@@ -234,9 +240,10 @@ def main():
     print()
     print(f"✅ Done!")
     print(f"   New FRESH wallets: {new_fresh}")
-    print(f"   Skipped institutional contracts: {skipped_contracts}")
+    print(f"   New INSTITUTIONAL wallets: {new_inst}")
+    print(f"   Old institutional contracts: {skipped_contracts}")
 
-    if new_fresh > 0:
+    if new_fresh > 0 or new_inst > 0:
         with open(DATA_PATH, "w") as f:
             json.dump(data, f, indent=2)
         print(f"💾 Saved to {DATA_PATH}")
