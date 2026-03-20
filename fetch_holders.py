@@ -9,7 +9,7 @@ import json, time, sys, os
 from urllib.request import urlopen, Request
 from collections import defaultdict
 
-API_KEY = "BG7CUH7AXTA9S6Z624T8ZZ5NQSA97PIRE9"
+API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
 MIN_BALANCE = 10  # Only include holders with >10 ZRO
 DECIMALS = 18
