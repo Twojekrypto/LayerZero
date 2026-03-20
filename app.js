@@ -216,25 +216,51 @@ function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
 
 // ── Flows ──
+let flowPageAcc=1, flowPageSell=1;
 function renderFlows() {
     const flows=DATA.flows[currentPeriod]; if(!flows)return;
     const q=(document.getElementById('flow-search').value||'').trim().toLowerCase();
     ['accumulators','sellers'].forEach(type=>{
         const isAcc=type==='accumulators'; let items=flows[type]||[];
         if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
-        document.getElementById(isAcc?'acc-count':'sell-count').textContent=items.length;
+        const total=items.length;
+        document.getElementById(isAcc?'acc-count':'sell-count').textContent=total.toLocaleString();
+        const page=isAcc?flowPageAcc:flowPageSell;
+        const totalPages=Math.max(1,Math.ceil(total/FLOW_PER_PAGE));
+        const start=(page-1)*FLOW_PER_PAGE;
+        const pageItems=items.slice(start,start+FLOW_PER_PAGE);
         let html='';
-        items.slice(0,FLOW_PER_PAGE).forEach((f,i)=>{
-            html+=`<tr><td class="rank-cell">${i+1}</td><td>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'}" style="font-variant-numeric:tabular-nums;font-weight:600">${isAcc?'+':''}${fmt(f.net_flow)}</td><td class="right val-muted" style="font-variant-numeric:tabular-nums">${fmt(f.balance)}</td></tr>`;
+        pageItems.forEach((f,i)=>{
+            html+=`<tr><td class="rank-cell">${start+i+1}</td><td>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'}" style="font-variant-numeric:tabular-nums;font-weight:600">${isAcc?'+':''}${fmt(f.net_flow)}</td><td class="right val-muted" style="font-variant-numeric:tabular-nums">${fmt(f.balance)}</td></tr>`;
         });
-        for(let i=items.length;i<FLOW_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
+        for(let i=pageItems.length;i<FLOW_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
         document.getElementById(isAcc?'acc-tbody':'sell-tbody').innerHTML=html;
+        // Pagination
+        const pagerEl=document.getElementById(isAcc?'acc-pager':'sell-pager');
+        const pfx=isAcc?'acc':'sell';
+        pagerEl.innerHTML=`
+            <button class="pg-btn" onclick="goFlowPage('${pfx}',-999)" ${page<=1?'disabled':''}>&laquo;</button>
+            <button class="pg-btn" onclick="goFlowPage('${pfx}',-1)" ${page<=1?'disabled':''}>&lsaquo;</button>
+            <span class="pg-info">${page} / ${totalPages}</span>
+            <button class="pg-btn" onclick="goFlowPage('${pfx}',1)" ${page>=totalPages?'disabled':''}>&rsaquo;</button>
+            <button class="pg-btn" onclick="goFlowPage('${pfx}',999)" ${page>=totalPages?'disabled':''}>&raquo;</button>`;
     });
 }
-function filterFlows() { renderFlows(); }
+function goFlowPage(pfx,delta){
+    const flows=DATA.flows[currentPeriod]; if(!flows)return;
+    const type=pfx==='acc'?'accumulators':'sellers';
+    const q=(document.getElementById('flow-search').value||'').trim().toLowerCase();
+    let items=flows[type]||[];
+    if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
+    const totalPages=Math.max(1,Math.ceil(items.length/FLOW_PER_PAGE));
+    if(pfx==='acc') { flowPageAcc=Math.max(1,Math.min(totalPages,delta===-999?1:delta===999?totalPages:flowPageAcc+delta)); }
+    else { flowPageSell=Math.max(1,Math.min(totalPages,delta===-999?1:delta===999?totalPages:flowPageSell+delta)); }
+    renderFlows();
+}
+function filterFlows() { flowPageAcc=1; flowPageSell=1; renderFlows(); }
 function initPeriodPills() {
     document.getElementById('flow-period-pills').querySelectorAll('button').forEach(b=>{
-        b.addEventListener('click',()=>{ document.querySelector('#flow-period-pills .active').classList.remove('active'); b.classList.add('active'); currentPeriod=b.dataset.period; renderFlows(); });
+        b.addEventListener('click',()=>{ document.querySelector('#flow-period-pills .active').classList.remove('active'); b.classList.add('active'); currentPeriod=b.dataset.period; flowPageAcc=1; flowPageSell=1; renderFlows(); });
     });
 }
 
