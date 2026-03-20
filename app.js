@@ -216,7 +216,7 @@ function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
 // ── Fresh Wallets ──
 function renderFreshWallets() {
-    const freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH').sort((a,b) => {
+    const freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
         const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
