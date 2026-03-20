@@ -32,6 +32,11 @@ jobs:
       - name: Merge with existing data (preserve labels)
         run: python update_data.py
 
+      - name: Auto-detect fresh wallets (<30 days old)
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        run: python detect_fresh.py
+
       - name: Check for changes
         id: changes
         run: |
