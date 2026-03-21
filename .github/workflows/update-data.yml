@@ -57,5 +57,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add zro_data.json holders_multichain.json scan_state.json fresh_cache.json
           git commit -m "📊 Daily holder scan $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git pull --rebase origin master
+          git pull --rebase -X theirs origin master
           git push
