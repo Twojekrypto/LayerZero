@@ -16,6 +16,7 @@ import json, os, time
 from urllib.request import urlopen, Request
 
 API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 MIN_BALANCE_FOR_CHECK = 10_000  # Only check wallets with >10K ZRO
 FRESH_AGE_DAYS = 30  # Wallet younger than this = FRESH
 
@@ -272,6 +273,7 @@ def main():
     skipped_contracts = 0
     checked = 0
     cache_hits = 0
+    new_wallets = []  # Collect for Discord alerts
 
     # Load cache of already-checked wallets
     cache = load_cache()
@@ -326,12 +328,14 @@ def main():
                         h["type"] = "NEW_INST"
                         new_inst += 1
                         cache[addr] = {"result": "NEW_INST", "first_ts": creation_ts, "checked": now_ts}
+                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "NEW_INST", "wallet_type": "Contract"})
                         print(f"  🏛️ NEW INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old, deployer: {deployer[:10]}...)")
                     else:
                         h["label"] = "Fresh Wallet"
                         h["type"] = "FRESH"
                         new_fresh += 1
                         cache[addr] = {"result": "FRESH", "first_ts": creation_ts, "checked": now_ts}
+                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "FRESH", "wallet_type": "Contract"})
                         print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
                 elif deployer and deployer in KNOWN_DEPLOYERS:
                     wallet_age = (now - creation_ts) // 86400 if creation_ts else 0
@@ -361,6 +365,7 @@ def main():
                         h["type"] = "FRESH"
                         new_fresh += 1
                         cache[addr] = {"result": "FRESH", "first_ts": first_ts, "checked": now_ts}
+                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "FRESH", "wallet_type": "EOA"})
                         print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old, multi-chain)")
                 elif first_ts:
                     wallet_age = (now - first_ts) // 86400
@@ -393,8 +398,106 @@ def main():
         with open(DATA_PATH, "w") as f:
             json.dump(data, f, indent=2)
         print(f"💾 Saved to {DATA_PATH}")
+
+        # Send Discord alerts for new wallets
+        if new_wallets:
+            send_discord_alerts(new_wallets)
     else:
         print("   No changes needed")
+
+
+def get_zro_price():
+    """Fetch current ZRO price from CoinGecko (best-effort)."""
+    try:
+        url = "https://api.coingecko.com/api/v3/simple/price?ids=layerzero&vs_currencies=usd"
+        data = fetch_json(url)
+        if data and "layerzero" in data:
+            return data["layerzero"]["usd"]
+    except Exception:
+        pass
+    return None
+
+
+def send_discord_alerts(wallets):
+    """Send rich embed notifications to Discord via webhook."""
+    if not DISCORD_WEBHOOK_URL:
+        print("⚠️ DISCORD_WEBHOOK_URL not set — skipping Discord alerts")
+        return
+
+    price = get_zro_price()
+    print(f"📢 Sending {len(wallets)} Discord alert(s)...")
+
+    for w in wallets:
+        addr = w["address"]
+        short_addr = addr[:6] + "…" + addr[-4:]
+        balance = w["balance"]
+        usd_val = f" (${balance * price:,.0f})" if price else ""
+        is_inst = w["type"] == "NEW_INST"
+
+        # Green for FRESH, Blue for NEW_INST
+        color = 0x3B82F6 if is_inst else 0x34D399
+        title = "🏛️ New Institutional Wallet" if is_inst else "🟢 New Fresh Wallet Detected"
+
+        etherscan_url = f"https://etherscan.io/address/{addr}"
+        debank_url = f"https://debank.com/profile/{addr}"
+
+        embed = {
+            "title": title,
+            "color": color,
+            "fields": [
+                {"name": "Address", "value": f"[`{short_addr}`]({etherscan_url})", "inline": True},
+                {"name": "Balance", "value": f"**{balance:,.0f} ZRO**{usd_val}", "inline": True},
+                {"name": "Age", "value": f"{w['age_days']} days", "inline": True},
+                {"name": "Type", "value": w["wallet_type"], "inline": True},
+                {"name": "Links", "value": f"[Etherscan]({etherscan_url}) · [DeBank]({debank_url})", "inline": False},
+            ],
+            "footer": {"text": "ZRO Fresh Wallet Alert"},
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+
+        payload = json.dumps({"embeds": [embed]}).encode("utf-8")
+        try:
+            req = Request(DISCORD_WEBHOOK_URL, data=payload, method="POST")
+            req.add_header("Content-Type", "application/json")
+            req.add_header("User-Agent", "ZRO-Dashboard/1.0")
+            with urlopen(req, timeout=10) as resp:
+                if resp.status in (200, 204):
+                    print(f"  ✅ Alert sent: {short_addr}")
+                else:
+                    print(f"  ⚠️ Webhook returned {resp.status}")
+        except Exception as e:
+            print(f"  ❌ Webhook error: {e}")
+        time.sleep(1)  # Rate limit: 1 per second
+
+    # Summary embed
+    total_balance = sum(w["balance"] for w in wallets)
+    total_usd = f" (${total_balance * price:,.0f})" if price else ""
+    fresh_count = sum(1 for w in wallets if w["type"] == "FRESH")
+    inst_count = sum(1 for w in wallets if w["type"] == "NEW_INST")
+
+    parts = []
+    if fresh_count:
+        parts.append(f"**{fresh_count}** fresh")
+    if inst_count:
+        parts.append(f"**{inst_count}** institutional")
+
+    summary_embed = {
+        "title": "📊 Fresh Wallet Scan Complete",
+        "description": f"Found {' + '.join(parts)} wallet(s)\nTotal: **{total_balance:,.0f} ZRO**{total_usd}",
+        "color": 0xA855F7,
+        "footer": {"text": "ZRO Analytics · Daily Scan"},
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+
+    try:
+        payload = json.dumps({"embeds": [summary_embed]}).encode("utf-8")
+        req = Request(DISCORD_WEBHOOK_URL, data=payload, method="POST")
+        req.add_header("Content-Type", "application/json")
+        req.add_header("User-Agent", "ZRO-Dashboard/1.0")
+        with urlopen(req, timeout=10):
+            print("  ✅ Summary alert sent")
+    except Exception as e:
+        print(f"  ❌ Summary webhook error: {e}")
 
 
 if __name__ == "__main__":

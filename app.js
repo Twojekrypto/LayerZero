@@ -431,21 +431,24 @@ function goFlowPage(pfx,delta){
 function filterFlows() { flowPageAcc=1; flowPageSell=1; renderFlows(); }
 function setFlowChain(chain, label) {
     flowChain=chain; flowPageAcc=1; flowPageSell=1;
-    document.getElementById('chain-dd-label').textContent = label || '🔗 All Chains';
+    document.getElementById('chain-dd-label').textContent = label || 'All Chains';
     document.getElementById('chain-dd-menu').classList.remove('open');
-    document.getElementById('chain-dd-trigger').classList.toggle('active', chain !== 'all');
+    const trigger = document.getElementById('chain-dd-trigger');
+    trigger.classList.toggle('active', chain !== 'all');
     renderFlows();
 }
 function toggleChainDropdown() {
     const menu = document.getElementById('chain-dd-menu');
-    menu.classList.toggle('open');
+    const trigger = document.getElementById('chain-dd-trigger');
+    const isOpen = menu.classList.toggle('open');
+    trigger.classList.toggle('active', isOpen || flowChain !== 'all');
 }
 function initChainFilter() {
     const menu=document.getElementById('chain-dd-menu');
-    let html=`<button class="chain-dd-item" onclick="setFlowChain('all','🔗 All Chains')"><span class="chain-dd-dot" style="background:#a855f7"></span>All Chains</button>`;
+    let html=`<button class="chain-dd-item" onclick="setFlowChain('all','All Chains')"><span class="chain-dd-dot" style="background:#a855f7"></span>All Chains</button>`;
     Object.entries(DATA.chains).forEach(([k,c])=>{
         const icon=CHAIN_ICONS_MAP[k]||'';
-        html+=`<button class="chain-dd-item" onclick="setFlowChain('${k}','${icon?'':''}${c.short}')">${icon?`<img src="${icon}" width="16" height="16" style="border-radius:50%">`:`<span class="chain-dd-dot" style="background:${c.color}"></span>`}${c.short}</button>`;
+        html+=`<button class="chain-dd-item" onclick="setFlowChain('${k}','${c.short}')">${icon?`<img src="${icon}" width="16" height="16" style="border-radius:50%">`:`<span class="chain-dd-dot" style="background:${c.color}"></span>`}${c.short}</button>`;
     });
     menu.innerHTML=html;
     // Click outside to close
@@ -453,6 +456,8 @@ function initChainFilter() {
         const dd = document.getElementById('chain-dropdown');
         if (dd && !dd.contains(e.target)) {
             document.getElementById('chain-dd-menu').classList.remove('open');
+            const trigger = document.getElementById('chain-dd-trigger');
+            if (flowChain === 'all') trigger.classList.remove('active');
         }
     });
 }
