@@ -255,7 +255,7 @@ function renderFreshWallets() {
             <div class="h-addr-line1"><span class="h-addr-label">${short}</span> <span class="h-badge h-badge-fresh">FRESH</span></div>
             <div class="h-addr-line2">
                 <span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>
-                <a class="h-debank-icon" href="${dbUrl}" target="_blank" rel="noopener" title="DeBank" onclick="event.stopPropagation()"><img src="https://assets.debank.com/static/media/logo-mini.eed32571.svg" width="14" height="14" alt="DB" style="border-radius:50%;opacity:0.6" onerror="this.outerHTML='${dbSvg}'"></a>
+                <a class="icon-btn" href="${dbUrl}" target="_blank" rel="noopener" title="DeBank" onclick="event.stopPropagation()">${dbSvg}</a>
             </div>
         </div>`;
         html += `<tr>
@@ -272,7 +272,7 @@ function renderFreshWallets() {
     if(!total && !freshSearchQuery) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
     if(!total && freshSearchQuery) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+freshSearchQuery+'"</td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
-    document.getElementById('fresh-sub').textContent = `${total} wallets — Receiving ZRO from Token Unlocks`;
+    document.getElementById('fresh-sub').textContent = `${total} fresh wallets receiving ZRO`;
     const countEl = document.getElementById('fresh-count');
     if(countEl) countEl.textContent = freshSearchQuery ? `${total} matching` : `${total} fresh wallets`;
     // Pager — always visible (constant pager pattern)
