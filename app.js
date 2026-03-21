@@ -241,14 +241,20 @@ function renderFreshWallets() {
     const start = (freshPage - 1) * FRESH_PER_PAGE;
     const pageItems = freshHolders.slice(start, start + FRESH_PER_PAGE);
     let html = '';
+    const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
     pageItems.forEach((h, i) => {
         const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
         const pct = (bal / totalSupply * 100).toFixed(4);
         const usdVal = price ? fmtUSD(bal * price) : '';
         const srcLink = unlockAddr ? `<a href="https://debank.com/profile/${unlockAddr}" target="_blank" rel="noopener" class="h-addr-hex" style="font-size:10px">${unlockLabel}</a>` : '—';
+        const shortA = h.address.slice(0,6)+'…'+h.address.slice(-4);
+        const dbUrl = `https://debank.com/profile/${h.address}`;
+        const dbIcon = `<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
+        const label = h.label || 'Fresh Wallet';
+        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</div></div>`;
         html += `<tr>
             <td class="rank-cell">${start+i+1}</td>
-            <td>${addrCell(h)}</td>
+            <td>${addrTd}</td>
             <td class="right"><div class="val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
             <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
             <td class="right">${srcLink}</td>
