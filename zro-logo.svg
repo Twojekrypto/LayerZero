@@ -1,36 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
-  <defs>
-    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1a1a2e"/>
-      <stop offset="100%" stop-color="#0d0d1a"/>
-    </linearGradient>
-    <linearGradient id="stroke-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#A855F7"/>
-      <stop offset="50%" stop-color="#6366F1"/>
-      <stop offset="100%" stop-color="#3B82F6"/>
-    </linearGradient>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="3" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-    </filter>
-  </defs>
-  <!-- Outer ring -->
-  <circle cx="100" cy="100" r="96" fill="url(#bg-grad)" stroke="url(#stroke-grad)" stroke-width="2"/>
-  <!-- Inner subtle ring -->
-  <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(168,85,247,0.15)" stroke-width="1"/>
-  <!-- LayerZero diamond/cross pattern -->
-  <g filter="url(#glow)">
-    <!-- Central diamond -->
-    <path d="M100 45 L145 100 L100 155 L55 100 Z" stroke="url(#stroke-grad)" stroke-width="3" fill="none" stroke-linejoin="round"/>
-    <!-- Cross connections -->
-    <line x1="100" y1="45" x2="100" y2="155" stroke="url(#stroke-grad)" stroke-width="2" opacity="0.4"/>
-    <line x1="55" y1="100" x2="145" y2="100" stroke="url(#stroke-grad)" stroke-width="2" opacity="0.4"/>
-    <!-- Node dots -->
-    <circle cx="100" cy="45" r="5" fill="#A855F7"/>
-    <circle cx="145" cy="100" r="5" fill="#6366F1"/>
-    <circle cx="100" cy="155" r="5" fill="#3B82F6"/>
-    <circle cx="55" cy="100" r="5" fill="#818CF8"/>
-    <!-- Center dot -->
-    <circle cx="100" cy="100" r="4" fill="#fff"/>
+  <!-- Official LayerZero "broken zero" logo recreation -->
+  <!-- Two disconnected strokes forming a zero/pill shape with diagonal gap -->
+  <g transform="translate(100,100)">
+    <!-- Top-right stroke: starts from top, goes right and down -->
+    <path d="M -8,-62 
+             C -8,-62 -30,-62 -30,-62
+             C -47,-62 -62,-47 -62,-30
+             L -62,20"
+          stroke="white" stroke-width="12" stroke-linecap="round" fill="none"/>
+    <!-- Bottom-left stroke: starts from bottom, goes left and up -->
+    <path d="M 8,62 
+             C 8,62 30,62 30,62
+             C 47,62 62,47 62,30
+             L 62,-20"
+          stroke="white" stroke-width="12" stroke-linecap="round" fill="none"/>
   </g>
 </svg>
