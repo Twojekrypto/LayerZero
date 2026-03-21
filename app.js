@@ -220,7 +220,7 @@ function filterHolders() { holdersSearchQuery=document.getElementById('holders-s
 let freshPage=1, freshSearchQuery='';
 const FRESH_PER_PAGE=15;
 function renderFreshWallets() {
-    let freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
+    let freshHolders = DATA.top_holders.filter(h => (h.type === 'FRESH' || h.fresh === true) && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
         const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
