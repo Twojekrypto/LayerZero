@@ -217,19 +217,26 @@ function renderHolders() {
 function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==='asc'?'desc':'asc'; else {holdersSortKey=k;holdersSortDir='desc';} holdersPage=1;renderHolders(); }
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
 // ── Fresh Wallets ──
-let freshPage=1;
-const FRESH_PER_PAGE=25;
+let freshPage=1, freshSearchQuery='';
+const FRESH_PER_PAGE=15;
 function renderFreshWallets() {
-    const freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
+    let freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
         const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
     });
+    // Search filter
+    if(freshSearchQuery) {
+        const q = freshSearchQuery.toLowerCase();
+        freshHolders = freshHolders.filter(h => h.address.toLowerCase().includes(q) || (h.label||'').toLowerCase().includes(q));
+    }
     const totalSupply = DATA.total_supply || 1000000000;
+    const price = DATA.meta?.price_usd || 0;
     const unlockWallet = DATA.top_holders.find(h => h.type === 'UNLOCK');
     const unlockLabel = unlockWallet ? unlockWallet.label : 'Token Unlocks';
     const unlockAddr = unlockWallet ? unlockWallet.address : '';
     const copySvg='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    const dbSvg='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
     const total = freshHolders.length;
     const totalPages = Math.max(1, Math.ceil(total / FRESH_PER_PAGE));
     freshPage = Math.min(freshPage, totalPages);
@@ -239,38 +246,55 @@ function renderFreshWallets() {
     pageItems.forEach((h, i) => {
         const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
         const pct = (bal / totalSupply * 100).toFixed(4);
+        const usdVal = price ? fmtUSD(bal * price) : '';
         const short = h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dbUrl = `https://debank.com/profile/${h.address}`;
         const srcLink = unlockAddr ? `<a href="https://debank.com/profile/${unlockAddr}" target="_blank" rel="noopener" class="h-addr-hex" style="font-size:10px">${unlockLabel}</a>` : '—';
+        // Two-line address layout (Dolomite pattern)
+        const addrHtml = `<div class="h-addr-two-line">
+            <div class="h-addr-line1"><span class="h-addr-label">${short}</span> <span class="h-badge h-badge-fresh">FRESH</span></div>
+            <div class="h-addr-line2">
+                <span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>
+                <a class="h-debank-icon" href="${dbUrl}" target="_blank" rel="noopener" title="DeBank" onclick="event.stopPropagation()"><img src="https://assets.debank.com/static/media/logo-mini.eed32571.svg" width="14" height="14" alt="DB" style="border-radius:50%;opacity:0.6" onerror="this.outerHTML='${dbSvg}'"></a>
+            </div>
+        </div>`;
         html += `<tr>
             <td class="rank-cell">${start+i+1}</td>
-            <td><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" class="h-addr-hex">${short}</a><span class="h-badge h-badge-fresh">FRESH</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span></span></td>
-            <td class="right val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</td>
+            <td>${addrHtml}</td>
+            <td class="right"><div class="val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
             <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
             <td class="right">${srcLink}</td>
         </tr>`;
     });
-    if(!total) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
+    // Pad empty rows to keep constant height
+    const emptyRows = FRESH_PER_PAGE - pageItems.length;
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="5"></td></tr>';
+    if(!total && !freshSearchQuery) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
+    if(!total && freshSearchQuery) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+freshSearchQuery+'"</td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
     document.getElementById('fresh-sub').textContent = `${total} wallets — Receiving ZRO from Token Unlocks`;
-    // Pager — hide if single page
+    const countEl = document.getElementById('fresh-count');
+    if(countEl) countEl.textContent = freshSearchQuery ? `${total} matching` : `${total} fresh wallets`;
+    // Pager — always visible (constant pager pattern)
     const pagerEl = document.getElementById('fresh-pager');
     if(pagerEl) {
-        if(totalPages <= 1) { pagerEl.innerHTML = ''; }
-        else { pagerEl.innerHTML = `
+        pagerEl.innerHTML = `
             <button class="pg-btn" onclick="goFreshPage(-999)" ${freshPage<=1?'disabled':''}>&laquo;</button>
             <button class="pg-btn" onclick="goFreshPage(-1)" ${freshPage<=1?'disabled':''}>&lsaquo;</button>
             <span class="pg-info">${freshPage} / ${totalPages}</span>
             <button class="pg-btn" onclick="goFreshPage(1)" ${freshPage>=totalPages?'disabled':''}>&rsaquo;</button>
-            <button class="pg-btn" onclick="goFreshPage(999)" ${freshPage>=totalPages?'disabled':''}>&raquo;</button>`; }
+            <button class="pg-btn" onclick="goFreshPage(999)" ${freshPage>=totalPages?'disabled':''}>&raquo;</button>`;
     }
 }
 function goFreshPage(delta) {
     const freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000);
-    const totalPages = Math.max(1, Math.ceil(freshHolders.length / FRESH_PER_PAGE));
+    let filtered = freshHolders;
+    if(freshSearchQuery) { const q=freshSearchQuery.toLowerCase(); filtered=filtered.filter(h=>h.address.toLowerCase().includes(q)||(h.label||'').toLowerCase().includes(q)); }
+    const totalPages = Math.max(1, Math.ceil(filtered.length / FRESH_PER_PAGE));
     freshPage = Math.max(1, Math.min(totalPages, delta===-999?1:delta===999?totalPages:freshPage+delta));
     renderFreshWallets();
 }
+function filterFresh() { freshSearchQuery=document.getElementById('fresh-search').value.trim();freshPage=1;renderFreshWallets(); }
 
 // ── New Institutional Wallets ──
 function renderNewInstitutional() {

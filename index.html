@@ -7,7 +7,7 @@
     <meta name="description" content="Real-time analytics for ZRO (LayerZero) — multi-chain distribution, holder flows, tokenomics, vesting, buybacks.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <div class="page-wrapper">
@@ -82,6 +82,13 @@
         <!-- FRESH WALLETS -->
         <div class="card anim" id="fresh-card" style="margin-top:24px">
             <div class="card-header"><h3>🟢 Fresh Wallets <span class="card-sub" id="fresh-sub">Receiving ZRO from Token Unlocks</span></h3></div>
+            <div class="flow-toolbar">
+                <div class="search-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" class="search-input" id="fresh-search" placeholder="Search address..." oninput="filterFresh()">
+                </div>
+                <span class="toolbar-count" id="fresh-count"></span>
+            </div>
             <div class="table-scroll">
                 <table class="data-table" id="fresh-table">
                     <thead><tr>
@@ -199,6 +206,6 @@
     </footer>
 </div>
 <div class="toast" id="toast"></div>
-<script src="app.js"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
