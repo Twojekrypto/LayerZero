@@ -37,7 +37,9 @@ const EXPLORER_MAP = {
 };
 
 function getMainChain(addr) {
-    // Find which chain has the highest balance for this address
+    // If a chain filter is active, use that chain's explorer
+    if (typeof flowChain !== 'undefined' && flowChain !== 'all') return flowChain;
+    // Otherwise find which chain has the highest balance
     const holder = DATA.top_holders.find(h => h.address.toLowerCase() === addr.toLowerCase());
     if (!holder || !holder.balances) return 'ethereum';
     let maxChain = 'ethereum', maxBal = 0;
@@ -427,19 +429,32 @@ function goFlowPage(pfx,delta){
     renderFlows();
 }
 function filterFlows() { flowPageAcc=1; flowPageSell=1; renderFlows(); }
-function setFlowChain(chain) {
+function setFlowChain(chain, label) {
     flowChain=chain; flowPageAcc=1; flowPageSell=1;
-    document.querySelectorAll('#flow-chain-filter .chain-pill').forEach(p=>p.classList.toggle('active',p.dataset.chain===chain));
+    document.getElementById('chain-dd-label').textContent = label || '🔗 All Chains';
+    document.getElementById('chain-dd-menu').classList.remove('open');
+    document.getElementById('chain-dd-trigger').classList.toggle('active', chain !== 'all');
     renderFlows();
 }
+function toggleChainDropdown() {
+    const menu = document.getElementById('chain-dd-menu');
+    menu.classList.toggle('open');
+}
 function initChainFilter() {
-    const el=document.getElementById('flow-chain-filter');
-    let html=`<button class="chain-pill active" data-chain="all" onclick="setFlowChain('all')" style="--pill-color:#a855f7">All</button>`;
+    const menu=document.getElementById('chain-dd-menu');
+    let html=`<button class="chain-dd-item" onclick="setFlowChain('all','🔗 All Chains')"><span class="chain-dd-dot" style="background:#a855f7"></span>All Chains</button>`;
     Object.entries(DATA.chains).forEach(([k,c])=>{
         const icon=CHAIN_ICONS_MAP[k]||'';
-        html+=`<button class="chain-pill" data-chain="${k}" onclick="setFlowChain('${k}')" style="--pill-color:${c.color}">${icon?`<img src="${icon}" alt="${c.short}">`:''}${c.short}</button>`;
+        html+=`<button class="chain-dd-item" onclick="setFlowChain('${k}','${icon?'':''}${c.short}')">${icon?`<img src="${icon}" width="16" height="16" style="border-radius:50%">`:`<span class="chain-dd-dot" style="background:${c.color}"></span>`}${c.short}</button>`;
     });
-    el.innerHTML=html;
+    menu.innerHTML=html;
+    // Click outside to close
+    document.addEventListener('click', (e) => {
+        const dd = document.getElementById('chain-dropdown');
+        if (dd && !dd.contains(e.target)) {
+            document.getElementById('chain-dd-menu').classList.remove('open');
+        }
+    });
 }
 function initPeriodPills() {
     document.getElementById('flow-period-pills').querySelectorAll('button').forEach(b=>{

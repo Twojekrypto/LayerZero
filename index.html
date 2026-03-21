@@ -7,7 +7,7 @@
     <meta name="description" content="Real-time analytics for ZRO (LayerZero) — multi-chain distribution, holder flows, tokenomics, vesting, buybacks.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 <div class="page-wrapper">
@@ -133,7 +133,13 @@
                     <input type="text" class="search-input" id="flow-search" placeholder="Search address 0x… or label" oninput="filterFlows()">
                 </div>
                 <div class="flow-toolbar-divider"></div>
-                <div class="chain-filter" id="flow-chain-filter"></div>
+                <div class="chain-dropdown" id="chain-dropdown">
+                    <button class="chain-dd-trigger" id="chain-dd-trigger" onclick="toggleChainDropdown()">
+                        <span id="chain-dd-label">🔗 All Chains</span>
+                        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
+                    </button>
+                    <div class="chain-dd-menu" id="chain-dd-menu"></div>
+                </div>
                 <button class="cex-toggle" id="flow-hide-cex" onclick="toggleHideCex()" title="Hide CEX wallets">🏦 Hide CEX</button>
                 <div class="period-pills" id="flow-period-pills" style="margin-left:auto">
                     <button data-period="1d">1D</button><button data-period="7d">7D</button>
@@ -208,6 +214,6 @@
     </footer>
 </div>
 <div class="toast" id="toast"></div>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
