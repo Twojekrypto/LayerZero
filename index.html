@@ -7,7 +7,7 @@
     <meta name="description" content="Real-time analytics for ZRO (LayerZero) — multi-chain distribution, holder flows, tokenomics, vesting, buybacks.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <div class="page-wrapper">
@@ -134,6 +134,7 @@
                 </div>
                 <div class="flow-toolbar-divider"></div>
                 <div class="chain-filter" id="flow-chain-filter"></div>
+                <button class="cex-toggle" id="flow-hide-cex" onclick="toggleHideCex()" title="Hide CEX wallets">🏦 Hide CEX</button>
                 <div class="period-pills" id="flow-period-pills" style="margin-left:auto">
                     <button data-period="1d">1D</button><button data-period="7d">7D</button>
                     <button data-period="30d" class="active">30D</button><button data-period="90d">90D</button>
@@ -207,6 +208,6 @@
     </footer>
 </div>
 <div class="toast" id="toast"></div>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

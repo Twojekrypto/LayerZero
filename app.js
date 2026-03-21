@@ -25,11 +25,42 @@ function badgeHTML(type) {
     const m={'CEX':'badge-cex','DEX':'badge-dex','PROTOCOL':'badge-protocol','VC':'badge-vc','INST':'badge-inst','WALLET':'badge-wallet'};
     return `<span class="addr-badge ${m[type]||'badge-wallet'}">${type}</span>`;
 }
+
+const EXPLORER_MAP = {
+    ethereum: 'https://etherscan.io/address/',
+    arbitrum: 'https://arbiscan.io/address/',
+    base: 'https://basescan.org/address/',
+    bsc: 'https://bscscan.com/address/',
+    optimism: 'https://optimistic.etherscan.io/address/',
+    polygon: 'https://polygonscan.com/address/',
+    avalanche: 'https://snowtrace.io/address/',
+};
+
+function getMainChain(addr) {
+    // Find which chain has the highest balance for this address
+    const holder = DATA.top_holders.find(h => h.address.toLowerCase() === addr.toLowerCase());
+    if (!holder || !holder.balances) return 'ethereum';
+    let maxChain = 'ethereum', maxBal = 0;
+    for (const [chain, bal] of Object.entries(holder.balances)) {
+        if (bal > maxBal) { maxBal = bal; maxChain = chain; }
+    }
+    return maxChain;
+}
+
 function addrCell(item) {
-    const addr=item.address, debankUrl=`https://debank.com/profile/${addr}`;
-    const icons=`<button class="icon-btn" onclick="event.stopPropagation();copyText('${addr}')" title="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button><a class="icon-btn" href="${debankUrl}" target="_blank" rel="noopener" title="DeBank" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></a>`;
-    if (item.label) return `<div style="line-height:1.3"><div class="addr-primary">${item.label} ${badgeHTML(item.type)}</div><div class="addr-hex">${shortAddr(addr)} ${icons}</div></div>`;
-    return `<div style="line-height:1.3"><div class="addr-hex" style="color:rgba(255,255,255,0.7);font-size:12px">${shortAddr(addr)} ${badgeHTML(item.type)} ${icons}</div></div>`;
+    const addr=item.address, shortA=addr.slice(0,6)+'…'+addr.slice(-4);
+    const chain = getMainChain(addr);
+    const explorerUrl = (EXPLORER_MAP[chain] || EXPLORER_MAP.ethereum) + addr;
+    const dbUrl=`https://debank.com/profile/${addr}`;
+    const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    const explorerSvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+    const dbIcon=`<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
+    const explorerIcon=`<a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-explorer-icon" title="View on Explorer">${explorerSvg}</a>`;
+    if (item.label) {
+        const bCls={'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','WALLET':'h-badge-wallet','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[item.type]||'h-badge-whale';
+        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${addr}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
+    }
+    return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${addr}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
 }
 
 // ── Tabs ──
@@ -331,7 +362,7 @@ function renderNewInstitutional() {
     if(card) card.style.display = total ? '' : 'none';
 }
 
-let flowPageAcc=1, flowPageSell=1, flowChain='all';
+let flowPageAcc=1, flowPageSell=1, flowChain='all', hideCex=false;
 const CHAIN_ICONS_MAP={ethereum:'https://icons.llamao.fi/icons/chains/rsz_ethereum.jpg',arbitrum:'https://icons.llamao.fi/icons/chains/rsz_arbitrum.jpg',base:'https://icons.llamao.fi/icons/chains/rsz_base.jpg',bsc:'https://icons.llamao.fi/icons/chains/rsz_binance.jpg',optimism:'https://icons.llamao.fi/icons/chains/rsz_optimism.jpg',polygon:'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg',avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'};
 
 function getFlowItems(type){
@@ -340,12 +371,23 @@ function getFlowItems(type){
     const q=(document.getElementById('flow-search').value||'').trim().toLowerCase();
     if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
     if(flowChain!=='all'){
-        // Filter by chain: only show holders that have balance on selected chain
         const holders=DATA.top_holders;
         const addrSet=new Set(holders.filter(h=>(h.balances[flowChain]||0)>0).map(h=>h.address.toLowerCase()));
         items=items.filter(f=>addrSet.has(f.address.toLowerCase()));
     }
+    if(hideCex){
+        // Build set of known CEX addresses from top_holders
+        const cexAddrs=new Set(DATA.top_holders.filter(h=>h.type==='CEX'||(h.label&&h.label.toLowerCase().includes('coinbase'))||(h.label&&h.label.toLowerCase().includes('binance'))||(h.label&&h.label.toLowerCase().includes('okx'))||(h.label&&h.label.toLowerCase().includes('bybit'))||(h.label&&h.label.toLowerCase().includes('kraken'))).map(h=>h.address.toLowerCase()));
+        items=items.filter(f=>!cexAddrs.has(f.address.toLowerCase()));
+    }
     return items;
+}
+function toggleHideCex(){
+    hideCex=!hideCex;
+    const btn=document.getElementById('flow-hide-cex');
+    btn.classList.toggle('active',hideCex);
+    flowPageAcc=1; flowPageSell=1;
+    renderFlows();
 }
 
 function renderFlows() {

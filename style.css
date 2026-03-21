@@ -197,6 +197,15 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .h-badge-unlock { background:rgba(251,146,60,0.15); color:#fb923c; border:1px solid rgba(251,146,60,0.25); }
 .h-badge-custody, .h-badge-multisig { background:rgba(6,182,212,0.15); color:#06b6d4; border:1px solid rgba(6,182,212,0.25); }
 
+/* Explorer icon */
+.h-explorer-icon { display:inline-flex; align-items:center; margin-left:4px; color:var(--text-muted); opacity:0.5; transition:all 0.15s; vertical-align:middle; }
+.h-explorer-icon:hover { opacity:1; color:var(--accent-cyan); }
+
+/* CEX toggle */
+.cex-toggle { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:6px; font-size:10px; font-weight:600; cursor:pointer; border:1px solid var(--border-subtle); background:transparent; color:var(--text-muted); transition:all 0.2s; font-family:inherit; letter-spacing:0.3px; white-space:nowrap; margin-left:6px; }
+.cex-toggle:hover { border-color:rgba(255,255,255,0.2); color:var(--text-secondary); }
+.cex-toggle.active { border-color:rgba(251,146,60,0.4); background:rgba(251,146,60,0.12); color:#fb923c; }
+
 /* ===== TOOLBAR COUNT ===== */
 .toolbar-count { font-size:11px; color:var(--text-muted); margin-left:auto; white-space:nowrap; }
 
