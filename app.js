@@ -235,8 +235,6 @@ function renderFreshWallets() {
     const unlockWallet = DATA.top_holders.find(h => h.type === 'UNLOCK');
     const unlockLabel = unlockWallet ? unlockWallet.label : 'Token Unlocks';
     const unlockAddr = unlockWallet ? unlockWallet.address : '';
-    const copySvg='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
-    const dbSvg='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
     const total = freshHolders.length;
     const totalPages = Math.max(1, Math.ceil(total / FRESH_PER_PAGE));
     freshPage = Math.min(freshPage, totalPages);
@@ -247,20 +245,10 @@ function renderFreshWallets() {
         const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
         const pct = (bal / totalSupply * 100).toFixed(4);
         const usdVal = price ? fmtUSD(bal * price) : '';
-        const short = h.address.slice(0,6)+'…'+h.address.slice(-4);
-        const dbUrl = `https://debank.com/profile/${h.address}`;
         const srcLink = unlockAddr ? `<a href="https://debank.com/profile/${unlockAddr}" target="_blank" rel="noopener" class="h-addr-hex" style="font-size:10px">${unlockLabel}</a>` : '—';
-        // Two-line address layout (Dolomite pattern)
-        const addrHtml = `<div class="h-addr-two-line">
-            <div class="h-addr-line1"><span class="h-addr-label">${short}</span> <span class="h-badge h-badge-fresh">FRESH</span></div>
-            <div class="h-addr-line2">
-                <span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>
-                <a class="icon-btn" href="${dbUrl}" target="_blank" rel="noopener" title="DeBank" onclick="event.stopPropagation()">${dbSvg}</a>
-            </div>
-        </div>`;
         html += `<tr>
             <td class="rank-cell">${start+i+1}</td>
-            <td>${addrHtml}</td>
+            <td>${addrCell(h)}</td>
             <td class="right"><div class="val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
             <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
             <td class="right">${srcLink}</td>
