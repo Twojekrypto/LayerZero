@@ -2,8 +2,8 @@ name: Daily Full Holder Scan
 
 on:
   schedule:
-    # Run once daily at 06:00 UTC (full transfer scan + fresh detection)
-    - cron: '0 6 * * *'
+    # Run twice daily: 06:00 UTC (07:00 CET) and 18:00 UTC (19:00 CET)
+    - cron: '0 6,18 * * *'
   workflow_dispatch:
     # Allow manual trigger
 
