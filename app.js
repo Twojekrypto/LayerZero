@@ -225,6 +225,7 @@ function renderFreshWallets() {
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
     });
+    const allFresh = freshHolders;
     // Search filter
     if(freshSearchQuery) {
         const q = freshSearchQuery.toLowerCase();
@@ -261,7 +262,9 @@ function renderFreshWallets() {
     if(!total && !freshSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
     if(!total && freshSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+freshSearchQuery+'"</td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
-    document.getElementById('fresh-sub').textContent = `${total} fresh wallets receiving ZRO`;
+    const totalBal = allFresh.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
+    const totalUsd = price ? ` · ${fmtUSD(totalBal * price)}` : '';
+    document.getElementById('fresh-sub').textContent = `${allFresh.length} fresh wallets · ${fmt(totalBal)} ZRO accumulated${totalUsd}`;
     const countEl = document.getElementById('fresh-count');
     if(countEl) countEl.textContent = freshSearchQuery ? `${total} matching` : `${total} fresh wallets`;
     // Pager — always visible (constant pager pattern)
