@@ -23,7 +23,7 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 .header-logo img { height:40px; width:auto; filter:invert(1) brightness(0.85) drop-shadow(0 0 20px rgba(168,85,247,0.25)); animation:logoFloat 4s ease-in-out infinite; }
 @keyframes logoFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
 .header-title { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:4px; line-height:1.2; color:rgba(255,255,255,0.7); }
-.title-zro { background:var(--gradient-brand); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-weight:900; letter-spacing:-0.5px; }
+.title-zro { color:#fff; font-weight:900; letter-spacing:-0.5px; }
 .title-analytics { -webkit-text-fill-color:initial; color:rgba(255,255,255,0.55); font-weight:300; letter-spacing:2px; text-transform:uppercase; font-size:24px; }
 .header-sub { font-size:12px; color:var(--text-muted); margin-bottom:18px; display:flex; align-items:center; gap:8px; letter-spacing:0.5px; }
 .live-dot { width:6px; height:6px; border-radius:50%; background:var(--accent-green); flex-shrink:0; animation:livePulse 2s ease-in-out infinite; }
