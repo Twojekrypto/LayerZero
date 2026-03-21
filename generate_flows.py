@@ -7,8 +7,8 @@ across all chains and compute real net_flow (IN - OUT) per period (1D, 7D, 30D, 
 
 Per-chain wallet limits (sorted by balance on that chain):
   Ethereum:  600
-  Arbitrum:  200
-  Others:    100 each
+  Arbitrum:  100
+  Others:    50 each
 """
 import json, os, time
 from urllib.request import urlopen, Request
@@ -24,12 +24,12 @@ DATA_PATH = os.path.join(DIR, "zro_data.json")
 # Chain configs: chain_id, block_time (s), top_n wallets to scan
 CHAINS = {
     "ethereum":  {"id": 1,     "block_time": 12,  "top_n": 600},
-    "arbitrum":  {"id": 42161, "block_time": 0.25, "top_n": 200},
-    "base":      {"id": 8453,  "block_time": 2,    "top_n": 100},
-    "bsc":       {"id": 56,    "block_time": 3,    "top_n": 100},
-    "optimism":  {"id": 10,    "block_time": 2,    "top_n": 100},
-    "polygon":   {"id": 137,   "block_time": 2,    "top_n": 100},
-    "avalanche": {"id": 43114, "block_time": 2,    "top_n": 100},
+    "arbitrum":  {"id": 42161, "block_time": 0.25, "top_n": 100},
+    "base":      {"id": 8453,  "block_time": 2,    "top_n": 50},
+    "bsc":       {"id": 56,    "block_time": 3,    "top_n": 50},
+    "optimism":  {"id": 10,    "block_time": 2,    "top_n": 50},
+    "polygon":   {"id": 137,   "block_time": 2,    "top_n": 50},
+    "avalanche": {"id": 43114, "block_time": 2,    "top_n": 50},
 }
 
 # Period definitions in seconds
