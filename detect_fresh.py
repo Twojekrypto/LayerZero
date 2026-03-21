@@ -124,33 +124,109 @@ def get_contract_creation_timestamp(address):
     return None, None
 
 
-def get_first_tx_timestamp(address):
-    """Get the timestamp of the address's first-ever transaction on Ethereum (for EOAs)."""
-    url = (
-        f"https://api.etherscan.io/v2/api?chainid=1"
-        f"&module=account&action=txlist"
-        f"&address={address}"
-        f"&startblock=0&endblock=99999999"
-        f"&page=1&offset=1&sort=asc"
-        f"&apikey={API_KEY}"
-    )
-    data = fetch_json(url)
-    if not data or data.get("status") != "1" or not data.get("result"):
-        # Try token transactions
+KNOWN_CEX_HOT_WALLETS = {
+    # Coinbase
+    "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
+    "0x503828976d22510aad0201ac7ec88293211d23da",
+    "0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740",
+    "0x3cd751e6b0078be393132286c442345e68ff0afc",
+    "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511",
+    "0xeb2629a2734e272bcc07bda959863f316f4bd4cf",
+    # Binance
+    "0x28c6c06298d514db089934071355e5743bf21d60",
+    "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
+    "0xdfd5293d8e347dfe59e90efd55b2956a1343963d",
+    "0x56eddb7aa87536c09ccc2793473599fd21a8b17f",
+    # OKX
+    "0x6cc5f688a315f3dc28a7781717a9a798a59fda7b",
+    "0x236f9f97e0e62388479bf9e5ba4889e46b0273c3",
+    # Bybit
+    "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
+    "0x1db92e2eebc8e0c075a02bea49a2935bcd2dfcf4",
+}
+
+
+def get_first_tx_timestamp_multichain(address):
+    """Get the EARLIEST first transaction across ALL supported chains.
+    Returns the oldest first-tx timestamp found on any chain."""
+    # Chains to check: chainid values
+    chains_to_check = [
+        (1, "Ethereum"),
+        (42161, "Arbitrum"),
+        (8453, "Base"),
+        (56, "BSC"),
+        (10, "Optimism"),
+        (137, "Polygon"),
+        (43114, "Avalanche"),
+    ]
+
+    earliest_ts = None
+
+    for chain_id, chain_name in chains_to_check:
+        # Check normal transactions first
+        url = (
+            f"https://api.etherscan.io/v2/api?chainid={chain_id}"
+            f"&module=account&action=txlist"
+            f"&address={address}"
+            f"&startblock=0&endblock=99999999"
+            f"&page=1&offset=1&sort=asc"
+            f"&apikey={API_KEY}"
+        )
+        data = fetch_json(url)
+        if data and data.get("status") == "1" and data.get("result"):
+            ts = int(data["result"][0].get("timeStamp", 0))
+            if ts and (earliest_ts is None or ts < earliest_ts):
+                earliest_ts = ts
+            time.sleep(0.22)
+            continue
+
+        time.sleep(0.22)
+
+        # Fallback: check token transactions
         url2 = (
-            f"https://api.etherscan.io/v2/api?chainid=1"
+            f"https://api.etherscan.io/v2/api?chainid={chain_id}"
             f"&module=account&action=tokentx"
             f"&address={address}"
             f"&startblock=0&endblock=99999999"
             f"&page=1&offset=1&sort=asc"
             f"&apikey={API_KEY}"
         )
-        data = fetch_json(url2)
-        if not data or data.get("status") != "1" or not data.get("result"):
-            return None
+        data2 = fetch_json(url2)
+        if data2 and data2.get("status") == "1" and data2.get("result"):
+            ts = int(data2["result"][0].get("timeStamp", 0))
+            if ts and (earliest_ts is None or ts < earliest_ts):
+                earliest_ts = ts
 
-    first_tx = data["result"][0]
-    return int(first_tx.get("timeStamp", 0))
+        time.sleep(0.22)
+
+    return earliest_ts
+
+
+def has_cex_interaction(address):
+    """Check if a wallet has direct ZRO transfers to/from known CEX hot wallets.
+    If so, this is likely a CEX deposit wallet, not an independent fresh buyer."""
+    url = (
+        f"https://api.etherscan.io/v2/api?chainid=1"
+        f"&module=account&action=tokentx"
+        f"&address={address}"
+        f"&contractaddress=0x6985884c4392d348587b19cb9eaaf157f13271cd"
+        f"&startblock=0&endblock=99999999"
+        f"&page=1&offset=50&sort=desc"
+        f"&apikey={API_KEY}"
+    )
+    data = fetch_json(url)
+    if not data or data.get("status") != "1" or not data.get("result"):
+        return False
+
+    cex_interactions = 0
+    for tx in data["result"]:
+        from_addr = tx.get("from", "").lower()
+        to_addr = tx.get("to", "").lower()
+        if from_addr in KNOWN_CEX_HOT_WALLETS or to_addr in KNOWN_CEX_HOT_WALLETS:
+            cex_interactions += 1
+
+    # If 2+ interactions with CEX → likely a CEX-related wallet
+    return cex_interactions >= 2
 
 
 def main():
@@ -270,21 +346,26 @@ def main():
                     cache[addr] = {"result": "SKIP", "checked": now_ts}
                     print(f"  ❓ SKIP:  {addr[:14]}... ({total:,.0f} ZRO, contract, no creation data)")
             else:
-                # For EOAs: check first transaction date
-                first_ts = get_first_tx_timestamp(addr)
-                time.sleep(0.25)
+                # For EOAs: check first transaction across ALL chains
+                first_ts = get_first_tx_timestamp_multichain(addr)
 
                 if first_ts and first_ts > cutoff:
                     wallet_age = (now - first_ts) // 86400
-                    h["label"] = "Fresh Wallet"
-                    h["type"] = "FRESH"
-                    new_fresh += 1
-                    cache[addr] = {"result": "FRESH", "first_ts": first_ts, "checked": now_ts}
-                    print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old)")
+                    # Check for CEX deposit pattern before labeling
+                    time.sleep(0.25)
+                    if has_cex_interaction(addr):
+                        cache[addr] = {"result": "OLD", "first_ts": first_ts, "checked": now_ts, "reason": "CEX_DEPOSIT"}
+                        print(f"  🏦 CEX:   {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old, CEX interactions)")
+                    else:
+                        h["label"] = "Fresh Wallet"
+                        h["type"] = "FRESH"
+                        new_fresh += 1
+                        cache[addr] = {"result": "FRESH", "first_ts": first_ts, "checked": now_ts}
+                        print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old, multi-chain)")
                 elif first_ts:
                     wallet_age = (now - first_ts) // 86400
-                    cache[addr] = {"result": "OLD", "checked": now_ts}
-                    print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old)")
+                    cache[addr] = {"result": "OLD", "first_ts": first_ts, "checked": now_ts}
+                    print(f"  ⚪ OLD:   {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old, multi-chain)")
                 else:
                     cache[addr] = {"result": "SKIP", "checked": now_ts}
                     print(f"  ❓ SKIP:  {addr[:14]}... ({total:,.0f} ZRO, no TX found)")
