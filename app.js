@@ -263,8 +263,17 @@ function renderFreshWallets() {
     if(!total && freshSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+freshSearchQuery+'"</td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
     const totalBal = allFresh.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
-    const totalUsd = price ? ` · ${fmtUSD(totalBal * price)}` : '';
-    document.getElementById('fresh-sub').textContent = `${allFresh.length} fresh wallets · ${fmt(totalBal)} ZRO accumulated${totalUsd}`;
+    const totalUsd = price ? fmtUSD(totalBal * price) : '—';
+    const circSupply = DATA.meta?.circulating_supply || 252160000;
+    const pctCirc = (totalBal / circSupply * 100).toFixed(2);
+    document.getElementById('fresh-sub').textContent = `New wallets accumulating ZRO`;
+    const statsEl = document.getElementById('fresh-stats');
+    if(statsEl) statsEl.innerHTML = `
+        <div class="fresh-stat"><div class="fresh-stat-val accent-white">${allFresh.length}</div><div class="fresh-stat-lbl">Fresh Wallets</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val">${fmt(totalBal)} ZRO</div><div class="fresh-stat-lbl">Total Accumulated</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val accent-cyan">${totalUsd}</div><div class="fresh-stat-lbl">USD Value</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val">${pctCirc}%</div><div class="fresh-stat-lbl">of Circulating Supply</div></div>
+    `;
     const countEl = document.getElementById('fresh-count');
     if(countEl) countEl.textContent = freshSearchQuery ? `${total} matching` : `${total} fresh wallets`;
     // Pager — always visible (constant pager pattern)
