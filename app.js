@@ -378,8 +378,8 @@ function getFlowItems(type){
         items=items.filter(f=>addrSet.has(f.address.toLowerCase()));
     }
     if(hideCex){
-        // Build set of known CEX addresses from top_holders
-        const cexAddrs=new Set(DATA.top_holders.filter(h=>h.type==='CEX'||(h.label&&h.label.toLowerCase().includes('coinbase'))||(h.label&&h.label.toLowerCase().includes('binance'))||(h.label&&h.label.toLowerCase().includes('okx'))||(h.label&&h.label.toLowerCase().includes('bybit'))||(h.label&&h.label.toLowerCase().includes('kraken'))).map(h=>h.address.toLowerCase()));
+        // Filter only type=CEX wallets (exchanges), NOT INST (investors like Coinbase Prime)
+        const cexAddrs=new Set(DATA.top_holders.filter(h=>h.type==='CEX').map(h=>h.address.toLowerCase()));
         items=items.filter(f=>!cexAddrs.has(f.address.toLowerCase()));
     }
     return items;
