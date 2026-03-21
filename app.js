@@ -232,9 +232,6 @@ function renderFreshWallets() {
     }
     const totalSupply = DATA.total_supply || 1000000000;
     const price = DATA.meta?.price_usd || 0;
-    const unlockWallet = DATA.top_holders.find(h => h.type === 'UNLOCK');
-    const unlockLabel = unlockWallet ? unlockWallet.label : 'Token Unlocks';
-    const unlockAddr = unlockWallet ? unlockWallet.address : '';
     const total = freshHolders.length;
     const totalPages = Math.max(1, Math.ceil(total / FRESH_PER_PAGE));
     freshPage = Math.min(freshPage, totalPages);
@@ -246,7 +243,6 @@ function renderFreshWallets() {
         const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
         const pct = (bal / totalSupply * 100).toFixed(4);
         const usdVal = price ? fmtUSD(bal * price) : '';
-        const srcLink = unlockAddr ? `<a href="https://debank.com/profile/${unlockAddr}" target="_blank" rel="noopener" class="h-addr-hex" style="font-size:10px">${unlockLabel}</a>` : '—';
         const shortA = h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dbUrl = `https://debank.com/profile/${h.address}`;
         const dbIcon = `<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
@@ -257,14 +253,13 @@ function renderFreshWallets() {
             <td>${addrTd}</td>
             <td class="right"><div class="val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
             <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
-            <td class="right">${srcLink}</td>
         </tr>`;
     });
     // Pad empty rows to keep constant height
     const emptyRows = FRESH_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="5"></td></tr>';
-    if(!total && !freshSearchQuery) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
-    if(!total && freshSearchQuery) html = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+freshSearchQuery+'"</td></tr>';
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="4"></td></tr>';
+    if(!total && !freshSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
+    if(!total && freshSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+freshSearchQuery+'"</td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
     document.getElementById('fresh-sub').textContent = `${total} fresh wallets receiving ZRO`;
     const countEl = document.getElementById('fresh-count');
