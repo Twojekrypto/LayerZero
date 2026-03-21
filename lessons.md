@@ -14,7 +14,8 @@
 - **Alchemy pagination na pełnej historii ETH = 3400+ stron.** Bez MAX_PAGES limit, workflow trwa godzinami. Cap: 2000 stron (2M transferów).
 - **Workflow cancelled ≠ workflow failed.** Cancelled nie zapisuje żadnego stanu — trzeba uruchomić od nowa.
 - **scan_state.json musi być w `git add` w workflow.** Bez tego incremental scan nie działa (brak lastBlock).
-- **git pull --rebase** przed push w workflow — zapobiega merge conflicts gdy ktoś pushuje ręcznie w trakcie.
+- **⚠️ ZAWSZE `git pull --rebase -X theirs`** dla auto-generowanych JSON-ów. Zwykły `--rebase` crashuje na merge conflict w dużych plikach (5M+ linii). `-X theirs` = dane z workflow zawsze wygrywają (są nowsze). Lekcja z Dolomite, kosztowała nas noc danych w ZRO.
+- **`continue-on-error: true`** na krokach detect_fresh + generate_flows — jeśli się wywalą, holder data i tak się zapisze.
 
 ## Fresh Wallet Detection
 
@@ -49,3 +50,13 @@
 - **Pierwszy run po zmianach zawsze odpów ręcznie** (`gh workflow run`) i sprawdź logi. Nie czekaj na cron.
 - **Zawsze sprawdź `headSha` workflow** — jeśli pushowałeś fix i odpaliłeś workflow, sprawdź czy workflow użył nowego SHA. Jeśli nie, anuluj i odpal ponownie.
 - **Nie ruszaj tego co nie jest konieczne** — minimalna zmiana, minimal impact.
+- **⚠️ NIGDY bare `except: pass`** — silent exception swallowing ukrywa prawdziwe błędy. Zawsze loguj exception. W Dolomite to spowodowało brak 170+ pozycji E-Mode.
+- **Cache API results agresywnie** — wyniki które się nie zmienią (wallet age, contract creation date) cachuj na dysk. Eliminuje 95%+ API calls. Pattern: `fresh_cache.json` z result + timestamp.
+- **⚠️ Fallback data ukrywa real sell-offy** — jeśli API zwraca balance=0, NIE nadpisuj cachem. 0 może oznaczać "sprzedał wszystko" a nie "API failed". Rozróżniaj: network error vs legitimate zero.
+
+## CSS & HTML (from Dolomite)
+
+- **Po usunięciu HTML elementu → grep ALL JS references.** `getElementById('X')` na nieistniejącym elemencie = null crash który cicho łamie downstream.
+- **Check `!important` overrides PRZED zmianą CSS.** `getComputedStyle()` w browser console > ufanie inline styles.
+- **Po zmianie kolumn tabeli → audyt WSZYSTKICH `nth-child` selektorów.** CSS selektory cicho nadpisują inline styles.
+- **Wait 30-60s na GH Pages deploy.** Nie zakładaj że zmiany są live od razu po push.
