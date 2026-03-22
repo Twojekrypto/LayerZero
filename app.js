@@ -442,13 +442,21 @@ let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0;
 const CBT_PER_PAGE=20;
 const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395'};
 const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢'};
+// ─── Column config: reorder/resize/hide by editing this array ───
+const CBT_COLUMNS = [
+    // { id, header, width (CSS), align ('left'|'right'), render(t, price) → HTML }
+    { id:'date',   header:'Date',   width:'72px',  align:'left',  render: (t) => { const d=new Date(t.timestamp*1000); return `<div class="val-muted" style="font-size:12px">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}<br><span style="opacity:.5">${d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})}</span></div>`; }},
+    { id:'type',   header:'Type',   width:'90px',  align:'left',  render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
+    { id:'from',   header:'From',   width:'auto',  align:'left',  render: (t) => { const s=t.from.slice(0,6)+'…'+t.from.slice(-4); return `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.from}">${t.from_label||s}</a>`; }},
+    { id:'to',     header:'To',     width:'auto',  align:'left',  render: (t) => { const s=t.to.slice(0,6)+'…'+t.to.slice(-4); return `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.to}">${t.to_label||s}</a>`; }},
+    { id:'amount', header:'Amount', width:'140px', align:'right', render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
+    { id:'tx',     header:'TX',     width:'80px',  align:'left',  render: (t) => `<a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" style="color:var(--accent-cyan);font-size:11px">${t.hash.slice(0,8)}…</a>` },
+];
 function renderCbTransfers() {
     const txs = DATA.cb_prime_transfers || [];
     const nowSec = Math.floor(Date.now() / 1000);
     const price = DATA.meta?.price_usd || 0;
-    // Filter by type
     let filtered = cbtTypeFilter === 'ALL' ? txs : txs.filter(t => t.type === cbtTypeFilter);
-    // Filter by date
     if(cbtPeriodDays > 0) {
         const cutoff = nowSec - (cbtPeriodDays * 86400);
         filtered = filtered.filter(t => t.timestamp >= cutoff);
@@ -474,36 +482,23 @@ function renderCbTransfers() {
     if(subEl) subEl.textContent = `${total} transfers (${periodLabel})`;
     const countEl = document.getElementById('cbt-count');
     if(countEl) countEl.textContent = `${total} transactions`;
-    // Table
+    // Build thead from config
+    const colCount = CBT_COLUMNS.length;
+    const thead = '<thead><tr>' + CBT_COLUMNS.map(c =>
+        `<th style="width:${c.width}"${c.align==='right'?' class="right"':''}>${c.header}</th>`
+    ).join('') + '</tr></thead>';
+    // Build tbody rows
     let html = '';
     pageItems.forEach(t => {
-        const date = new Date(t.timestamp * 1000);
-        const dateStr = date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        const timeStr = date.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
-        const icon = CBT_TYPE_ICONS[t.type]||'';
-        const color = CBT_TYPE_COLORS[t.type]||'var(--text-primary)';
-        const shortFrom = t.from.slice(0,6)+'…'+t.from.slice(-4);
-        const shortTo = t.to.slice(0,6)+'…'+t.to.slice(-4);
-        const fromLabel = t.from_label || shortFrom;
-        const toLabel = t.to_label || shortTo;
-        const usdVal = price ? `<div class="h-usd-sub">${fmtUSD(t.value*price)}</div>` : '';
-        const isOut = t.type==='SELL'||t.type==='OUTFLOW';
-        const sign = isOut ? '-' : '+';
-        const amtColor = isOut ? '#FF4444' : '#00D395';
-        const txShort = t.hash.slice(0,8)+'…';
-        html += `<tr>
-            <td><div class="val-muted" style="font-size:12px">${dateStr}<br><span style="opacity:.5">${timeStr}</span></div></td>
-            <td><span style="color:${color};font-weight:600;font-size:12px">${icon} ${t.type}</span></td>
-            <td><a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.from}">${fromLabel}</a></td>
-            <td><a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.to}">${toLabel}</a></td>
-            <td class="right"><div style="color:${amtColor};font-weight:600;font-variant-numeric:tabular-nums">${sign}${fmt(t.value)} ZRO</div>${usdVal}</td>
-            <td><a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" style="color:var(--accent-cyan);font-size:11px">${txShort}</a></td>
-        </tr>`;
+        html += '<tr>' + CBT_COLUMNS.map(c =>
+            `<td${c.align==='right'?' class="right"':''}>${c.render(t, price)}</td>`
+        ).join('') + '</tr>';
     });
     const emptyRows = CBT_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="6"></td></tr>';
-    if(!total) html = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No transfers in this period</td></tr>';
-    document.getElementById('cbt-tbody').innerHTML = html;
+    for(let e=0;e<emptyRows;e++) html += `<tr class="h-row-empty"><td colspan="${colCount}"></td></tr>`;
+    if(!total) html = `<tr><td colspan="${colCount}" style="text-align:center;color:var(--text-muted);padding:20px">No transfers in this period</td></tr>`;
+    const tableEl = document.getElementById('cbt-table');
+    tableEl.innerHTML = thead + '<tbody>' + html + '</tbody>';
     // Pager
     const pagerEl = document.getElementById('cbt-pager');
     if(pagerEl) {
