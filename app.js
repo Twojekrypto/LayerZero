@@ -442,16 +442,45 @@ let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0;
 const CBT_PER_PAGE=20;
 const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395'};
 const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢'};
-// ─── Column config: reorder/resize/hide by editing this array ───
-const CBT_COLUMNS = [
-    // { id, header, width (CSS), align ('left'|'right'), render(t, price) → HTML }
-    { id:'date',   header:'Date',   width:'72px',  align:'left',  render: (t) => { const d=new Date(t.timestamp*1000); return `<div class="val-muted" style="font-size:12px">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}<br><span style="opacity:.5">${d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})}</span></div>`; }},
-    { id:'type',   header:'Type',   width:'90px',  align:'left',  render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
-    { id:'from',   header:'From',   width:'auto',  align:'left',  render: (t) => { const s=t.from.slice(0,6)+'…'+t.from.slice(-4); return `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.from}">${t.from_label||s}</a>`; }},
-    { id:'to',     header:'To',     width:'auto',  align:'left',  render: (t) => { const s=t.to.slice(0,6)+'…'+t.to.slice(-4); return `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.to}">${t.to_label||s}</a>`; }},
-    { id:'amount', header:'Amount', width:'140px', align:'right', render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
-    { id:'tx',     header:'TX',     width:'80px',  align:'left',  render: (t) => `<a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" style="color:var(--accent-cyan);font-size:11px">${t.hash.slice(0,8)}…</a>` },
+// ─── Column config: reorder/resize by dragging in the UI ───
+const CBT_COLUMNS_DEF = [
+    { id:'date',   header:'Date',   width:72,  minW:50,  align:'left',  render: (t) => { const d=new Date(t.timestamp*1000); return `<div class="val-muted" style="font-size:12px">${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}<br><span style="opacity:.5">${d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false})}</span></div>`; }},
+    { id:'type',   header:'Type',   width:90,  minW:60,  align:'left',  render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
+    { id:'from',   header:'From',   width:0,   minW:80,  align:'left',  render: (t) => { const s=t.from.slice(0,6)+'…'+t.from.slice(-4); return `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.from}">${t.from_label||s}</a>`; }},
+    { id:'to',     header:'To',     width:0,   minW:80,  align:'left',  render: (t) => { const s=t.to.slice(0,6)+'…'+t.to.slice(-4); return `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.to}">${t.to_label||s}</a>`; }},
+    { id:'amount', header:'Amount', width:140, minW:100, align:'right', render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
+    { id:'tx',     header:'TX',     width:80,  minW:60,  align:'left',  render: (t) => `<a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" style="color:var(--accent-cyan);font-size:11px">${t.hash.slice(0,8)}…</a>` },
 ];
+// Persist column order & widths in localStorage
+function cbtLoadLayout() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('cbt_layout'));
+        if(!saved || !saved.order) return null;
+        return saved;
+    } catch(e) { return null; }
+}
+function cbtSaveLayout(order, widths) {
+    localStorage.setItem('cbt_layout', JSON.stringify({order, widths}));
+}
+function cbtGetColumns() {
+    const layout = cbtLoadLayout();
+    const defMap = {};
+    CBT_COLUMNS_DEF.forEach(c => defMap[c.id] = {...c});
+    let ordered;
+    if(layout && layout.order) {
+        ordered = layout.order.map(id => defMap[id]).filter(Boolean);
+        // add any new columns not in saved order
+        CBT_COLUMNS_DEF.forEach(c => { if(!layout.order.includes(c.id)) ordered.push({...c}); });
+    } else {
+        ordered = CBT_COLUMNS_DEF.map(c => ({...c}));
+    }
+    // apply saved widths
+    if(layout && layout.widths) {
+        ordered.forEach(c => { if(layout.widths[c.id] !== undefined) c.width = layout.widths[c.id]; });
+    }
+    return ordered;
+}
+let _cbtDragSrcIdx = null;
 function renderCbTransfers() {
     const txs = DATA.cb_prime_transfers || [];
     const nowSec = Math.floor(Date.now() / 1000);
@@ -482,23 +511,115 @@ function renderCbTransfers() {
     if(subEl) subEl.textContent = `${total} transfers (${periodLabel})`;
     const countEl = document.getElementById('cbt-count');
     if(countEl) countEl.textContent = `${total} transactions`;
-    // Build thead from config
-    const colCount = CBT_COLUMNS.length;
-    const thead = '<thead><tr>' + CBT_COLUMNS.map(c =>
-        `<th style="width:${c.width}"${c.align==='right'?' class="right"':''}>${c.header}</th>`
-    ).join('') + '</tr></thead>';
-    // Build tbody rows
-    let html = '';
+    // Get columns in current order with saved widths
+    const cols = cbtGetColumns();
+    const colCount = cols.length;
+    // Build table
+    const tableEl = document.getElementById('cbt-table');
+    tableEl.innerHTML = '';
+    // colgroup for widths
+    const cg = document.createElement('colgroup');
+    cols.forEach(c => {
+        const col = document.createElement('col');
+        col.style.width = c.width > 0 ? c.width + 'px' : '';
+        cg.appendChild(col);
+    });
+    tableEl.appendChild(cg);
+    // thead
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    cols.forEach((c, i) => {
+        const th = document.createElement('th');
+        th.textContent = c.header;
+        th.dataset.colIdx = i;
+        th.dataset.colId = c.id;
+        if(c.align === 'right') th.classList.add('right');
+        th.classList.add('cbt-th-drag');
+        th.setAttribute('draggable', 'true');
+        // Resize handle
+        const handle = document.createElement('span');
+        handle.className = 'cbt-resize-handle';
+        handle.addEventListener('mousedown', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            const startX = e.clientX;
+            const colEl = cg.children[i];
+            const startW = colEl.offsetWidth || (c.width > 0 ? c.width : th.offsetWidth);
+            const onMove = (me) => {
+                const newW = Math.max(c.minW, startW + (me.clientX - startX));
+                colEl.style.width = newW + 'px';
+            };
+            const onUp = () => {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                document.body.style.cursor = '';
+                // Save widths
+                const widths = {};
+                cols.forEach((cc, ci) => {
+                    const w = cg.children[ci].offsetWidth;
+                    if(w > 0) widths[cc.id] = w;
+                });
+                cbtSaveLayout(cols.map(cc => cc.id), widths);
+            };
+            document.body.style.cursor = 'col-resize';
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+        th.appendChild(handle);
+        // Drag reorder
+        th.addEventListener('dragstart', (e) => {
+            _cbtDragSrcIdx = i;
+            th.classList.add('cbt-dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', i);
+        });
+        th.addEventListener('dragend', () => { th.classList.remove('cbt-dragging'); });
+        th.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; th.classList.add('cbt-drag-over'); });
+        th.addEventListener('dragleave', () => { th.classList.remove('cbt-drag-over'); });
+        th.addEventListener('drop', (e) => {
+            e.preventDefault();
+            th.classList.remove('cbt-drag-over');
+            const fromIdx = _cbtDragSrcIdx;
+            const toIdx = i;
+            if(fromIdx === toIdx) return;
+            // Reorder
+            const newOrder = cols.map(cc => cc.id);
+            const [moved] = newOrder.splice(fromIdx, 1);
+            newOrder.splice(toIdx, 0, moved);
+            // Save widths too
+            const widths = {};
+            cols.forEach((cc, ci) => {
+                const w = cg.children[ci].offsetWidth;
+                if(w > 0) widths[cc.id] = w;
+            });
+            cbtSaveLayout(newOrder, widths);
+            renderCbTransfers(); // re-render with new order
+        });
+        headRow.appendChild(th);
+    });
+    thead.appendChild(headRow);
+    tableEl.appendChild(thead);
+    // tbody
+    const tbody = document.createElement('tbody');
     pageItems.forEach(t => {
-        html += '<tr>' + CBT_COLUMNS.map(c =>
-            `<td${c.align==='right'?' class="right"':''}>${c.render(t, price)}</td>`
-        ).join('') + '</tr>';
+        const tr = document.createElement('tr');
+        cols.forEach(c => {
+            const td = document.createElement('td');
+            if(c.align === 'right') td.classList.add('right');
+            td.innerHTML = c.render(t, price);
+            tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
     });
     const emptyRows = CBT_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += `<tr class="h-row-empty"><td colspan="${colCount}"></td></tr>`;
-    if(!total) html = `<tr><td colspan="${colCount}" style="text-align:center;color:var(--text-muted);padding:20px">No transfers in this period</td></tr>`;
-    const tableEl = document.getElementById('cbt-table');
-    tableEl.innerHTML = thead + '<tbody>' + html + '</tbody>';
+    for(let e=0;e<emptyRows;e++) {
+        const tr = document.createElement('tr'); tr.className = 'h-row-empty';
+        const td = document.createElement('td'); td.colSpan = colCount;
+        tr.appendChild(td); tbody.appendChild(tr);
+    }
+    if(!total) {
+        tbody.innerHTML = `<tr><td colspan="${colCount}" style="text-align:center;color:var(--text-muted);padding:20px">No transfers in this period</td></tr>`;
+    }
+    tableEl.appendChild(tbody);
     // Pager
     const pagerEl = document.getElementById('cbt-pager');
     if(pagerEl) {
