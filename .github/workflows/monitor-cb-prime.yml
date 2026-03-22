@@ -1,0 +1,46 @@
+name: Coinbase Prime Monitor
+
+on:
+  schedule:
+    # Run every hour at :30 (offset from balance refresh at :15)
+    - cron: '30 * * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Monitor CB Prime transfers
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          DISCORD_CB_WEBHOOK_URL: ${{ secrets.DISCORD_CB_WEBHOOK_URL }}
+        run: python monitor_cb_prime.py
+
+      - name: Check for state changes
+        id: changes
+        run: |
+          git diff --quiet cb_monitor_state.json 2>/dev/null && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push state
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add cb_monitor_state.json
+          git commit -m "🏦 CB Prime monitor state $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git pull --rebase -X theirs origin master
+          git push
