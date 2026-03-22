@@ -437,6 +437,112 @@ function initCbPeriodPills() {
     });
 }
 
+// ── Coinbase Prime Transfers ──
+let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0;
+const CBT_PER_PAGE=20;
+const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395'};
+const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢'};
+function renderCbTransfers() {
+    const txs = DATA.cb_prime_transfers || [];
+    const nowSec = Math.floor(Date.now() / 1000);
+    const price = DATA.meta?.price_usd || 0;
+    // Filter by type
+    let filtered = cbtTypeFilter === 'ALL' ? txs : txs.filter(t => t.type === cbtTypeFilter);
+    // Filter by date
+    if(cbtPeriodDays > 0) {
+        const cutoff = nowSec - (cbtPeriodDays * 86400);
+        filtered = filtered.filter(t => t.timestamp >= cutoff);
+    }
+    const total = filtered.length;
+    const totalPages = Math.max(1, Math.ceil(total / CBT_PER_PAGE));
+    cbtPage = Math.min(cbtPage, totalPages);
+    const start = (cbtPage - 1) * CBT_PER_PAGE;
+    const pageItems = filtered.slice(start, start + CBT_PER_PAGE);
+    // Stats
+    const totalIn = filtered.filter(t => t.type==='BUY'||t.type==='INFLOW').reduce((s,t)=>s+t.value,0);
+    const totalOut = filtered.filter(t => t.type==='SELL'||t.type==='OUTFLOW').reduce((s,t)=>s+t.value,0);
+    const net = totalIn - totalOut;
+    const periodLabel = cbtPeriodDays > 0 ? `last ${cbtPeriodDays}d` : 'all time';
+    const statsEl = document.getElementById('cbt-stats');
+    if(statsEl) statsEl.innerHTML = `
+        <div class="fresh-stat"><div class="fresh-stat-val" style="color:#00D395">+${fmt(totalIn)}</div><div class="fresh-stat-lbl">Total Inflow</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val" style="color:#FF4444">-${fmt(totalOut)}</div><div class="fresh-stat-lbl">Total Outflow</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val" style="color:${net>=0?'#00D395':'#FF4444'}">${net>=0?'+':''}${fmt(net)}</div><div class="fresh-stat-lbl">Net Flow</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val cb-stat-val">${total}</div><div class="fresh-stat-lbl">Transactions (${periodLabel})</div></div>
+    `;
+    const subEl = document.getElementById('cbt-sub');
+    if(subEl) subEl.textContent = `${total} transfers (${periodLabel})`;
+    // Table
+    let html = '';
+    pageItems.forEach(t => {
+        const date = new Date(t.timestamp * 1000);
+        const dateStr = date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const timeStr = date.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+        const icon = CBT_TYPE_ICONS[t.type]||'';
+        const color = CBT_TYPE_COLORS[t.type]||'var(--text-primary)';
+        const shortFrom = t.from.slice(0,6)+'…'+t.from.slice(-4);
+        const shortTo = t.to.slice(0,6)+'…'+t.to.slice(-4);
+        const fromLabel = t.from_label || shortFrom;
+        const toLabel = t.to_label || shortTo;
+        const usdVal = price ? `<div class="h-usd-sub">${fmtUSD(t.value*price)}</div>` : '';
+        const isOut = t.type==='SELL'||t.type==='OUTFLOW';
+        const sign = isOut ? '-' : '+';
+        const amtColor = isOut ? '#FF4444' : '#00D395';
+        const txShort = t.hash.slice(0,8)+'…';
+        html += `<tr>
+            <td><div class="val-muted" style="font-size:12px">${dateStr}<br><span style="opacity:.5">${timeStr}</span></div></td>
+            <td><span style="color:${color};font-weight:600;font-size:12px">${icon} ${t.type}</span></td>
+            <td><a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.from}">${fromLabel}</a></td>
+            <td><a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" style="color:var(--text-secondary);font-size:12px" title="${t.to}">${toLabel}</a></td>
+            <td class="right"><div style="color:${amtColor};font-weight:600;font-variant-numeric:tabular-nums">${sign}${fmt(t.value)} ZRO</div>${usdVal}</td>
+            <td><a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" style="color:var(--accent-cyan);font-size:11px">${txShort}</a></td>
+        </tr>`;
+    });
+    const emptyRows = CBT_PER_PAGE - pageItems.length;
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="6"></td></tr>';
+    if(!total) html = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px">No transfers in this period</td></tr>';
+    document.getElementById('cbt-tbody').innerHTML = html;
+    // Pager
+    const pagerEl = document.getElementById('cbt-pager');
+    if(pagerEl) {
+        pagerEl.innerHTML = `
+            <button class="pg-btn" onclick="goCbtPage(-999)" ${cbtPage<=1?'disabled':''}>&laquo;</button>
+            <button class="pg-btn" onclick="goCbtPage(-1)" ${cbtPage<=1?'disabled':''}>&lsaquo;</button>
+            <span class="pg-info">${cbtPage} / ${totalPages}</span>
+            <button class="pg-btn" onclick="goCbtPage(1)" ${cbtPage>=totalPages?'disabled':''}>&rsaquo;</button>
+            <button class="pg-btn" onclick="goCbtPage(999)" ${cbtPage>=totalPages?'disabled':''}>&raquo;</button>`;
+    }
+}
+function goCbtPage(delta) {
+    const txs = DATA.cb_prime_transfers || [];
+    const nowSec = Math.floor(Date.now() / 1000);
+    let filtered = cbtTypeFilter === 'ALL' ? txs : txs.filter(t => t.type === cbtTypeFilter);
+    if(cbtPeriodDays > 0) { const cutoff = nowSec - (cbtPeriodDays * 86400); filtered = filtered.filter(t => t.timestamp >= cutoff); }
+    const totalPages = Math.max(1, Math.ceil(filtered.length / CBT_PER_PAGE));
+    cbtPage = Math.max(1, Math.min(totalPages, delta===-999?1:delta===999?totalPages:cbtPage+delta));
+    renderCbTransfers();
+}
+function initCbtPills() {
+    document.getElementById('cbt-type-pills').querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelector('#cbt-type-pills .active').classList.remove('active');
+            b.classList.add('active');
+            cbtTypeFilter = b.dataset.type;
+            cbtPage = 1;
+            renderCbTransfers();
+        });
+    });
+    document.getElementById('cbt-period-pills').querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelector('#cbt-period-pills .active').classList.remove('active');
+            b.classList.add('active');
+            cbtPeriodDays = parseInt(b.dataset.period);
+            cbtPage = 1;
+            renderCbTransfers();
+        });
+    });
+}
+
 // ── New Institutional Wallets ──
 function renderNewInstitutional() {
     const instHolders = DATA.top_holders.filter(h => h.type === 'NEW_INST' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
@@ -670,9 +776,9 @@ function updateFreshness() {
 async function init() {
     try { DATA=await(await fetch('zro_data.json')).json(); }
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
-    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderNewInstitutional(); renderFlows();
+    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderCbTransfers(); renderNewInstitutional(); renderFlows();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
-    initTabs(); initChainFilter(); initPeriodPills(); initCbPeriodPills();
+    initTabs(); initChainFilter(); initPeriodPills(); initCbPeriodPills(); initCbtPills();
     updateFreshness(); setInterval(updateFreshness, 30000);
     fetchPrice(); setInterval(fetchPrice,60000);
 }
