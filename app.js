@@ -472,6 +472,8 @@ function renderCbTransfers() {
     `;
     const subEl = document.getElementById('cbt-sub');
     if(subEl) subEl.textContent = `${total} transfers (${periodLabel})`;
+    const countEl = document.getElementById('cbt-count');
+    if(countEl) countEl.textContent = `${total} transactions`;
     // Table
     let html = '';
     pageItems.forEach(t => {

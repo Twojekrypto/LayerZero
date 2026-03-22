@@ -133,14 +133,15 @@
             </div>
             <div class="table-footer" id="cb-pager"></div>
             <!-- CB Prime Transfers sub-table -->
-            <div style="margin-top:18px;border-top:1px solid var(--border-subtle);padding-top:18px">
-                <div class="card-header"><h3 style="font-size:14px;margin:0">📊 Coinbase Prime Transfers <span class="card-sub" id="cbt-sub">All ZRO flows</span></h3></div>
-                <div class="toolbar" style="margin:10px 0">
+            <div class="cbt-section">
+                <div class="card-header"><h3 class="cbt-title">📊 Coinbase Prime Transfers <span class="card-sub" id="cbt-sub">All ZRO flows</span></h3></div>
+                <div class="flow-toolbar">
                     <div class="period-pills" id="cbt-type-pills">
                         <button data-type="ALL" class="active">ALL</button><button data-type="BUY">🟢 BUY</button>
                         <button data-type="SELL">🔴 SELL</button><button data-type="TRANSFER">🔄 TRANSFER</button>
                         <button data-type="OUTFLOW">🟠 OUT</button><button data-type="INFLOW">🟢 IN</button>
                     </div>
+                    <span class="toolbar-count" id="cbt-count"></span>
                     <div class="period-pills" id="cbt-period-pills" style="margin-left:auto">
                         <button data-period="1">1D</button><button data-period="7">7D</button>
                         <button data-period="30">30D</button><button data-period="90">90D</button>
@@ -151,12 +152,12 @@
                 <div class="table-scroll">
                     <table class="data-table" id="cbt-table">
                         <thead><tr>
-                            <th>Date</th>
-                            <th>Type</th>
+                            <th style="width:70px">Date</th>
+                            <th style="width:90px">Type</th>
                             <th>From</th>
                             <th>To</th>
                             <th class="right">Amount</th>
-                            <th>TX</th>
+                            <th style="width:80px">TX</th>
                         </tr></thead>
                         <tbody id="cbt-tbody"></tbody>
                     </table>
