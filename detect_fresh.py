@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Auto-detect Fresh & New Institutional Wallets.
+Auto-detect Fresh & New Institutional Wallets + Coinbase Prime Investors.
 For every ZRO holder with >10K balance that has no label yet,
 check Etherscan for their wallet creation date (first TX or contract creation).
 
@@ -25,6 +25,14 @@ KNOWN_DEPLOYERS = {
     "0x5e2e302ba028f33845fcb107dd8a6b55f42e92a0",  # BitGo deployer
     "0x41274f7674333a7e5b3215e4c7af51eb4cc7cedb",  # Gnosis Safe deployer (LZ)
 }
+
+# Coinbase Prime custody hub addresses — wallets funded by these are institutional investors
+COINBASE_PRIME_HUBS = {
+    "0xcd531ae9efcce479654c4926dec5f6209531ca7b",  # Coinbase Prime 1 (Etherscan-labeled)
+}
+ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
+CB_MIN_RECEIVED = 50_000  # Min ZRO received from CB Prime to qualify
+CB_MIN_BALANCE = 100_000  # Min current balance to label
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(DIR, "zro_data.json")
@@ -230,6 +238,81 @@ def has_cex_interaction(address):
     return cex_interactions >= 2
 
 
+def detect_coinbase_prime(data):
+    """Auto-detect wallets funded by Coinbase Prime custody hubs.
+    Scans outgoing ZRO transfers from known CB Prime addresses,
+    labels recipients with 100K+ balance as 'Coinbase Prime Investor'."""
+    print("🏦 Coinbase Prime Investor Detection")
+
+    existing_cb = {h["address"].lower() for h in data["top_holders"]
+                   if h.get("label") == "Coinbase Prime Investor"}
+    balance_map = {h["address"].lower(): sum(h.get("balances", {}).values())
+                   for h in data["top_holders"]}
+
+    # Scan outgoing ZRO transfers from each CB Prime hub
+    all_recipients = {}  # addr -> total_received
+    for hub in COINBASE_PRIME_HUBS:
+        page = 1
+        while True:
+            url = (
+                f"https://api.etherscan.io/v2/api?chainid=1"
+                f"&module=account&action=tokentx"
+                f"&address={hub}"
+                f"&contractaddress={ZRO_CONTRACT}"
+                f"&startblock=0&endblock=99999999"
+                f"&page={page}&offset=100&sort=desc"
+                f"&apikey={API_KEY}"
+            )
+            resp = fetch_json(url)
+            if not resp or resp.get("status") != "1" or not resp.get("result"):
+                break
+            for tx in resp["result"]:
+                if tx.get("from", "").lower() == hub:
+                    to = tx.get("to", "").lower()
+                    val = int(tx.get("value", "0")) / 1e18
+                    all_recipients[to] = all_recipients.get(to, 0) + val
+            if len(resp["result"]) < 100:
+                break
+            page += 1
+            time.sleep(0.25)
+
+    print(f"   Outgoing transfers to {len(all_recipients)} unique recipients")
+
+    new_labeled = 0
+    relabeled = 0
+    new_cb_wallets = []  # For Discord alerts
+    for h in data["top_holders"]:
+        addr = h["address"].lower()
+        received = all_recipients.get(addr, 0)
+        if received < CB_MIN_RECEIVED:
+            continue
+        balance = balance_map.get(addr, 0)
+        if balance < CB_MIN_BALANCE:
+            continue
+        if addr in existing_cb:
+            continue  # Already labeled
+        # Skip wallets with non-Fresh manual labels (BitGo, CEX, etc.)
+        existing_label = h.get("label", "")
+        existing_type = h.get("type", "")
+        if existing_label and existing_type not in ("FRESH", ""):
+            continue
+        old_label = existing_label or "(none)"
+        h["label"] = "Coinbase Prime Investor"
+        h["type"] = "INST"
+        if old_label == "Fresh Wallet":
+            relabeled += 1
+            print(f"  🔄 Relabeled: {addr[:14]}... {old_label} → CB Prime ({balance:,.0f} ZRO)")
+        else:
+            new_labeled += 1
+            print(f"  🆕 CB Prime:  {addr[:14]}... ({balance:,.0f} ZRO, received {received:,.0f})")
+        new_cb_wallets.append({"address": addr, "balance": balance, "type": "CB_PRIME"})
+
+    total_cb = sum(1 for h in data["top_holders"] if h.get("label") == "Coinbase Prime Investor")
+    print(f"   Total CB Prime wallets: {total_cb} (new: {new_labeled}, relabeled: {relabeled})")
+    print()
+    return new_cb_wallets
+
+
 def main():
     if not API_KEY:
         print("❌ ETHERSCAN_API_KEY not set")
@@ -237,6 +320,9 @@ def main():
 
     with open(DATA_PATH) as f:
         data = json.load(f)
+
+    # Phase 1: Coinbase Prime detection (before fresh wallet scan)
+    cb_wallets = detect_coinbase_prime(data)
 
     now = int(time.time())
     cutoff = now - (FRESH_AGE_DAYS * 86400)
@@ -394,7 +480,8 @@ def main():
     save_cache(cache)
     print(f"💾 Cache saved ({len(cache)} entries)")
 
-    if new_fresh > 0 or new_inst > 0:
+    has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0
+    if has_changes:
         with open(DATA_PATH, "w") as f:
             json.dump(data, f, indent=2)
         print(f"💾 Saved to {DATA_PATH}")
