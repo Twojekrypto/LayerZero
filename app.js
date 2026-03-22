@@ -331,14 +331,23 @@ function goFreshPage(delta) {
 function filterFresh() { freshSearchQuery=document.getElementById('fresh-search').value.trim();freshPage=1;renderFreshWallets(); }
 
 // ── Coinbase Prime Investors ──
-let cbPage=1, cbSearchQuery='';
+let cbPage=1, cbSearchQuery='', cbPeriodDays=0;
 const CB_PER_PAGE=15;
 function renderCoinbasePrime() {
+    const nowSec = Math.floor(Date.now() / 1000);
     let cbHolders = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor').sort((a,b) => {
         const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
     });
+    // Period filter — filter by cb_first_funded timestamp
+    if(cbPeriodDays > 0) {
+        const cutoff = nowSec - (cbPeriodDays * 86400);
+        cbHolders = cbHolders.filter(h => {
+            const ts = h.cb_first_funded || h.cb_last_funded || 0;
+            return ts >= cutoff;
+        });
+    }
     const allCb = cbHolders;
     if(cbSearchQuery) {
         const q = cbSearchQuery.toLowerCase();
@@ -363,6 +372,8 @@ function renderCoinbasePrime() {
         const dbIcon = `<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
         const explorerSvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
         const explorerIcon=`<a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-explorer-icon" title="View on Etherscan">${explorerSvg}</a>`;
+        // Show funding date if available
+        const fundedDate = h.cb_first_funded ? new Date(h.cb_first_funded * 1000).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
         const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">Coinbase Prime</a><span class="h-badge h-badge-inst">INST</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
         html += `<tr>
             <td class="rank-cell">${start+i+1}</td>
@@ -373,17 +384,18 @@ function renderCoinbasePrime() {
     });
     const emptyRows = CB_PER_PAGE - pageItems.length;
     for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="4"></td></tr>';
-    if(!total && !cbSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No Coinbase Prime wallets tracked</td></tr>';
+    if(!total && !cbSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No Coinbase Prime wallets in this period</td></tr>';
     if(!total && cbSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+cbSearchQuery+'"</td></tr>';
     document.getElementById('cb-tbody').innerHTML = html;
     const totalBal = allCb.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';
     const circSupply = DATA.meta?.circulating_supply || 252160000;
     const pctCirc = (totalBal / circSupply * 100).toFixed(2);
-    document.getElementById('cb-sub').textContent = `${allCb.length} institutional custody wallets`;
+    const periodLabel = cbPeriodDays > 0 ? ` (last ${cbPeriodDays}d)` : '';
+    document.getElementById('cb-sub').textContent = `${allCb.length} institutional custody wallets${periodLabel}`;
     const statsEl = document.getElementById('cb-stats');
     if(statsEl) statsEl.innerHTML = `
-        <div class="fresh-stat"><div class="fresh-stat-val cb-stat-val">${allCb.length}</div><div class="fresh-stat-lbl">Wallets</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val cb-stat-val">${allCb.length}</div><div class="fresh-stat-lbl">Wallets${periodLabel}</div></div>
         <div class="fresh-stat"><div class="fresh-stat-val">${fmt(totalBal)} ZRO</div><div class="fresh-stat-lbl">Total Accumulated</div></div>
         <div class="fresh-stat"><div class="fresh-stat-val cb-stat-val">${totalUsd}</div><div class="fresh-stat-lbl">USD Value</div></div>
         <div class="fresh-stat"><div class="fresh-stat-val">${pctCirc}%</div><div class="fresh-stat-lbl">of Circulating Supply</div></div>
@@ -401,14 +413,29 @@ function renderCoinbasePrime() {
     }
 }
 function goCbPage(delta) {
-    const cbHolders = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor');
-    let filtered = cbHolders;
-    if(cbSearchQuery) { const q=cbSearchQuery.toLowerCase(); filtered=filtered.filter(h=>h.address.toLowerCase().includes(q)||(h.label||'').toLowerCase().includes(q)); }
-    const totalPages = Math.max(1, Math.ceil(filtered.length / CB_PER_PAGE));
+    const nowSec = Math.floor(Date.now() / 1000);
+    let cbHolders = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor');
+    if(cbPeriodDays > 0) {
+        const cutoff = nowSec - (cbPeriodDays * 86400);
+        cbHolders = cbHolders.filter(h => (h.cb_first_funded || 0) >= cutoff);
+    }
+    if(cbSearchQuery) { const q=cbSearchQuery.toLowerCase(); cbHolders=cbHolders.filter(h=>h.address.toLowerCase().includes(q)||(h.label||'').toLowerCase().includes(q)); }
+    const totalPages = Math.max(1, Math.ceil(cbHolders.length / CB_PER_PAGE));
     cbPage = Math.max(1, Math.min(totalPages, delta===-999?1:delta===999?totalPages:cbPage+delta));
     renderCoinbasePrime();
 }
 function filterCb() { cbSearchQuery=document.getElementById('cb-search').value.trim();cbPage=1;renderCoinbasePrime(); }
+function initCbPeriodPills() {
+    document.getElementById('cb-period-pills').querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelector('#cb-period-pills .active').classList.remove('active');
+            b.classList.add('active');
+            cbPeriodDays = parseInt(b.dataset.period);
+            cbPage = 1;
+            renderCoinbasePrime();
+        });
+    });
+}
 
 // ── New Institutional Wallets ──
 function renderNewInstitutional() {
@@ -645,7 +672,7 @@ async function init() {
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
     renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderNewInstitutional(); renderFlows();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
-    initTabs(); initChainFilter(); initPeriodPills();
+    initTabs(); initChainFilter(); initPeriodPills(); initCbPeriodPills();
     updateFreshness(); setInterval(updateFreshness, 30000);
     fetchPrice(); setInterval(fetchPrice,60000);
 }

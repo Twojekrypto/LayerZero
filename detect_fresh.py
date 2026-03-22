@@ -250,7 +250,7 @@ def detect_coinbase_prime(data):
                    for h in data["top_holders"]}
 
     # Scan outgoing ZRO transfers from each CB Prime hub
-    all_recipients = {}  # addr -> total_received
+    all_recipients = {}  # addr -> {total, first_ts, last_ts}
     for hub in COINBASE_PRIME_HUBS:
         page = 1
         while True:
@@ -270,7 +270,12 @@ def detect_coinbase_prime(data):
                 if tx.get("from", "").lower() == hub:
                     to = tx.get("to", "").lower()
                     val = int(tx.get("value", "0")) / 1e18
-                    all_recipients[to] = all_recipients.get(to, 0) + val
+                    ts = int(tx.get("timeStamp", "0"))
+                    if to not in all_recipients:
+                        all_recipients[to] = {"total": 0, "first_ts": ts, "last_ts": ts}
+                    all_recipients[to]["total"] += val
+                    all_recipients[to]["first_ts"] = min(all_recipients[to]["first_ts"], ts)
+                    all_recipients[to]["last_ts"] = max(all_recipients[to]["last_ts"], ts)
             if len(resp["result"]) < 100:
                 break
             page += 1
@@ -278,13 +283,22 @@ def detect_coinbase_prime(data):
 
     print(f"   Outgoing transfers to {len(all_recipients)} unique recipients")
 
+    # Update timestamps for ALL existing CB Prime wallets (even already labeled)
+    for h in data["top_holders"]:
+        addr = h["address"].lower()
+        info = all_recipients.get(addr)
+        if info and h.get("label") == "Coinbase Prime Investor":
+            h["cb_first_funded"] = info["first_ts"]
+            h["cb_last_funded"] = info["last_ts"]
+            h["cb_total_received"] = round(info["total"])
+
     new_labeled = 0
     relabeled = 0
     new_cb_wallets = []  # For Discord alerts
     for h in data["top_holders"]:
         addr = h["address"].lower()
-        received = all_recipients.get(addr, 0)
-        if received < CB_MIN_RECEIVED:
+        info = all_recipients.get(addr)
+        if not info or info["total"] < CB_MIN_RECEIVED:
             continue
         balance = balance_map.get(addr, 0)
         if balance < CB_MIN_BALANCE:
@@ -299,12 +313,15 @@ def detect_coinbase_prime(data):
         old_label = existing_label or "(none)"
         h["label"] = "Coinbase Prime Investor"
         h["type"] = "INST"
+        h["cb_first_funded"] = info["first_ts"]
+        h["cb_last_funded"] = info["last_ts"]
+        h["cb_total_received"] = round(info["total"])
         if old_label == "Fresh Wallet":
             relabeled += 1
             print(f"  🔄 Relabeled: {addr[:14]}... {old_label} → CB Prime ({balance:,.0f} ZRO)")
         else:
             new_labeled += 1
-            print(f"  🆕 CB Prime:  {addr[:14]}... ({balance:,.0f} ZRO, received {received:,.0f})")
+            print(f"  🆕 CB Prime:  {addr[:14]}... ({balance:,.0f} ZRO, received {info['total']:,.0f})")
         new_cb_wallets.append({"address": addr, "balance": balance, "type": "CB_PRIME"})
 
     total_cb = sum(1 for h in data["top_holders"] if h.get("label") == "Coinbase Prime Investor")
