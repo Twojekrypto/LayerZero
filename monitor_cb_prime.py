@@ -132,11 +132,11 @@ def main():
             cb_addrs.add(addr)
             cb_balances[addr] = sum(h.get("balances", {}).values())
 
-    # Also include the hub address
-    cb_addrs.add(COINBASE_PRIME_HUB)
+    # NOTE: Hub (0xcd531a...) is NOT monitored — it's a distribution point.
+    # Only labeled Coinbase Prime Investor wallets trigger alerts.
 
     print(f"🏦 Coinbase Prime Transfer Monitor")
-    print(f"   Monitoring {len(cb_addrs)} wallets (incl. hub)")
+    print(f"   Monitoring {len(cb_addrs)} wallets")
 
     state = load_state()
     seen = set(state.get("seen_txs", []))
