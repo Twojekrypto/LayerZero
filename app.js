@@ -537,35 +537,6 @@ function renderCbTransfers() {
         if(c.align === 'right') th.classList.add('right');
         th.classList.add('cbt-th-drag');
         th.setAttribute('draggable', 'true');
-        // Resize handle
-        const handle = document.createElement('span');
-        handle.className = 'cbt-resize-handle';
-        handle.addEventListener('mousedown', (e) => {
-            e.preventDefault(); e.stopPropagation();
-            const startX = e.clientX;
-            const colEl = cg.children[i];
-            const startW = colEl.offsetWidth || (c.width > 0 ? c.width : th.offsetWidth);
-            const onMove = (me) => {
-                const newW = Math.max(c.minW, startW + (me.clientX - startX));
-                colEl.style.width = newW + 'px';
-            };
-            const onUp = () => {
-                document.removeEventListener('mousemove', onMove);
-                document.removeEventListener('mouseup', onUp);
-                document.body.style.cursor = '';
-                // Save widths
-                const widths = {};
-                cols.forEach((cc, ci) => {
-                    const w = cg.children[ci].offsetWidth;
-                    if(w > 0) widths[cc.id] = w;
-                });
-                cbtSaveLayout(cols.map(cc => cc.id), widths);
-            };
-            document.body.style.cursor = 'col-resize';
-            document.addEventListener('mousemove', onMove);
-            document.addEventListener('mouseup', onUp);
-        });
-        th.appendChild(handle);
         // Drag reorder
         th.addEventListener('dragstart', (e) => {
             _cbtDragSrcIdx = i;
@@ -582,18 +553,11 @@ function renderCbTransfers() {
             const fromIdx = _cbtDragSrcIdx;
             const toIdx = i;
             if(fromIdx === toIdx) return;
-            // Reorder
             const newOrder = cols.map(cc => cc.id);
             const [moved] = newOrder.splice(fromIdx, 1);
             newOrder.splice(toIdx, 0, moved);
-            // Save widths too
-            const widths = {};
-            cols.forEach((cc, ci) => {
-                const w = cg.children[ci].offsetWidth;
-                if(w > 0) widths[cc.id] = w;
-            });
-            cbtSaveLayout(newOrder, widths);
-            renderCbTransfers(); // re-render with new order
+            cbtSaveLayout(newOrder, {});
+            renderCbTransfers();
         });
         headRow.appendChild(th);
     });
