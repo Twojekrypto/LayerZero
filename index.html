@@ -104,6 +104,30 @@
             </div>
             <div class="table-footer" id="fresh-pager"></div>
         </div>
+        <!-- COINBASE PRIME INVESTORS -->
+        <div class="card anim" id="cb-card" style="margin-top:24px">
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Coinbase Prime Investors <span class="card-sub" id="cb-sub">Institutional custody wallets</span></h3></div>
+            <div class="flow-toolbar">
+                <div class="search-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input type="text" class="search-input" id="cb-search" placeholder="Search address..." oninput="filterCb()">
+                </div>
+                <span class="toolbar-count" id="cb-count"></span>
+            </div>
+            <div class="fresh-stats" id="cb-stats"></div>
+            <div class="table-scroll">
+                <table class="data-table" id="cb-table">
+                    <thead><tr>
+                        <th style="width:32px">#</th>
+                        <th>Address</th>
+                        <th class="right">Balance</th>
+                        <th class="right">% of Supply</th>
+                    </tr></thead>
+                    <tbody id="cb-tbody"></tbody>
+                </table>
+            </div>
+            <div class="table-footer" id="cb-pager"></div>
+        </div>
         <!-- NEW INSTITUTIONAL WALLETS -->
         <div class="card anim" id="inst-card" style="margin-top:24px">
             <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> New Institutional Wallets <span class="card-sub" id="inst-sub">BitGo / Gnosis Safe MultiSig — created in last 30 days</span></h3></div>
