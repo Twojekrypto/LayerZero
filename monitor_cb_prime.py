@@ -132,8 +132,8 @@ def main():
             cb_addrs.add(addr)
             cb_balances[addr] = sum(h.get("balances", {}).values())
 
-    # Include hub as CB Prime address so hub↔investor = TRANSFER, not BUY
-    cb_addrs.add(COINBASE_PRIME_HUB.lower())
+    # NOTE: Hub (0xcd531a...) is NOT monitored — it's a distribution point.
+    # Only labeled Coinbase Prime Investor wallets trigger alerts.
 
     print(f"🏦 Coinbase Prime Transfer Monitor")
     print(f"   Monitoring {len(cb_addrs)} wallets")
@@ -251,13 +251,13 @@ def main():
                 {"name": "Amount", "value": f"**-{fmt(value)} ZRO**\n({usd_val})" if usd_val else f"**-{fmt(value)} ZRO**", "inline": True},
                 {"name": "To", "value": f"[`{short_addr(to_addr)}`](https://etherscan.io/address/{to_addr})", "inline": True},
             ]
-        elif to_is_cb and from_is_cex:
-            # Buy — CB Prime receives from CEX (real purchase)
-            cex_name = KNOWN_CEX.get(from_addr, "Exchange")
+        elif to_is_cb and (from_is_cex or from_addr == COINBASE_PRIME_HUB):
+            # Buy — CB Prime receives from CEX or hub
+            source_name = KNOWN_CEX.get(from_addr, "Coinbase Prime 1" if from_addr == COINBASE_PRIME_HUB else "Unknown")
             alert_type = "BUY"
             color = 0x00D395
             title = "🟢 Coinbase Prime — BUY"
-            desc = f"CB Prime wallet **received ZRO** from {cex_name}"
+            desc = f"CB Prime wallet **received ZRO** from {source_name}"
             footer = "ZRO Coinbase Prime Alert • Institutional Flow Monitor"
             new_bal = cb_balances.get(to_addr, 0) + value
             bal_usd = fmt_usd(new_bal * price) if price else ""
@@ -265,7 +265,7 @@ def main():
                 {"name": "Wallet", "value": f"[`{short_addr(to_addr)}`](https://etherscan.io/address/{to_addr})", "inline": True},
                 {"name": "Amount", "value": f"**+{fmt(value)} ZRO**\n({usd_val})" if usd_val else f"**+{fmt(value)} ZRO**", "inline": True},
                 {"name": "New Balance", "value": f"{fmt(new_bal)} ZRO\n({bal_usd})" if bal_usd else f"{fmt(new_bal)} ZRO", "inline": True},
-                {"name": "Source", "value": f"[`{cex_name}`](https://etherscan.io/address/{from_addr})", "inline": True},
+                {"name": "Source", "value": f"[`{source_name}`](https://etherscan.io/address/{from_addr})", "inline": True},
             ]
         elif to_is_cb:
             # Inflow from unknown
