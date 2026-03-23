@@ -136,24 +136,23 @@
             <!-- CB Prime Transfers sub-table -->
             <div class="cbt-section">
                 <div class="card-header"><h3 class="cbt-title">📊 Coinbase Prime Transfers <span class="card-sub" id="cbt-sub">All ZRO flows</span></h3></div>
-                <div class="flow-toolbar">
+                <div class="flow-toolbar" style="flex-wrap:wrap;gap:8px">
+                    <div class="search-wrap">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input type="text" class="search-input" id="cbt-search" placeholder="Filter by address 0x…" oninput="filterCbt()" style="width:200px">
+                    </div>
                     <div class="period-pills" id="cbt-type-pills">
                         <button data-type="ALL" class="active">ALL</button><button data-type="BUY">🟢 BUY</button>
                         <button data-type="SELL">🔴 SELL</button><button data-type="TRANSFER">🔄 TRANSFER</button>
                         <button data-type="OUTFLOW">🟠 OUT</button><button data-type="INFLOW">🟢 IN</button>
                     </div>
-                    <div class="search-wrap" style="margin-left:8px">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                        <input type="text" class="search-input" id="cbt-search" placeholder="Filter by address 0x…" oninput="filterCbt()" style="width:180px">
-                    </div>
-                    <span class="toolbar-count" id="cbt-count"></span>
+                    <div class="cbt-inline-stats" id="cbt-stats"></div>
                     <div class="period-pills" id="cbt-period-pills" style="margin-left:auto">
                         <button data-period="1">1D</button><button data-period="7">7D</button>
                         <button data-period="30">30D</button><button data-period="90">90D</button>
                         <button data-period="180">180D</button><button data-period="0" class="active">ALL</button>
                     </div>
                 </div>
-                <div class="fresh-stats" id="cbt-stats"></div>
                 <div class="table-scroll">
                     <table class="data-table" id="cbt-table"></table>
                 </div>

@@ -454,13 +454,39 @@ let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0, cbtSearchQuery='';
 const CBT_PER_PAGE=20;
 const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395'};
 const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢'};
+
+function cbtAddrCell(addr, label) {
+    const short = addr.slice(0,6)+'…'+addr.slice(-4);
+    const dbUrl = `https://debank.com/profile/${addr}`;
+    const explorerUrl = `https://etherscan.io/address/${addr}`;
+    return `<div class="cbt-addr-cell">
+        <div class="cbt-addr-main">
+            <a href="${explorerUrl}" target="_blank" rel="noopener" class="cbt-addr-name" title="${addr}">${label||short}</a>
+            <button class="addr-icon-btn" onclick="copyText('${addr}')" title="Copy"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <a href="${dbUrl}" target="_blank" rel="noopener" class="addr-icon-btn" title="DeBank"><img src="https://debank.com/favicon.ico" width="12" height="12" style="border-radius:2px"></a>
+        </div>
+        ${label ? `<div class="cbt-addr-hex">${short}</div>` : ''}
+    </div>`;
+}
+
 // ─── Column config: reorder/resize by dragging in the UI ───
 const CBT_COLUMNS_DEF = [
-    { id:'date_tx', header:'Date / TX', width:274, minW:30, align:'left', render: (t) => { const d=new Date(t.timestamp*1000); const ds=d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); const ts=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}); return `<div style="line-height:1.5"><span style="font-size:12px;color:var(--text-primary);font-weight:500">${ds}</span> <span style="font-size:11px;color:var(--text-muted)">${ts}</span><br><a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" class="cbt-tx-link">${t.hash.slice(0,10)}…</a></div>`; }},
-    { id:'type',    header:'Type',      width:248, minW:30,  align:'left',  render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
-    { id:'amount',  header:'Amount',    width:147, minW:30, align:'right', render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
-    { id:'from',    header:'From',      width:351, minW:30,  align:'right', render: (t) => { const s=t.from.slice(0,6)+'…'+t.from.slice(-4); return `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" class="cbt-addr-link" title="${t.from}">${t.from_label||s}</a>`; }},
-    { id:'to',      header:'To',        width:311, minW:30,  align:'right', render: (t) => { const s=t.to.slice(0,6)+'…'+t.to.slice(-4); return `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" class="cbt-addr-link" title="${t.to}">${t.to_label||s}</a>`; }},
+    { id:'from', header:'From', width:280, minW:30, align:'left', render: (t) => {
+        const d = new Date(t.timestamp*1000);
+        const ds = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const ts = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+        const txShort = t.hash ? t.hash.slice(0,10)+'…' : '';
+        return `<div class="cbt-from-cell">
+            ${cbtAddrCell(t.from, t.from_label)}
+            <div class="cbt-tx-meta">
+                <a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" class="cbt-tx-link" title="${t.hash}">${txShort}</a>
+                <span class="cbt-tx-date">${ds} ${ts}</span>
+            </div>
+        </div>`;
+    }},
+    { id:'type', header:'Type', width:120, minW:30, align:'left', render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
+    { id:'amount', header:'Amount', width:180, minW:30, align:'right', render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
+    { id:'to', header:'To', width:280, minW:30, align:'left', render: (t) => cbtAddrCell(t.to, t.to_label) },
 ];
 // Clear old layout to apply new defaults
 localStorage.removeItem('cbt_layout');
@@ -518,22 +544,18 @@ function renderCbTransfers() {
     cbtPage = Math.min(cbtPage, totalPages);
     const start = (cbtPage - 1) * CBT_PER_PAGE;
     const pageItems = filtered.slice(start, start + CBT_PER_PAGE);
-    // Stats
+    // Stats — compact inline
     const totalIn = filtered.filter(t => t.type==='BUY'||t.type==='INFLOW').reduce((s,t)=>s+t.value,0);
     const totalOut = filtered.filter(t => t.type==='SELL'||t.type==='OUTFLOW').reduce((s,t)=>s+t.value,0);
     const net = totalIn - totalOut;
     const periodLabel = cbtPeriodDays > 0 ? `last ${cbtPeriodDays}d` : 'all time';
     const statsEl = document.getElementById('cbt-stats');
     if(statsEl) statsEl.innerHTML = `
-        <div class="fresh-stat"><div class="fresh-stat-val" style="color:#00D395">+${fmt(totalIn)}</div><div class="fresh-stat-lbl">Total Inflow</div></div>
-        <div class="fresh-stat"><div class="fresh-stat-val" style="color:#FF4444">-${fmt(totalOut)}</div><div class="fresh-stat-lbl">Total Outflow</div></div>
-        <div class="fresh-stat"><div class="fresh-stat-val" style="color:${net>=0?'#00D395':'#FF4444'}">${net>=0?'+':''}${fmt(net)}</div><div class="fresh-stat-lbl">Net Flow</div></div>
-        <div class="fresh-stat"><div class="fresh-stat-val cb-stat-val">${total}</div><div class="fresh-stat-lbl">Transactions (${periodLabel})</div></div>
+        <span class="cbt-stat-pill" style="color:#00D395">▲ ${fmt(totalIn)}</span>
+        <span class="cbt-stat-pill" style="color:#FF4444">▼ ${fmt(totalOut)}</span>
+        <span class="cbt-stat-pill" style="color:${net>=0?'#00D395':'#FF4444'}">Δ ${net>=0?'+':''}${fmt(net)}</span>
+        <span class="cbt-stat-pill" style="color:var(--text-muted)">${total} txs</span>
     `;
-    const subEl = document.getElementById('cbt-sub');
-    if(subEl) subEl.textContent = `${total} transfers (${periodLabel})`;
-    const countEl = document.getElementById('cbt-count');
-    if(countEl) countEl.textContent = `${total} transactions`;
     // Get columns in current order with saved widths
     const cols = cbtGetColumns();
     const colCount = cols.length;
