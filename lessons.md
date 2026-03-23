@@ -16,6 +16,10 @@
 - **scan_state.json musi być w `git add` w workflow.** Bez tego incremental scan nie działa (brak lastBlock).
 - **⚠️ ZAWSZE `git pull --rebase -X theirs`** dla auto-generowanych JSON-ów. Zwykły `--rebase` crashuje na merge conflict w dużych plikach (5M+ linii). `-X theirs` = dane z workflow zawsze wygrywają (są nowsze). Lekcja z Dolomite, kosztowała nas noc danych w ZRO.
 - **`continue-on-error: true`** na krokach detect_fresh + generate_flows — jeśli się wywalą, holder data i tak się zapisze.
+- **⚠️ NIGDY nie dodawaj state files do .gitignore** (`cb_monitor_state.json` etc.) jeśli GitHub Actions ich potrzebuje między runami. Gitignored = każdy run zaczyna od zera.
+- **`actions/cache` key musi być stabilny.** `hashFiles('script.py')` invaliduje cache przy każdej edycji kodu. Używaj stałego klucza (np. `flow-cache-v1`).
+- **Nie auto-labeluj bez weryfikacji.** Wallet z Token Unlocks nie jest automatycznie "Fresh" — może to być stary portfel. Labeling powinien przechodzić przez `detect_fresh.py`.
+- **Aging labels musi być OSOBNYM passem.** Jeśli aging code jest wewnątrz pętli "candidates" (walletów bez label), to labeled wallety są pomijane → nigdy nie expire.
 
 ## Fresh Wallet Detection
 
