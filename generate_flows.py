@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """
 Generate real ZRO flow data from on-chain transfers (multi-chain).
+Supports INCREMENTAL SCANNING — on subsequent runs, only fetches new
+transfers since the last scanned block, dramatically reducing run time.
 
-For each tracked wallet, fetch actual ZRO token transfers from Etherscan V2 API
-across all chains and compute real net_flow (IN - OUT) per period (1D, 7D, 30D, 90D, ALL).
-
-Per-chain wallet limits (sorted by balance on that chain):
-  Ethereum:  600
-  Arbitrum:  100
-  Others:    50 each
+Cache file: flow_cache.json (stores per-chain last_block + all transfers)
+First run: ~15-20 min (full 365d scan)
+Subsequent runs: ~2-3 min (incremental from last block)
 """
 import json, os, time
 from urllib.request import urlopen, Request
@@ -20,6 +18,7 @@ DECIMALS = 18
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(DIR, "zro_data.json")
+CACHE_PATH = os.path.join(DIR, "flow_cache.json")
 
 # Chain configs: chain_id, block_time (s), top_n wallets to scan
 CHAINS = {
@@ -41,6 +40,9 @@ PERIODS = {
     "180d": 180 * 86400,
     "all":  365 * 5 * 86400,
 }
+
+# How far back to scan on a FULL (first) run
+FULL_SCAN_DAYS = 365
 
 
 def fetch_json(url):
@@ -106,6 +108,37 @@ def get_current_block(chain_id):
     return 0
 
 
+def load_cache():
+    """Load transfer cache from disk."""
+    if os.path.exists(CACHE_PATH):
+        try:
+            with open(CACHE_PATH) as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+    return {"last_blocks": {}, "transfers": {}}
+
+
+def save_cache(cache):
+    """Save transfer cache to disk."""
+    with open(CACHE_PATH, "w") as f:
+        json.dump(cache, f)
+
+
+def prune_old_transfers(cache, cutoff_ts):
+    """Remove transfers older than cutoff timestamp."""
+    pruned = 0
+    for addr in list(cache["transfers"].keys()):
+        txs = cache["transfers"][addr]
+        filtered = [t for t in txs if t["timestamp"] >= cutoff_ts]
+        pruned += len(txs) - len(filtered)
+        if filtered:
+            cache["transfers"][addr] = filtered
+        else:
+            del cache["transfers"][addr]
+    return pruned
+
+
 def main():
     if not API_KEY:
         print("❌ ETHERSCAN_API_KEY not set")
@@ -117,12 +150,19 @@ def main():
     holders = data.get("top_holders", [])
     now = int(time.time())
 
-    print(f"📊 Real ZRO Flow Generator (Multi-Chain)")
+    # Load incremental cache
+    cache = load_cache()
+    is_incremental = bool(cache.get("last_blocks"))
+
+    if is_incremental:
+        print(f"⚡ INCREMENTAL MODE — fetching only new transfers since last run")
+    else:
+        print(f"🔄 FULL SCAN MODE — scanning {FULL_SCAN_DAYS} days of history")
+
     print(f"   Total holders in data: {len(holders)}")
 
-    # Per-address flow data: address -> [{from, to, value, timestamp}]
-    address_flows = defaultdict(list)
     total_requests = 0
+    new_transfers_total = 0
 
     # Process each chain
     for chain_name, chain_cfg in CHAINS.items():
@@ -142,16 +182,27 @@ def main():
             print(f"\n   {chain_name}: 0 holders — skipped")
             continue
 
-        # Estimate start block for 365d (scan full year of transfers)
         current_block = get_current_block(chain_id)
         time.sleep(0.22)
-        blocks_365d = int(365 * 86400 / block_time)
-        start_block = max(0, current_block - blocks_365d)
 
-        print(f"\n🔗 {chain_name.upper()} (chainid={chain_id})")
-        print(f"   Scanning top {len(chain_holders)} holders (block {start_block}→{current_block})")
+        # Determine start block
+        cache_key = chain_name
+        if is_incremental and cache_key in cache["last_blocks"]:
+            # Incremental: start from last scanned block + 1
+            start_block = cache["last_blocks"][cache_key] + 1
+            blocks_delta = current_block - start_block
+            time_delta = blocks_delta * block_time
+            print(f"\n⚡ {chain_name.upper()} (incremental: {blocks_delta:,} new blocks, ~{time_delta/3600:.1f}h)")
+        else:
+            # Full scan: go back FULL_SCAN_DAYS
+            blocks_back = int(FULL_SCAN_DAYS * 86400 / block_time)
+            start_block = max(0, current_block - blocks_back)
+            print(f"\n🔗 {chain_name.upper()} (full scan: block {start_block}→{current_block})")
+
+        print(f"   Scanning top {len(chain_holders)} holders")
 
         processed = 0
+        chain_new = 0
         for h in chain_holders:
             addr = h["address"].lower()
             processed += 1
@@ -161,16 +212,46 @@ def main():
             time.sleep(0.22)
 
             if transfers:
-                address_flows[addr].extend(transfers)
+                # Merge with existing cached transfers (dedup by timestamp+from+to+value)
+                existing = cache["transfers"].get(addr, [])
+                existing_set = set(
+                    (t["from"], t["to"], int(t["value"]*100), t["timestamp"])
+                    for t in existing
+                )
+                new_count = 0
+                for t in transfers:
+                    key = (t["from"], t["to"], int(t["value"]*100), t["timestamp"])
+                    if key not in existing_set:
+                        existing.append(t)
+                        existing_set.add(key)
+                        new_count += 1
+                if existing:
+                    cache["transfers"][addr] = existing
+                chain_new += new_count
 
             if processed % 50 == 0:
                 print(f"   ... {processed}/{len(chain_holders)}")
 
-        with_transfers = sum(1 for h in chain_holders if h["address"].lower() in address_flows)
-        print(f"   ✅ {processed} scanned, {with_transfers} with transfers")
+        # Update last scanned block for this chain
+        cache["last_blocks"][cache_key] = current_block
+        new_transfers_total += chain_new
+
+        with_transfers = sum(1 for h in chain_holders if h["address"].lower() in cache["transfers"])
+        print(f"   ✅ {processed} scanned, {chain_new} new transfers, {with_transfers} with history")
+
+    # Prune transfers older than 365 days
+    cutoff_ts = now - (FULL_SCAN_DAYS * 86400)
+    pruned = prune_old_transfers(cache, cutoff_ts)
+    if pruned:
+        print(f"\n🗑️  Pruned {pruned} transfers older than {FULL_SCAN_DAYS}d")
+
+    # Save cache for next incremental run
+    save_cache(cache)
+    cache_size = os.path.getsize(CACHE_PATH) / (1024 * 1024)
+    print(f"💾 Cache saved ({cache_size:.1f} MB, {len(cache['transfers'])} wallets)")
 
     print(f"\n📈 Computing flows per period...")
-    print(f"   Total wallets with transfers: {len(address_flows)}")
+    print(f"   Total wallets with transfers: {len(cache['transfers'])}")
 
     # Build label/type lookup
     label_map = {}
@@ -180,14 +261,14 @@ def main():
         label_map[addr] = {"label": h.get("label", ""), "type": h.get("type", "")}
         balance_map[addr] = round(sum(h.get("balances", {}).values()))
 
-    # Compute flows per period
+    # Compute flows per period from cached transfers
     new_flows = {}
 
     for period_key, period_secs in PERIODS.items():
         cutoff = now - period_secs
         period_data = defaultdict(float)
 
-        for addr, transfers in address_flows.items():
+        for addr, transfers in cache["transfers"].items():
             net = 0.0
             for tx in transfers:
                 if tx["timestamp"] < cutoff:
@@ -199,7 +280,7 @@ def main():
             if abs(net) > 0.01:
                 period_data[addr] = round(net)
 
-        # Build sorted lists (only include wallets with non-zero flow)
+        # Build sorted lists
         all_items = []
         for addr, net_flow in period_data.items():
             if net_flow == 0:
@@ -225,9 +306,11 @@ def main():
     with open(DATA_PATH, "w") as f:
         json.dump(data, f, indent=2)
 
-    print(f"\n✅ Real flow data saved!")
-    print(f"   Total API calls: ~{total_requests}")
-    print(f"   Wallets with transfers: {len(address_flows)}")
+    mode = "INCREMENTAL" if is_incremental else "FULL"
+    print(f"\n✅ Flow data saved! ({mode} mode)")
+    print(f"   API calls: ~{total_requests}")
+    print(f"   New transfers found: {new_transfers_total}")
+    print(f"   Wallets with flow data: {len(cache['transfers'])}")
 
 
 if __name__ == "__main__":

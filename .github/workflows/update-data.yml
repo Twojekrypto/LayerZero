@@ -40,6 +40,13 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python detect_fresh.py
 
+      - name: Restore flow cache
+        uses: actions/cache@v4
+        with:
+          path: flow_cache.json
+          key: flow-cache-${{ hashFiles('generate_flows.py') }}
+          restore-keys: flow-cache-
+
       - name: Generate real flow data from on-chain transfers
         continue-on-error: true
         env:
