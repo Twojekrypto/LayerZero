@@ -544,18 +544,20 @@ function renderCbTransfers() {
     cbtPage = Math.min(cbtPage, totalPages);
     const start = (cbtPage - 1) * CBT_PER_PAGE;
     const pageItems = filtered.slice(start, start + CBT_PER_PAGE);
-    // Stats — compact inline
+    // Stats — full-width grid (same UX as CB Investors)
     const totalIn = filtered.filter(t => t.type==='BUY'||t.type==='INFLOW').reduce((s,t)=>s+t.value,0);
     const totalOut = filtered.filter(t => t.type==='SELL'||t.type==='OUTFLOW').reduce((s,t)=>s+t.value,0);
     const net = totalIn - totalOut;
     const periodLabel = cbtPeriodDays > 0 ? `last ${cbtPeriodDays}d` : 'all time';
     const statsEl = document.getElementById('cbt-stats');
     if(statsEl) statsEl.innerHTML = `
-        <span class="cbt-stat-pill" style="color:#00D395">▲ ${fmt(totalIn)}</span>
-        <span class="cbt-stat-pill" style="color:#FF4444">▼ ${fmt(totalOut)}</span>
-        <span class="cbt-stat-pill" style="color:${net>=0?'#00D395':'#FF4444'}">Δ ${net>=0?'+':''}${fmt(net)}</span>
-        <span class="cbt-stat-pill" style="color:var(--text-muted)">${total} txs</span>
+        <div class="fresh-stat"><div class="fresh-stat-val" style="color:#00D395">+${fmt(totalIn)}</div><div class="fresh-stat-lbl">Total Inflow</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val" style="color:#FF4444">-${fmt(totalOut)}</div><div class="fresh-stat-lbl">Total Outflow</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val" style="color:${net>=0?'#00D395':'#FF4444'}">${net>=0?'+':''}${fmt(net)}</div><div class="fresh-stat-lbl">Net Flow</div></div>
+        <div class="fresh-stat"><div class="fresh-stat-val cb-stat-val">${total}</div><div class="fresh-stat-lbl">Transactions (${periodLabel})</div></div>
     `;
+    const subEl = document.getElementById('cbt-sub');
+    if(subEl) subEl.textContent = `${total} transfers (${periodLabel})`;
     // Get columns in current order with saved widths
     const cols = cbtGetColumns();
     const colCount = cols.length;
