@@ -34,11 +34,12 @@ CHAINS = {
 
 # Period definitions in seconds
 PERIODS = {
-    "1d":  1 * 86400,
-    "7d":  7 * 86400,
-    "30d": 30 * 86400,
-    "90d": 90 * 86400,
-    "all": 365 * 5 * 86400,
+    "1d":   1 * 86400,
+    "7d":   7 * 86400,
+    "30d":  30 * 86400,
+    "90d":  90 * 86400,
+    "180d": 180 * 86400,
+    "all":  365 * 5 * 86400,
 }
 
 
@@ -141,11 +142,11 @@ def main():
             print(f"\n   {chain_name}: 0 holders — skipped")
             continue
 
-        # Estimate start block for 90d
+        # Estimate start block for 365d (scan full year of transfers)
         current_block = get_current_block(chain_id)
         time.sleep(0.22)
-        blocks_90d = int(PERIODS["90d"] / block_time)
-        start_block = max(0, current_block - blocks_90d)
+        blocks_365d = int(365 * 86400 / block_time)
+        start_block = max(0, current_block - blocks_365d)
 
         print(f"\n🔗 {chain_name.upper()} (chainid={chain_id})")
         print(f"   Scanning top {len(chain_holders)} holders (block {start_block}→{current_block})")

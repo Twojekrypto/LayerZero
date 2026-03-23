@@ -7,7 +7,7 @@
     <meta name="description" content="Real-time analytics for ZRO (LayerZero) — multi-chain distribution, holder flows, tokenomics, vesting, buybacks.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 <div class="page-wrapper">
@@ -92,12 +92,12 @@
             <div class="fresh-stats" id="fresh-stats"></div>
             <div class="table-scroll">
                 <table class="data-table" id="fresh-table">
+                    <colgroup><col style="width:50px"><col><col style="width:200px"><col style="width:220px"></colgroup>
                     <thead><tr>
-                        <th style="width:32px">#</th>
+                        <th style="width:40px">#</th>
                         <th>Address</th>
                         <th class="right">Balance</th>
                         <th class="right">% of Supply</th>
-
                     </tr></thead>
                     <tbody id="fresh-tbody"></tbody>
                 </table>
@@ -122,8 +122,9 @@
             <div class="fresh-stats" id="cb-stats"></div>
             <div class="table-scroll">
                 <table class="data-table" id="cb-table">
+                    <colgroup><col style="width:50px"><col><col style="width:200px"><col style="width:220px"></colgroup>
                     <thead><tr>
-                        <th style="width:32px">#</th>
+                        <th style="width:40px">#</th>
                         <th>Address</th>
                         <th class="right">Balance</th>
                         <th class="right">% of Supply</th>
@@ -199,7 +200,7 @@
                 <div class="period-pills" id="flow-period-pills" style="margin-left:auto">
                     <button data-period="1d">1D</button><button data-period="7d">7D</button>
                     <button data-period="30d" class="active">30D</button><button data-period="90d">90D</button>
-                    <button data-period="all">ALL</button>
+                    <button data-period="180d">180D</button><button data-period="all">ALL</button>
                 </div>
             </div>
             <div class="flow-grid">
@@ -269,6 +270,6 @@
     </footer>
 </div>
 <div class="toast" id="toast"></div>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

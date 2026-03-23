@@ -273,27 +273,35 @@ function renderFreshWallets() {
     const pageItems = freshHolders.slice(start, start + FRESH_PER_PAGE);
     let html = '';
     const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    const maxPct = pageItems.length ? Math.max(...pageItems.map(h => Object.values(h.balances).reduce((s,v)=>s+v,0) / totalSupply * 100)) : 0.01;
     pageItems.forEach((h, i) => {
         const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
         const pct = (bal / totalSupply * 100).toFixed(4);
+        const pctNum = bal / totalSupply * 100;
+        const barW = Math.max(4, (pctNum / maxPct) * 100);
         const usdVal = price ? fmtUSD(bal * price) : '';
         const shortA = h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dbUrl = `https://debank.com/profile/${h.address}`;
+        const explorerUrl = `https://etherscan.io/address/${h.address}`;
         const dbIcon = `<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
+        const explorerSvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+        const explorerIcon=`<a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-explorer-icon" title="Etherscan">${explorerSvg}</a>`;
         const label = h.label || 'Fresh Wallet';
-        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</div></div>`;
+        const rank = start+i+1;
+        const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
+        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
         html += `<tr>
-            <td class="rank-cell">${start+i+1}</td>
+            <td><span class="${rankCls}">${rank}</span></td>
             <td>${addrTd}</td>
-            <td class="right"><div class="val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
-            <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
+            <td class="right"><div class="bal-main">${fmt(bal)}<span class="bal-unit">ZRO</span></div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
+            <td class="right"><div class="supply-bar-wrap"><span class="val-muted">${pct}%</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${barW}%"></div></div></div></td>
         </tr>`;
     });
     // Pad empty rows to keep constant height
     const emptyRows = FRESH_PER_PAGE - pageItems.length;
     for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="4"></td></tr>';
-    if(!total && !freshSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No fresh wallets tracked</td></tr>';
-    if(!total && freshSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+freshSearchQuery+'"</td></tr>';
+    if(!total && !freshSearchQuery) html = '<tr><td colspan="4"><div class="table-empty-state"><div class="empty-icon">🌱</div><div class="empty-text">No fresh wallets tracked</div></div></td></tr>';
+    if(!total && freshSearchQuery) html = '<tr><td colspan="4"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+freshSearchQuery+'"</div></div></td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
     const totalBal = allFresh.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';
@@ -362,9 +370,12 @@ function renderCoinbasePrime() {
     const pageItems = cbHolders.slice(start, start + CB_PER_PAGE);
     let html = '';
     const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    const maxPct = pageItems.length ? Math.max(...pageItems.map(h => Object.values(h.balances).reduce((s,v)=>s+v,0) / totalSupply * 100)) : 0.01;
     pageItems.forEach((h, i) => {
         const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
         const pct = (bal / totalSupply * 100).toFixed(4);
+        const pctNum = bal / totalSupply * 100;
+        const barW = Math.max(4, (pctNum / maxPct) * 100);
         const usdVal = price ? fmtUSD(bal * price) : '';
         const shortA = h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dbUrl = `https://debank.com/profile/${h.address}`;
@@ -372,20 +383,20 @@ function renderCoinbasePrime() {
         const dbIcon = `<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
         const explorerSvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
         const explorerIcon=`<a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-explorer-icon" title="View on Etherscan">${explorerSvg}</a>`;
-        // Show funding date if available
-        const fundedDate = h.cb_first_funded ? new Date(h.cb_first_funded * 1000).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
+        const rank = start+i+1;
+        const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
         const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">Coinbase Prime</a><span class="h-badge h-badge-inst">INST</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
         html += `<tr>
-            <td class="rank-cell">${start+i+1}</td>
+            <td><span class="${rankCls}">${rank}</span></td>
             <td>${addrTd}</td>
-            <td class="right"><div class="val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
-            <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
+            <td class="right"><div class="bal-main">${fmt(bal)}<span class="bal-unit">ZRO</span></div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
+            <td class="right"><div class="supply-bar-wrap"><span class="val-muted">${pct}%</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${barW}%"></div></div></div></td>
         </tr>`;
     });
     const emptyRows = CB_PER_PAGE - pageItems.length;
     for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="4"></td></tr>';
-    if(!total && !cbSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No Coinbase Prime wallets in this period</td></tr>';
-    if(!total && cbSearchQuery) html = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px">No results for "'+cbSearchQuery+'"</td></tr>';
+    if(!total && !cbSearchQuery) html = '<tr><td colspan="4"><div class="table-empty-state"><div class="empty-icon">🏦</div><div class="empty-text">No Coinbase Prime wallets in this period</div></div></td></tr>';
+    if(!total && cbSearchQuery) html = '<tr><td colspan="4"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+cbSearchQuery+'"</div></div></td></tr>';
     document.getElementById('cb-tbody').innerHTML = html;
     const totalBal = allCb.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';
