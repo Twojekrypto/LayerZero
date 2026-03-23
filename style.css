@@ -60,8 +60,7 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 /* ===== PREMIUM TABLE UX — Fresh Wallets & Coinbase Prime ===== */
 
 /* — Card header accent bar — */
-#fresh-card > .card-header { border-left:3px solid #4ade80; }
-#cb-card > .card-header { border-left:3px solid #0052FF; }
+
 
 /* — Table header upgrade — subtle gradient bg — */
 #fresh-card .data-table thead th,
@@ -81,14 +80,12 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
     background:rgba(255,255,255,0.015);
 }
 
-/* — Row hover — glassmorphic glow with left accent — */
+/* — Row hover — subtle glow — */
 #fresh-card .data-table tbody tr:not(.h-row-empty):hover {
     background:rgba(74,222,128,0.04) !important;
-    box-shadow:inset 3px 0 0 0 #4ade80;
 }
 #cb-card .data-table tbody tr:not(.h-row-empty):hover {
     background:rgba(0,82,255,0.04) !important;
-    box-shadow:inset 3px 0 0 0 #0052FF;
 }
 
 /* — Table cell spacing — */
@@ -240,14 +237,14 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
     letter-spacing:0.3px;
 }
 /* CB Prime Transfers — own card */
-#cbt-card > .card-header { border-left:3px solid #0052FF; }
+
 #cbt-card .data-table thead th {
     background:linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
     padding:10px 12px; font-size:10px; font-weight:700; letter-spacing:0.8px;
     color:rgba(255,255,255,0.5); border-bottom:1px solid rgba(255,255,255,0.1);
 }
 #cbt-card .data-table tbody tr:nth-child(even) { background:rgba(255,255,255,0.015); }
-#cbt-card .data-table tbody tr:not(.h-row-empty):hover { background:rgba(0,82,255,0.04) !important; box-shadow:inset 3px 0 0 0 #0052FF; }
+#cbt-card .data-table tbody tr:not(.h-row-empty):hover { background:rgba(0,82,255,0.04) !important; }
 #cbt-card .data-table td { padding:14px 16px; vertical-align:middle; border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.15s ease; }
 #cbt-card .fresh-stats { border-radius:var(--radius-md); margin:0 20px 12px; border:1px solid rgba(255,255,255,0.05); }
 #cbt-card .fresh-stat { padding:18px 16px; }
