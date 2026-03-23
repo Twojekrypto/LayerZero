@@ -51,12 +51,12 @@ ALCHEMY_URLS = {
 # CSV files for chains not covered by APIs
 CSV_DIR = os.path.join(DIR, "ZRO holders")
 CSV_FILES = {
-    "base":      "BASE.csv",
+    "base":      "base.csv",
     "bsc":       "bsc.csv",
-    "optimism":  "OPtymism.csv",
-    "avalanche": "AVAX.csv",
+    "optimism":  "optimism.csv",
+    "avalanche": "avalanche.csv",
     "polygon":   "polygon.csv",
-    "arbitrum":  "Arbitrum ZRO.csv",
+    "arbitrum":  "arbitrum.csv",
     "ethereum":  "ethereum.csv",
 }
 
