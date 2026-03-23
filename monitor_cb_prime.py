@@ -149,7 +149,7 @@ def main():
         resp = fetch_json(url)
         if resp and resp.get("result"):
             latest = int(resp["result"], 16)
-            start_block = latest - 600  # ~2 hours back
+            start_block = latest - 7200  # ~24 hours back
             print(f"   First run — starting from block {start_block}")
 
     # Fetch ZRO token transfers for each CB Prime wallet (recent only)

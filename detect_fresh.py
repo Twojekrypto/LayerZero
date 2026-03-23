@@ -34,6 +34,26 @@ ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
 CB_MIN_RECEIVED = 50_000  # Min ZRO received from CB Prime to qualify
 CB_MIN_BALANCE = 100_000  # Min current balance to label
 
+# Manually excluded internal Coinbase wallets (frequent CB Prime ↔ Coinbase transfers)
+COINBASE_INTERNAL_EXCLUDE = {
+    "0x26cc9d27b6dfa373a7a470839e4cf5220a22be02",
+    "0xd23b59111d168760c8eea27b01cf8f21369a7040",
+    "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4",
+    "0x1e51767f345b1a7404fac03828e02a3fbceb4c95",
+    "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc",
+    "0x3fceb80de2a6fd3b46ab792f22858bbb24dd9e41",
+}
+
+# Known Coinbase exchange hot wallets — used to detect internal shuttle wallets
+KNOWN_COINBASE_WALLETS = {
+    "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
+    "0x503828976d22510aad0201ac7ec88293211d23da",
+    "0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740",
+    "0x3cd751e6b0078be393132286c442345e68ff0afc",
+    "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511",
+    "0xeb2629a2734e272bcc07bda959863f316f4bd4cf",
+} | COINBASE_PRIME_HUBS  # Include the hub itself
+
 DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(DIR, "zro_data.json")
 CACHE_PATH = os.path.join(DIR, "fresh_cache.json")
@@ -238,10 +258,44 @@ def has_cex_interaction(address):
     return cex_interactions >= 2
 
 
+def has_coinbase_roundtrip(address):
+    """Check if a wallet has frequent ZRO transfers TO Coinbase hot wallets or CB Prime.
+    If a wallet sends ZRO back to Coinbase addresses frequently, it's an internal wallet,
+    not an actual investor."""
+    url = (
+        f"https://api.etherscan.io/v2/api?chainid=1"
+        f"&module=account&action=tokentx"
+        f"&address={address}"
+        f"&contractaddress={ZRO_CONTRACT}"
+        f"&startblock=0&endblock=99999999"
+        f"&page=1&offset=100&sort=desc"
+        f"&apikey={API_KEY}"
+    )
+    data = fetch_json(url)
+    if not data or data.get("status") != "1" or not data.get("result"):
+        return False
+
+    cb_transfers = 0
+    for tx in data["result"]:
+        from_addr = tx.get("from", "").lower()
+        to_addr = tx.get("to", "").lower()
+        # Count transfers where this wallet interacts with Coinbase wallets
+        # (sends TO or receives FROM Coinbase hot wallets — not CB Prime hub)
+        if from_addr == address.lower() and to_addr in KNOWN_COINBASE_WALLETS:
+            cb_transfers += 1
+        elif to_addr == address.lower() and from_addr in (KNOWN_COINBASE_WALLETS - COINBASE_PRIME_HUBS):
+            cb_transfers += 1
+    # 3+ round-trip transfers with Coinbase = internal wallet
+    return cb_transfers >= 3
+
+
 def detect_coinbase_prime(data):
     """Auto-detect wallets funded by Coinbase Prime custody hubs.
     Scans outgoing ZRO transfers from known CB Prime addresses,
-    labels recipients with 100K+ balance as 'Coinbase Prime Investor'."""
+    labels recipients with 100K+ balance as 'Coinbase Prime Investor'.
+
+    Filters out internal Coinbase wallets that shuttle funds between
+    Coinbase hot wallets and CB Prime (detected via round-trip transfers)."""
     print("🏦 Coinbase Prime Investor Detection")
 
     existing_cb = {h["address"].lower() for h in data["top_holders"]
@@ -305,10 +359,19 @@ def detect_coinbase_prime(data):
             continue
         if addr in existing_cb:
             continue  # Already labeled
+        # Skip manually excluded internal Coinbase wallets
+        if addr in COINBASE_INTERNAL_EXCLUDE:
+            print(f"  ⛔ Excluded (internal): {addr[:14]}...")
+            continue
         # Skip wallets with non-Fresh manual labels (BitGo, CEX, etc.)
         existing_label = h.get("label", "")
         existing_type = h.get("type", "")
         if existing_label and existing_type not in ("FRESH", ""):
+            continue
+        # Auto-filter: skip if wallet has frequent round-trip transfers with Coinbase
+        time.sleep(0.25)
+        if has_coinbase_roundtrip(addr):
+            print(f"  ⛔ Filtered (CB roundtrip): {addr[:14]}... ({balance:,.0f} ZRO)")
             continue
         old_label = existing_label or "(none)"
         h["label"] = "Coinbase Prime Investor"
