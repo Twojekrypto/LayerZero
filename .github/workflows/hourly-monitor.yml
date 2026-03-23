@@ -2,8 +2,8 @@ name: Hourly Monitor
 
 on:
   schedule:
-    # Run every hour at :15
-    - cron: '15 * * * *'
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
   workflow_dispatch:
     # Allow manual trigger
 
