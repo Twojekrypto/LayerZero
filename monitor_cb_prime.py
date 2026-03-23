@@ -149,7 +149,9 @@ def main():
 
     all_transfers = []
     checked = 0
-    for addr in cb_addrs:
+    # Scan all CB Prime wallets + the Hub to capture Hub→wallet transfers
+    scan_addrs = cb_addrs | {COINBASE_PRIME_HUB}
+    for addr in scan_addrs:
         url = (
             f"https://api.etherscan.io/v2/api?chainid=1"
             f"&module=account&action=tokentx"
@@ -186,11 +188,27 @@ def main():
     max_block = start_block
     now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
+    # Build label map for persistence
+    label_map = {}
+    for h in data["top_holders"]:
+        addr = h["address"].lower()
+        if h.get("label") == "Coinbase Prime Investor":
+            idx = sorted(cb_addrs).index(addr) + 1 if addr in cb_addrs else 0
+            label_map[addr] = f"Investor #{idx}" if idx else h.get("label", "")
+        elif h.get("label"):
+            label_map[addr] = h["label"]
+    label_map[COINBASE_PRIME_HUB] = "Coinbase Prime"
+    for cex_addr, cex_name in KNOWN_CEX.items():
+        label_map[cex_addr] = cex_name
+
+    new_transfers = []  # Accumulate for persistence
+
     for tx_hash, tx in sorted(unique_txs.items(), key=lambda x: int(x[1].get("blockNumber", "0"))):
         from_addr = tx.get("from", "").lower()
         to_addr = tx.get("to", "").lower()
         value = int(tx.get("value", "0")) / 1e18
         block = int(tx.get("blockNumber", "0"))
+        timestamp = int(tx.get("timeStamp", "0"))
         max_block = max(max_block, block)
 
         usd_val = fmt_usd(value * price) if price else ""
@@ -200,11 +218,14 @@ def main():
         to_is_cb = to_addr in cb_addrs
         to_is_cex = to_addr in KNOWN_CEX
         from_is_cex = from_addr in KNOWN_CEX
+        from_is_hub = from_addr == COINBASE_PRIME_HUB
 
         # Classify
+        transfer_type = None
         if from_is_cb and to_is_cb:
             # Internal transfer between CB Prime wallets
             alert_type = "TRANSFER"
+            transfer_type = "TRANSFER"
             color = 0x0052FF
             title = "🔄 Coinbase Prime — TRANSFER"
             desc = "ZRO moved **between Coinbase Prime wallets**"
@@ -218,6 +239,7 @@ def main():
             # Sell — CB Prime sends to CEX
             cex_name = KNOWN_CEX.get(to_addr, "Exchange")
             alert_type = "SELL"
+            transfer_type = "SELL"
             color = 0xFF4444
             title = "🔴 Coinbase Prime — SELL"
             desc = f"CB Prime wallet **sent ZRO to {cex_name}**"
@@ -233,6 +255,7 @@ def main():
         elif from_is_cb and not to_is_cb:
             # Outgoing to unknown — could be OTC or other
             alert_type = "TRANSFER"
+            transfer_type = "OUTFLOW"
             color = 0xFFA500
             title = "🟠 Coinbase Prime — OUTFLOW"
             desc = "CB Prime wallet **sent ZRO to external address**"
@@ -242,10 +265,11 @@ def main():
                 {"name": "Amount", "value": f"**-{fmt(value)} ZRO**\n({usd_val})" if usd_val else f"**-{fmt(value)} ZRO**", "inline": True},
                 {"name": "To", "value": f"[`{short_addr(to_addr)}`](https://etherscan.io/address/{to_addr})", "inline": True},
             ]
-        elif to_is_cb and (from_is_cex or from_addr == COINBASE_PRIME_HUB):
+        elif (to_is_cb and (from_is_cex or from_is_hub)) or (from_is_hub and not from_is_cb):
             # Buy — CB Prime receives from CEX or hub
-            source_name = KNOWN_CEX.get(from_addr, "Coinbase Prime 1" if from_addr == COINBASE_PRIME_HUB else "Unknown")
+            source_name = KNOWN_CEX.get(from_addr, "Coinbase Prime 1" if from_is_hub else "Unknown")
             alert_type = "BUY"
+            transfer_type = "BUY"
             color = 0x00D395
             title = "🟢 Coinbase Prime — BUY"
             desc = f"CB Prime wallet **received ZRO** from {source_name}"
@@ -261,6 +285,7 @@ def main():
         elif to_is_cb:
             # Inflow from unknown
             alert_type = "BUY"
+            transfer_type = "INFLOW"
             color = 0x00D395
             title = "🟢 Coinbase Prime — INFLOW"
             desc = "CB Prime wallet **received ZRO**"
@@ -289,6 +314,32 @@ def main():
         send_discord(embed)
         alerts_sent += 1
         seen.add(tx_hash)
+
+        # Build transfer record for persistence
+        if transfer_type:
+            new_transfers.append({
+                "hash": tx_hash,
+                "from": from_addr,
+                "to": to_addr,
+                "from_label": label_map.get(from_addr, ""),
+                "to_label": label_map.get(to_addr, ""),
+                "value": round(value, 2),
+                "timestamp": timestamp,
+                "type": transfer_type,
+            })
+
+    # Persist new transfers to zro_data.json
+    if new_transfers:
+        existing = data.get("cb_prime_transfers", [])
+        existing_hashes = {t["hash"] for t in existing}
+        added = [t for t in new_transfers if t["hash"] not in existing_hashes]
+        if added:
+            existing.extend(added)
+            existing.sort(key=lambda t: t["timestamp"], reverse=True)
+            # Keep last 1000
+            data["cb_prime_transfers"] = existing[-1000:]
+            atomic_json_dump(data, DATA_PATH)
+            print(f"   💾 Saved {len(added)} new transfers to zro_data.json (total: {len(data['cb_prime_transfers'])})")
 
     # Save state
     state["last_block"] = max_block if max_block > 0 else start_block
