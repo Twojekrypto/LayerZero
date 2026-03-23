@@ -114,12 +114,12 @@ def main():
             holders.append({
                 "address": tx["address"],
                 "balances": {"ethereum": round(tx["value"])},
-                "label": "Fresh Wallet",
-                "type": "FRESH"
+                "label": "",
+                "type": ""
             })
             known_addrs.add(tx["address"])
             new_count += 1
-            print(f"   🟢 NEW: {tx['address'][:14]}... {tx['value']:,.0f} ZRO from Token Unlocks")
+            print(f"   🆕 NEW: {tx['address'][:14]}... {tx['value']:,.0f} ZRO from Token Unlocks")
 
     if new_count == 0:
         print(f"   No new recipients found")

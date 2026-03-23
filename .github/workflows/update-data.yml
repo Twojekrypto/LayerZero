@@ -40,6 +40,13 @@ jobs:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python detect_fresh.py
 
+      - name: Restore flow cache
+        uses: actions/cache@v4
+        with:
+          path: flow_cache.json
+          key: flow-cache-v1
+          restore-keys: flow-cache-
+
       - name: Generate real flow data from on-chain transfers
         continue-on-error: true
         env:
@@ -49,14 +56,14 @@ jobs:
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet zro_data.json holders_multichain.json scan_state.json fresh_cache.json flow_cache.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet zro_data.json holders_multichain.json scan_state.json fresh_cache.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add zro_data.json holders_multichain.json scan_state.json fresh_cache.json flow_cache.json
+          git add zro_data.json holders_multichain.json scan_state.json fresh_cache.json
           git commit -m "📊 Daily holder scan $(date -u +'%Y-%m-%d %H:%M UTC')"
           git pull --rebase -X theirs origin master
           git push

@@ -69,7 +69,7 @@ def load_state():
 
 def save_state(state):
     # Keep only last 500 TX hashes to avoid unbounded growth
-    state["seen_txs"] = state["seen_txs"][-500:]
+    state["seen_txs"] = state["seen_txs"][-2000:]
     with open(STATE_PATH, "w") as f:
         json.dump(state, f, indent=2)
 

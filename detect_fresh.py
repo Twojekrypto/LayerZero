@@ -258,10 +258,16 @@ def has_cex_interaction(address):
     return cex_interactions >= 2
 
 
-def has_coinbase_roundtrip(address):
+def has_coinbase_roundtrip(address, cache=None):
     """Check if a wallet has frequent ZRO transfers TO Coinbase hot wallets or CB Prime.
     If a wallet sends ZRO back to Coinbase addresses frequently, it's an internal wallet,
-    not an actual investor."""
+    not an actual investor. Results are cached in fresh_cache to avoid redundant API calls."""
+    # Check cache first
+    if cache is not None:
+        cached = cache.get(address, {})
+        if "cb_roundtrip" in cached:
+            return cached["cb_roundtrip"]
+
     url = (
         f"https://api.etherscan.io/v2/api?chainid=1"
         f"&module=account&action=tokentx"
@@ -286,7 +292,15 @@ def has_coinbase_roundtrip(address):
         elif to_addr == address.lower() and from_addr in (KNOWN_COINBASE_WALLETS - COINBASE_PRIME_HUBS):
             cb_transfers += 1
     # 3+ round-trip transfers with Coinbase = internal wallet
-    return cb_transfers >= 3
+    result = cb_transfers >= 3
+
+    # Save to cache
+    if cache is not None:
+        if address not in cache:
+            cache[address] = {}
+        cache[address]["cb_roundtrip"] = result
+
+    return result
 
 
 def detect_coinbase_prime(data):
@@ -370,7 +384,7 @@ def detect_coinbase_prime(data):
             continue
         # Auto-filter: skip if wallet has frequent round-trip transfers with Coinbase
         time.sleep(0.25)
-        if has_coinbase_roundtrip(addr):
+        if has_coinbase_roundtrip(addr, cache):
             print(f"  ⛔ Filtered (CB roundtrip): {addr[:14]}... ({balance:,.0f} ZRO)")
             continue
         old_label = existing_label or "(none)"
@@ -401,11 +415,29 @@ def main():
     with open(DATA_PATH) as f:
         data = json.load(f)
 
-    # Phase 1: Coinbase Prime detection (before fresh wallet scan)
-    cb_wallets = detect_coinbase_prime(data)
-
+    # ── Phase 0: Age out expired FRESH/NEW_INST labels ──
+    cache = load_cache()
     now = int(time.time())
     cutoff = now - (FRESH_AGE_DAYS * 86400)
+    aged_out = 0
+    for h in data["top_holders"]:
+        addr = h["address"].lower()
+        if h.get("type") in ("FRESH", "NEW_INST"):
+            cached = cache.get(addr, {})
+            first_ts = cached.get("first_ts", 0)
+            if first_ts and (now - first_ts) > (FRESH_AGE_DAYS * 86400):
+                old_label = h.get("label", "")
+                h["label"] = ""
+                h["type"] = ""
+                cache[addr] = {"result": "OLD", "checked": now}
+                aged_out += 1
+                print(f"  ⏰ Aged out: {addr[:14]}... (was: {old_label})")
+    if aged_out:
+        print(f"   Expired {aged_out} fresh/institutional labels")
+    print()
+
+    # Phase 1: Coinbase Prime detection (before fresh wallet scan)
+    cb_wallets = detect_coinbase_prime(data)
 
     # Get existing labeled addresses (skip these)
     already_labeled = set()
@@ -432,6 +464,12 @@ def main():
 
     if not candidates:
         print("✅ No new candidates to check")
+        # Still save data if aging or CB detection changed something
+        if aged_out > 0 or len(cb_wallets) > 0:
+            save_cache(cache)
+            with open(DATA_PATH, "w") as f:
+                json.dump(data, f, indent=2)
+            print(f"💾 Saved changes")
         return
 
     new_fresh = 0
@@ -441,8 +479,6 @@ def main():
     cache_hits = 0
     new_wallets = []  # Collect for Discord alerts
 
-    # Load cache of already-checked wallets
-    cache = load_cache()
     now_ts = now
 
     for h in candidates:
@@ -560,7 +596,7 @@ def main():
     save_cache(cache)
     print(f"💾 Cache saved ({len(cache)} entries)")
 
-    has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0
+    has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0 or aged_out > 0
     if has_changes:
         with open(DATA_PATH, "w") as f:
             json.dump(data, f, indent=2)

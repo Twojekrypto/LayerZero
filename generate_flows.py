@@ -80,6 +80,7 @@ def get_zro_transfers(address, chain_id, start_block=0):
         results = data["result"]
         for tx in results:
             transfers.append({
+                "hash": tx.get("hash", ""),
                 "from": tx.get("from", "").lower(),
                 "to": tx.get("to", "").lower(),
                 "value": int(tx.get("value", "0")) / (10 ** DECIMALS),
@@ -212,19 +213,28 @@ def main():
             time.sleep(0.22)
 
             if transfers:
-                # Merge with existing cached transfers (dedup by timestamp+from+to+value)
+                # Merge with existing cached transfers (dedup by tx_hash, fallback to tuple key)
                 existing = cache["transfers"].get(addr, [])
-                existing_set = set(
+                existing_hashes = set(
+                    t["hash"] for t in existing if t.get("hash")
+                )
+                # Fallback dedup for old cache entries without hash
+                existing_tuples = set(
                     (t["from"], t["to"], int(t["value"]*100), t["timestamp"])
-                    for t in existing
+                    for t in existing if not t.get("hash")
                 )
                 new_count = 0
                 for t in transfers:
-                    key = (t["from"], t["to"], int(t["value"]*100), t["timestamp"])
-                    if key not in existing_set:
-                        existing.append(t)
-                        existing_set.add(key)
-                        new_count += 1
+                    if t.get("hash") and t["hash"] in existing_hashes:
+                        continue
+                    if not t.get("hash"):
+                        key = (t["from"], t["to"], int(t["value"]*100), t["timestamp"])
+                        if key in existing_tuples:
+                            continue
+                    existing.append(t)
+                    if t.get("hash"):
+                        existing_hashes.add(t["hash"])
+                    new_count += 1
                 if existing:
                     cache["transfers"][addr] = existing
                 chain_new += new_count
