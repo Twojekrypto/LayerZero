@@ -34,7 +34,10 @@ def main():
         if h.get("label") or h.get("type"):
             label_map[addr] = {
                 "label": h.get("label", ""),
-                "type": h.get("type", "")
+                "type": h.get("type", ""),
+                "cb_first_funded": h.get("cb_first_funded"),
+                "cb_last_funded": h.get("cb_last_funded"),
+                "cb_total_received": h.get("cb_total_received"),
             }
 
     # Build new top_holders from fresh data, preserving labels
@@ -47,10 +50,14 @@ def main():
             "label": "",
             "type": ""
         }
-        # Preserve existing labels
+        # Preserve existing labels and metadata
         if addr in label_map:
             entry["label"] = label_map[addr]["label"]
             entry["type"] = label_map[addr]["type"]
+            # Preserve CB Prime metadata
+            for key in ("cb_first_funded", "cb_last_funded", "cb_total_received"):
+                if label_map[addr].get(key) is not None:
+                    entry[key] = label_map[addr][key]
 
         new_holders.append(entry)
 

@@ -303,7 +303,7 @@ def has_coinbase_roundtrip(address, cache=None):
     return result
 
 
-def detect_coinbase_prime(data):
+def detect_coinbase_prime(data, cache=None):
     """Auto-detect wallets funded by Coinbase Prime custody hubs.
     Scans outgoing ZRO transfers from known CB Prime addresses,
     labels recipients with 100K+ balance as 'Coinbase Prime Investor'.
@@ -403,6 +403,13 @@ def detect_coinbase_prime(data):
 
     total_cb = sum(1 for h in data["top_holders"] if h.get("label") == "Coinbase Prime Investor")
     print(f"   Total CB Prime wallets: {total_cb} (new: {new_labeled}, relabeled: {relabeled})")
+
+    # Prune cb_prime_transfers to last 1000 entries
+    transfers = data.get("cb_prime_transfers", [])
+    if len(transfers) > 1000:
+        data["cb_prime_transfers"] = transfers[-1000:]
+        print(f"   Pruned cb_prime_transfers: {len(transfers)} → 1000")
+
     print()
     return new_cb_wallets
 
@@ -437,7 +444,7 @@ def main():
     print()
 
     # Phase 1: Coinbase Prime detection (before fresh wallet scan)
-    cb_wallets = detect_coinbase_prime(data)
+    cb_wallets = detect_coinbase_prime(data, cache)
 
     # Get existing labeled addresses (skip these)
     already_labeled = set()

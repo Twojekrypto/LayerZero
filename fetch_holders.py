@@ -230,7 +230,7 @@ def fetch_transfers_alchemy(chain_key, from_block="0x0"):
                 bn = int(block_hex, 16)
                 if bn > max_block:
                     max_block = bn
-            except:
+            except (ValueError, TypeError):
                 bn = 0
 
             all_txs.append({

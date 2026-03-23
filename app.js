@@ -329,7 +329,7 @@ function renderFreshWallets() {
     }
 }
 function goFreshPage(delta) {
-    const freshHolders = DATA.top_holders.filter(h => h.type === 'FRESH' && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000);
+    const freshHolders = DATA.top_holders.filter(h => (h.type === 'FRESH' || h.fresh === true) && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000);
     let filtered = freshHolders;
     if(freshSearchQuery) { const q=freshSearchQuery.toLowerCase(); filtered=filtered.filter(h=>h.address.toLowerCase().includes(q)||(h.label||'').toLowerCase().includes(q)); }
     const totalPages = Math.max(1, Math.ceil(filtered.length / FRESH_PER_PAGE));
