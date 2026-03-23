@@ -1,9 +1,9 @@
-name: Coinbase Prime Monitor
+name: Hourly Monitor
 
 on:
   schedule:
-    # Run every hour at :30 (offset from balance refresh at :15)
-    - cron: '30 * * * *'
+    # Run every hour at :15
+    - cron: '15 * * * *'
   workflow_dispatch:
     # Allow manual trigger
 
@@ -11,9 +11,9 @@ permissions:
   contents: write
 
 jobs:
-  monitor:
+  hourly:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - name: Checkout repository
@@ -24,23 +24,32 @@ jobs:
         with:
           python-version: '3.11'
 
+      # --- 1. Balance refresh (top 500 + Token Unlocks watch) ---
+      - name: Refresh top 500 balances + watch Token Unlocks
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+        run: python refresh_balances.py
+
+      # --- 2. Coinbase Prime transfer monitor ---
       - name: Monitor CB Prime transfers
+        continue-on-error: true
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           DISCORD_CB_WEBHOOK_URL: ${{ secrets.DISCORD_CB_WEBHOOK_URL }}
         run: python monitor_cb_prime.py
 
-      - name: Check for state changes
+      # --- Commit all changes in one push ---
+      - name: Check for changes
         id: changes
         run: |
-          git diff --quiet cb_monitor_state.json 2>/dev/null && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet zro_data.json cb_monitor_state.json 2>/dev/null && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
-      - name: Commit and push state
+      - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add cb_monitor_state.json
-          git commit -m "🏦 CB Prime monitor state $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git add zro_data.json cb_monitor_state.json
+          git commit -m "🔄 Hourly monitor $(date -u +'%Y-%m-%d %H:%M UTC')"
           git pull --rebase -X theirs origin master
           git push
