@@ -469,9 +469,9 @@ function cbtAddrCell(addr, label) {
     </div>`;
 }
 
-// ─── Column config: reorder/resize by dragging in the UI ───
-const CBT_COLUMNS_DEF = [
-    { id:'from', header:'From', width:280, minW:30, align:'left', render: (t) => {
+// ─── Fixed column config (user-set widths, locked) ───
+const CBT_COLUMNS = [
+    { id:'from', header:'From', width:280, align:'left', render: (t) => {
         const d = new Date(t.timestamp*1000);
         const ds = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
         const ts = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
@@ -484,42 +484,34 @@ const CBT_COLUMNS_DEF = [
             </div>
         </div>`;
     }},
-    { id:'type', header:'Type', width:120, minW:30, align:'left', render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
-    { id:'amount', header:'Amount', width:180, minW:30, align:'right', render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
-    { id:'to', header:'To', width:280, minW:30, align:'left', render: (t) => cbtAddrCell(t.to, t.to_label) },
+    { id:'to', header:'To', width:308, align:'left', render: (t) => cbtAddrCell(t.to, t.to_label) },
+    { id:'type', header:'Type', width:241, align:'left', render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
+    { id:'amount', header:'Amount ⇅', width:177, align:'right', sortable:true, render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
 ];
-// Clear old layout to apply new defaults
-localStorage.removeItem('cbt_layout');
-// Persist column order & widths in localStorage
-function cbtLoadLayout() {
-    try {
-        const saved = JSON.parse(localStorage.getItem('cbt_layout'));
-        if(!saved || !saved.order) return null;
-        return saved;
-    } catch(e) { return null; }
-}
-function cbtSaveLayout(order, widths) {
-    localStorage.setItem('cbt_layout', JSON.stringify({order, widths}));
-}
-function cbtGetColumns() {
-    const layout = cbtLoadLayout();
-    const defMap = {};
-    CBT_COLUMNS_DEF.forEach(c => defMap[c.id] = {...c});
-    let ordered;
-    if(layout && layout.order) {
-        ordered = layout.order.map(id => defMap[id]).filter(Boolean);
-        // add any new columns not in saved order
-        CBT_COLUMNS_DEF.forEach(c => { if(!layout.order.includes(c.id)) ordered.push({...c}); });
-    } else {
-        ordered = CBT_COLUMNS_DEF.map(c => ({...c}));
+let cbtSortDir = 0; // 0=date desc, 1=amount desc, 2=amount asc
+function toggleCbtSort() { cbtSortDir = (cbtSortDir + 1) % 3; cbtPage = 1; renderCbTransfers(); }
+function toggleCbtTypeDropdown() {
+    const menu = document.getElementById('cbt-type-menu');
+    const trigger = document.getElementById('cbt-type-trigger');
+    if(!menu) return;
+    const isOpen = menu.classList.toggle('open');
+    trigger.classList.toggle('active', isOpen);
+    if(isOpen) {
+        const close = e => { if(!menu.contains(e.target) && e.target !== trigger) { menu.classList.remove('open'); trigger.classList.remove('active'); document.removeEventListener('click', close); } };
+        setTimeout(() => document.addEventListener('click', close), 0);
     }
-    // apply saved widths
-    if(layout && layout.widths) {
-        ordered.forEach(c => { if(layout.widths[c.id] !== undefined) c.width = layout.widths[c.id]; });
-    }
-    return ordered;
 }
-let _cbtDragSrcIdx = null;
+function setCbtType(type) {
+    cbtTypeFilter = type;
+    const trigger = document.getElementById('cbt-type-trigger');
+    const icon = CBT_TYPE_ICONS[type] || '';
+    trigger.innerHTML = type === 'ALL' ? 'ALL ▾' : `${icon} ${type} ▾`;
+    document.getElementById('cbt-type-menu').classList.remove('open');
+    trigger.classList.remove('active');
+    cbtPage = 1;
+    renderCbTransfers();
+}
+
 function renderCbTransfers() {
     const txs = DATA.cb_prime_transfers || [];
     const nowSec = Math.floor(Date.now() / 1000);
@@ -529,7 +521,6 @@ function renderCbTransfers() {
         const cutoff = nowSec - (cbtPeriodDays * 86400);
         filtered = filtered.filter(t => t.timestamp >= cutoff);
     }
-    // Address search filter
     if(cbtSearchQuery) {
         const q = cbtSearchQuery.toLowerCase();
         filtered = filtered.filter(t =>
@@ -539,12 +530,16 @@ function renderCbTransfers() {
             (t.to_label||'').toLowerCase().includes(q)
         );
     }
+    // Sort
+    if(cbtSortDir === 1) filtered.sort((a,b) => b.value - a.value);
+    else if(cbtSortDir === 2) filtered.sort((a,b) => a.value - b.value);
+
     const total = filtered.length;
     const totalPages = Math.max(1, Math.ceil(total / CBT_PER_PAGE));
     cbtPage = Math.min(cbtPage, totalPages);
     const start = (cbtPage - 1) * CBT_PER_PAGE;
     const pageItems = filtered.slice(start, start + CBT_PER_PAGE);
-    // Stats — full-width grid (same UX as CB Investors)
+    // Stats
     const totalIn = filtered.filter(t => t.type==='BUY'||t.type==='INFLOW').reduce((s,t)=>s+t.value,0);
     const totalOut = filtered.filter(t => t.type==='SELL'||t.type==='OUTFLOW').reduce((s,t)=>s+t.value,0);
     const net = totalIn - totalOut;
@@ -558,29 +553,29 @@ function renderCbTransfers() {
     `;
     const subEl = document.getElementById('cbt-sub');
     if(subEl) subEl.textContent = `${total} transfers (${periodLabel})`;
-    // Get columns in current order with saved widths
-    const cols = cbtGetColumns();
-    const colCount = cols.length;
     // Build table
+    const cols = CBT_COLUMNS;
+    const colCount = cols.length;
     const tableEl = document.getElementById('cbt-table');
     tableEl.innerHTML = '';
-    // colgroup for widths
     const cg = document.createElement('colgroup');
-    cols.forEach(c => {
-        const col = document.createElement('col');
-        col.style.width = c.width > 0 ? c.width + 'px' : '';
-        cg.appendChild(col);
-    });
+    cols.forEach(c => { const col = document.createElement('col'); col.style.width = c.width + 'px'; cg.appendChild(col); });
     tableEl.appendChild(cg);
     // thead
     const thead = document.createElement('thead');
     const headRow = document.createElement('tr');
-    cols.forEach((c, i) => {
+    cols.forEach(c => {
         const th = document.createElement('th');
-        th.textContent = c.header;
-        th.dataset.colIdx = i;
-        th.dataset.colId = c.id;
         if(c.align === 'right') th.classList.add('right');
+        if(c.sortable) {
+            const arrow = cbtSortDir === 0 ? '⇅' : cbtSortDir === 1 ? '↓' : '↑';
+            const cls = cbtSortDir > 0 ? ' active' : '';
+            th.innerHTML = `Amount <span class="sort-arrow${cls}">${arrow}</span>`;
+            th.style.cursor = 'pointer';
+            th.addEventListener('click', toggleCbtSort);
+        } else {
+            th.textContent = c.header;
+        }
         headRow.appendChild(th);
     });
     thead.appendChild(headRow);
@@ -618,26 +613,20 @@ function renderCbTransfers() {
             <button class="pg-btn" onclick="goCbtPage(999)" ${cbtPage>=totalPages?'disabled':''}>&raquo;</button>`;
     }
 }
+
 function goCbtPage(delta) {
     const txs = DATA.cb_prime_transfers || [];
     const nowSec = Math.floor(Date.now() / 1000);
     let filtered = cbtTypeFilter === 'ALL' ? txs : txs.filter(t => t.type === cbtTypeFilter);
     if(cbtPeriodDays > 0) { const cutoff = nowSec - (cbtPeriodDays * 86400); filtered = filtered.filter(t => t.timestamp >= cutoff); }
     if(cbtSearchQuery) { const q=cbtSearchQuery.toLowerCase(); filtered=filtered.filter(t=>t.from.toLowerCase().includes(q)||t.to.toLowerCase().includes(q)||(t.from_label||'').toLowerCase().includes(q)||(t.to_label||'').toLowerCase().includes(q)); }
+    if(cbtSortDir === 1) filtered.sort((a,b) => b.value - a.value);
+    else if(cbtSortDir === 2) filtered.sort((a,b) => a.value - b.value);
     const totalPages = Math.max(1, Math.ceil(filtered.length / CBT_PER_PAGE));
     cbtPage = Math.max(1, Math.min(totalPages, delta===-999?1:delta===999?totalPages:cbtPage+delta));
     renderCbTransfers();
 }
 function initCbtPills() {
-    document.getElementById('cbt-type-pills').querySelectorAll('button').forEach(b => {
-        b.addEventListener('click', () => {
-            document.querySelector('#cbt-type-pills .active').classList.remove('active');
-            b.classList.add('active');
-            cbtTypeFilter = b.dataset.type;
-            cbtPage = 1;
-            renderCbTransfers();
-        });
-    });
     document.getElementById('cbt-period-pills').querySelectorAll('button').forEach(b => {
         b.addEventListener('click', () => {
             document.querySelector('#cbt-period-pills .active').classList.remove('active');
@@ -648,6 +637,7 @@ function initCbtPills() {
         });
     });
 }
+
 
 // ── New Institutional Wallets ──
 function renderNewInstitutional() {

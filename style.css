@@ -253,6 +253,15 @@ body { font-family:'Inter',-apple-system,sans-serif; background:var(--bg-base); 
 #cbt-card .fresh-stat { padding:18px 16px; }
 #cbt-card .fresh-stat-val { font-size:22px; }
 #cbt-card .flow-toolbar { padding:8px 24px 12px; border-bottom:1px solid var(--border-subtle); }
+/* Type dropdown */
+.cbt-type-dropdown { position:relative; z-index:10; }
+#cbt-type-trigger { font-size:12px; font-weight:600; padding:6px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#fff; cursor:pointer; transition:all 0.15s; }
+#cbt-type-trigger:hover, #cbt-type-trigger.active { background:rgba(168,85,247,0.15); border-color:rgba(168,85,247,0.3); }
+.cbt-type-menu { display:none; position:absolute; top:calc(100% + 6px); left:0; min-width:160px; background:rgba(20,22,36,0.95); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:6px; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+.cbt-type-menu.open { display:flex; flex-direction:column; gap:2px; animation:fadeInDown 0.15s ease; }
+.cbt-type-menu button { display:block; width:100%; padding:8px 12px; font-size:12px; font-weight:500; color:rgba(255,255,255,0.7); background:none; border:none; border-radius:6px; cursor:pointer; text-align:left; transition:all 0.12s; }
+.cbt-type-menu button:hover { background:rgba(168,85,247,0.12); color:#fff; }
+@keyframes fadeInDown { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
 /* Interactive column drag & resize */
 .cbt-th-drag { position:relative; cursor:grab; -webkit-user-select:none; user-select:none; transition:background 0.15s; }
 .cbt-th-drag:hover { background:rgba(168,85,247,0.08); }
