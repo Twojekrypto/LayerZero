@@ -15,6 +15,7 @@ import json, time, sys, os, csv
 from urllib.request import urlopen, Request
 from collections import defaultdict
 from datetime import datetime
+from utils import atomic_json_dump, fetch_json
 
 ETHERSCAN_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 ALCHEMY_KEY = os.environ.get("ALCHEMY_API_KEY", "")
@@ -61,16 +62,7 @@ CSV_FILES = {
 }
 
 
-def fetch_json(url):
-    for attempt in range(3):
-        try:
-            req = Request(url, headers={"User-Agent": "ZRO-Dashboard/1.0"})
-            with urlopen(req, timeout=30) as resp:
-                return json.loads(resp.read().decode())
-        except Exception as e:
-            print(f"  ⚠️ Attempt {attempt+1} failed: {e}")
-            time.sleep(2)
-    return None
+
 
 
 def post_json(url, payload):
@@ -98,8 +90,7 @@ def load_state():
 
 
 def save_state(state):
-    with open(STATE_FILE, "w") as f:
-        json.dump(state, f, indent=2)
+    atomic_json_dump(state, STATE_FILE)
 
 
 def should_full_rescan(state):
@@ -462,15 +453,14 @@ def main():
     print()
 
     # Save output
-    with open(OUTPUT_FILE, "w") as f:
-        json.dump({
-            "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "min_balance": MIN_BALANCE,
-            "total_holders": len(holders_list),
-            "chain_stats": chain_stats,
-            "scan_mode": mode,
-            "holders": holders_list
-        }, f, indent=2)
+    atomic_json_dump({
+        "generated": time.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "min_balance": MIN_BALANCE,
+        "total_holders": len(holders_list),
+        "chain_stats": chain_stats,
+        "scan_mode": mode,
+        "holders": holders_list
+    }, OUTPUT_FILE)
 
     print(f"💾 Saved to {OUTPUT_FILE}")
     print(f"   {len(holders_list)} holders | Mode: {mode}")

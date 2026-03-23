@@ -7,6 +7,7 @@ Runs hourly via GitHub Actions alongside refresh_balances.py.
 """
 import json, os, time
 from urllib.request import urlopen, Request
+from utils import atomic_json_dump, fetch_json
 
 API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_CB_WEBHOOK_URL", "")
@@ -38,16 +39,7 @@ KNOWN_CEX = {
 MIN_ALERT_AMOUNT = 50_000  # Only alert for transfers >= 50K ZRO
 
 
-def fetch_json(url):
-    for attempt in range(3):
-        try:
-            req = Request(url, headers={"User-Agent": "ZRO-Dashboard/1.0"})
-            with urlopen(req, timeout=30) as resp:
-                return json.loads(resp.read().decode())
-        except Exception as e:
-            print(f"  ⚠️ Attempt {attempt+1} failed: {e}")
-            time.sleep(2)
-    return None
+
 
 
 def get_zro_price():
@@ -70,8 +62,7 @@ def load_state():
 def save_state(state):
     # Keep only last 500 TX hashes to avoid unbounded growth
     state["seen_txs"] = state["seen_txs"][-2000:]
-    with open(STATE_PATH, "w") as f:
-        json.dump(state, f, indent=2)
+    atomic_json_dump(state, STATE_PATH)
 
 
 def send_discord(embed):

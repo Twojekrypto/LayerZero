@@ -10,6 +10,7 @@ Designed to run every hour via GitHub Actions.
 """
 import json, os, time
 from urllib.request import urlopen, Request
+from utils import atomic_json_dump, fetch_json
 
 API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
@@ -32,16 +33,7 @@ CHAINS = {
 }
 
 
-def fetch_json(url):
-    for attempt in range(3):
-        try:
-            req = Request(url, headers={"User-Agent": "ZRO-Dashboard/1.0"})
-            with urlopen(req, timeout=30) as resp:
-                return json.loads(resp.read().decode())
-        except Exception as e:
-            if attempt < 2:
-                time.sleep(2)
-    return None
+
 
 
 def get_token_balance(address, chain_id=1):
@@ -201,8 +193,7 @@ def main():
                     item["label"] = label_map[addr]["label"]
                     item["type"] = label_map[addr]["type"]
 
-    with open(DATA_PATH, "w") as f:
-        json.dump(data, f, indent=2)
+    atomic_json_dump(data, DATA_PATH)
 
     print(f"\n✅ Done!")
     print(f"   API calls: {req_count}")

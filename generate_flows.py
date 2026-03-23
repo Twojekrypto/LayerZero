@@ -11,6 +11,7 @@ Subsequent runs: ~2-3 min (incremental from last block)
 import json, os, time
 from urllib.request import urlopen, Request
 from collections import defaultdict
+from utils import atomic_json_dump, fetch_json
 
 API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
@@ -45,16 +46,6 @@ PERIODS = {
 FULL_SCAN_DAYS = 365
 
 
-def fetch_json(url):
-    for attempt in range(3):
-        try:
-            req = Request(url, headers={"User-Agent": "ZRO-Dashboard/1.0"})
-            with urlopen(req, timeout=30) as resp:
-                return json.loads(resp.read().decode())
-        except Exception as e:
-            if attempt < 2:
-                time.sleep(2)
-    return None
 
 
 def get_zro_transfers(address, chain_id, start_block=0):
@@ -122,8 +113,7 @@ def load_cache():
 
 def save_cache(cache):
     """Save transfer cache to disk."""
-    with open(CACHE_PATH, "w") as f:
-        json.dump(cache, f)
+    atomic_json_dump(cache, CACHE_PATH, indent=None)
 
 
 def prune_old_transfers(cache, cutoff_ts):
@@ -313,8 +303,7 @@ def main():
     data["flows"] = new_flows
     data["meta"]["generated"] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    with open(DATA_PATH, "w") as f:
-        json.dump(data, f, indent=2)
+    atomic_json_dump(data, DATA_PATH)
 
     mode = "INCREMENTAL" if is_incremental else "FULL"
     print(f"\n✅ Flow data saved! ({mode} mode)")

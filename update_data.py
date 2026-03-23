@@ -5,6 +5,7 @@ Preserves: labels, types, fresh_wallets metadata, flows, chains config, etc.
 Updates: balances, total counts, timestamp.
 """
 import json, os, time
+from utils import atomic_json_dump
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -13,8 +14,7 @@ def load_json(path):
         return json.load(f)
 
 def save_json(path, data):
-    with open(path, 'w') as f:
-        json.dump(data, f)
+    atomic_json_dump(data, path)
 
 def main():
     holders_path = os.path.join(DIR, "holders_multichain.json")

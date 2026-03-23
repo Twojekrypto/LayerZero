@@ -14,6 +14,7 @@ Detection logic:
 """
 import json, os, time
 from urllib.request import urlopen, Request
+from utils import atomic_json_dump, fetch_json
 
 API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
@@ -69,20 +70,8 @@ def load_cache():
 
 def save_cache(cache):
     """Save wallet age cache."""
-    with open(CACHE_PATH, "w") as f:
-        json.dump(cache, f, indent=2)
+    atomic_json_dump(cache, CACHE_PATH)
 
-
-def fetch_json(url):
-    for attempt in range(3):
-        try:
-            req = Request(url, headers={"User-Agent": "ZRO-Dashboard/1.0"})
-            with urlopen(req, timeout=30) as resp:
-                return json.loads(resp.read().decode())
-        except Exception as e:
-            print(f"  ⚠️ Attempt {attempt+1} failed: {e}")
-            time.sleep(2)
-    return None
 
 
 def is_contract(address):
@@ -474,8 +463,7 @@ def main():
         # Still save data if aging or CB detection changed something
         if aged_out > 0 or len(cb_wallets) > 0:
             save_cache(cache)
-            with open(DATA_PATH, "w") as f:
-                json.dump(data, f, indent=2)
+            atomic_json_dump(data, DATA_PATH)
             print(f"💾 Saved changes")
         return
 
@@ -605,8 +593,7 @@ def main():
 
     has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0 or aged_out > 0
     if has_changes:
-        with open(DATA_PATH, "w") as f:
-            json.dump(data, f, indent=2)
+        atomic_json_dump(data, DATA_PATH)
         print(f"💾 Saved to {DATA_PATH}")
 
         # Send Discord alerts for new wallets
