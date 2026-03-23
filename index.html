@@ -142,6 +142,10 @@
                         <button data-type="SELL">🔴 SELL</button><button data-type="TRANSFER">🔄 TRANSFER</button>
                         <button data-type="OUTFLOW">🟠 OUT</button><button data-type="INFLOW">🟢 IN</button>
                     </div>
+                    <div class="search-wrap" style="margin-left:8px">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                        <input type="text" class="search-input" id="cbt-search" placeholder="Filter by address 0x…" oninput="filterCbt()" style="width:180px">
+                    </div>
                     <span class="toolbar-count" id="cbt-count"></span>
                     <div class="period-pills" id="cbt-period-pills" style="margin-left:auto">
                         <button data-period="1">1D</button><button data-period="7">7D</button>

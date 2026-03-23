@@ -436,6 +436,7 @@ function goCbPage(delta) {
     renderCoinbasePrime();
 }
 function filterCb() { cbSearchQuery=document.getElementById('cb-search').value.trim();cbPage=1;renderCoinbasePrime(); }
+function filterCbt() { cbtSearchQuery=document.getElementById('cbt-search').value.trim();cbtPage=1;renderCbTransfers(); }
 function initCbPeriodPills() {
     document.getElementById('cb-period-pills').querySelectorAll('button').forEach(b => {
         b.addEventListener('click', () => {
@@ -449,7 +450,7 @@ function initCbPeriodPills() {
 }
 
 // ── Coinbase Prime Transfers ──
-let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0;
+let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0, cbtSearchQuery='';
 const CBT_PER_PAGE=20;
 const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395'};
 const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢'};
@@ -501,6 +502,16 @@ function renderCbTransfers() {
     if(cbtPeriodDays > 0) {
         const cutoff = nowSec - (cbtPeriodDays * 86400);
         filtered = filtered.filter(t => t.timestamp >= cutoff);
+    }
+    // Address search filter
+    if(cbtSearchQuery) {
+        const q = cbtSearchQuery.toLowerCase();
+        filtered = filtered.filter(t =>
+            t.from.toLowerCase().includes(q) ||
+            t.to.toLowerCase().includes(q) ||
+            (t.from_label||'').toLowerCase().includes(q) ||
+            (t.to_label||'').toLowerCase().includes(q)
+        );
     }
     const total = filtered.length;
     const totalPages = Math.max(1, Math.ceil(total / CBT_PER_PAGE));
@@ -588,6 +599,7 @@ function goCbtPage(delta) {
     const nowSec = Math.floor(Date.now() / 1000);
     let filtered = cbtTypeFilter === 'ALL' ? txs : txs.filter(t => t.type === cbtTypeFilter);
     if(cbtPeriodDays > 0) { const cutoff = nowSec - (cbtPeriodDays * 86400); filtered = filtered.filter(t => t.timestamp >= cutoff); }
+    if(cbtSearchQuery) { const q=cbtSearchQuery.toLowerCase(); filtered=filtered.filter(t=>t.from.toLowerCase().includes(q)||t.to.toLowerCase().includes(q)||(t.from_label||'').toLowerCase().includes(q)||(t.to_label||'').toLowerCase().includes(q)); }
     const totalPages = Math.max(1, Math.ceil(filtered.length / CBT_PER_PAGE));
     cbtPage = Math.max(1, Math.min(totalPages, delta===-999?1:delta===999?totalPages:cbtPage+delta));
     renderCbTransfers();
