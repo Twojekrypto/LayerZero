@@ -546,30 +546,6 @@ function renderCbTransfers() {
         th.dataset.colIdx = i;
         th.dataset.colId = c.id;
         if(c.align === 'right') th.classList.add('right');
-        th.classList.add('cbt-th-drag');
-        th.setAttribute('draggable', 'true');
-        // Drag reorder
-        th.addEventListener('dragstart', (e) => {
-            _cbtDragSrcIdx = i;
-            th.classList.add('cbt-dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', i);
-        });
-        th.addEventListener('dragend', () => { th.classList.remove('cbt-dragging'); });
-        th.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; th.classList.add('cbt-drag-over'); });
-        th.addEventListener('dragleave', () => { th.classList.remove('cbt-drag-over'); });
-        th.addEventListener('drop', (e) => {
-            e.preventDefault();
-            th.classList.remove('cbt-drag-over');
-            const fromIdx = _cbtDragSrcIdx;
-            const toIdx = i;
-            if(fromIdx === toIdx) return;
-            const newOrder = cols.map(cc => cc.id);
-            const [moved] = newOrder.splice(fromIdx, 1);
-            newOrder.splice(toIdx, 0, moved);
-            cbtSaveLayout(newOrder, {});
-            renderCbTransfers();
-        });
         headRow.appendChild(th);
     });
     thead.appendChild(headRow);
