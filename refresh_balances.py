@@ -179,6 +179,27 @@ def main():
 
     # ── Step 3: Re-sort and save ──
     holders.sort(key=lambda x: sum(x.get("balances", {}).values()), reverse=True)
+
+    # Auto-cleanup: remove zero-balance holders
+    before_count = len(holders)
+    holders = [h for h in holders if sum(h.get("balances", {}).values()) > 0]
+    zero_removed = before_count - len(holders)
+    if zero_removed:
+        print(f"   🧹 Removed {zero_removed} zero-balance holders")
+
+    # Auto-cleanup: remove duplicate addresses (keep first = highest balance)
+    seen_addrs = set()
+    deduped = []
+    for h in holders:
+        addr = h["address"].lower()
+        if addr not in seen_addrs:
+            seen_addrs.add(addr)
+            deduped.append(h)
+    dup_removed = len(holders) - len(deduped)
+    if dup_removed:
+        print(f"   🔄 Removed {dup_removed} duplicate holders")
+    holders = deduped
+
     data["top_holders"] = holders
     data["meta"]["generated"] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
 

@@ -174,14 +174,14 @@ def main():
     seen = set(state.get("seen_txs", []))
     start_block = state.get("last_block", 0)
 
-    # First run — start from last ~24h
+    # First run — start from last ~7 days
     if start_block == 0:
         url = f"https://api.etherscan.io/v2/api?chainid=1&module=proxy&action=eth_blockNumber&apikey={API_KEY}"
         resp = fetch_json(url)
         if resp and resp.get("result"):
             latest = int(resp["result"], 16)
-            start_block = latest - 7200
-            print(f"   First run — starting from block {start_block}")
+            start_block = latest - 50400  # ~7 days back (12s/block * 7 * 86400)
+            print(f"   First run — starting from block {start_block} (~7 days back)")
 
     price = get_zro_price()
     print(f"🐋 Whale Transfer Monitor (≥{fmt(MIN_WHALE_AMOUNT)} ZRO)")

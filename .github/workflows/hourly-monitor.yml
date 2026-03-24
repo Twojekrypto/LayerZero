@@ -40,7 +40,15 @@ jobs:
           DISCORD_CB_WEBHOOK_URL: ${{ secrets.DISCORD_CB_WEBHOOK_URL }}
         run: python monitor_cb_prime.py
 
-      # --- 3. Fresh wallet detection ---
+      # --- 3. Backfill fresh wallet metadata (wallet_created + last_flow) ---
+      - name: Backfill fresh wallet metadata
+        continue-on-error: true
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          ETHERSCAN_API_KEY_2: ${{ secrets.ETHERSCAN_API_KEY_2 }}
+        run: python backfill_fresh.py
+
+      # --- 4. Fresh wallet detection ---
       - name: Detect fresh wallets
         continue-on-error: true
         env:
