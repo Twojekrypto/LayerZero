@@ -289,7 +289,8 @@ function renderFreshWallets() {
         const label = h.label || 'Fresh Wallet';
         const rank = start+i+1;
         const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
-        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
+        const fundedBy = h.funded_by ? `<span class="h-badge h-badge-funded" title="Funded by ${h.funded_by}">via ${h.funded_by}</span>` : '';
+        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span>${fundedBy}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
         html += `<tr>
             <td><span class="${rankCls}">${rank}</span></td>
             <td>${addrTd}</td>

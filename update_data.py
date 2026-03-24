@@ -35,6 +35,7 @@ def main():
             label_map[addr] = {
                 "label": h.get("label", ""),
                 "type": h.get("type", ""),
+                "funded_by": h.get("funded_by"),
                 "cb_first_funded": h.get("cb_first_funded"),
                 "cb_last_funded": h.get("cb_last_funded"),
                 "cb_total_received": h.get("cb_total_received"),
@@ -54,8 +55,8 @@ def main():
         if addr in label_map:
             entry["label"] = label_map[addr]["label"]
             entry["type"] = label_map[addr]["type"]
-            # Preserve CB Prime metadata
-            for key in ("cb_first_funded", "cb_last_funded", "cb_total_received"):
+            # Preserve CB Prime metadata and funded_by
+            for key in ("funded_by", "cb_first_funded", "cb_last_funded", "cb_total_received"):
                 if label_map[addr].get(key) is not None:
                     entry[key] = label_map[addr][key]
 

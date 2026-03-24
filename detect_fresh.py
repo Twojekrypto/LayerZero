@@ -73,6 +73,37 @@ def save_cache(cache):
     atomic_json_dump(cache, CACHE_PATH)
 
 
+def get_funding_source(address, label_map):
+    """Check who sent ZRO to this address. Returns label of biggest known sender.
+    Uses 1 API call — fetches last 20 incoming ZRO transfers."""
+    url = (
+        f"https://api.etherscan.io/v2/api?chainid=1"
+        f"&module=account&action=tokentx"
+        f"&address={address}"
+        f"&contractaddress={ZRO_CONTRACT}"
+        f"&startblock=0&endblock=99999999"
+        f"&page=1&offset=20&sort=desc"
+        f"&apikey={API_KEY}"
+    )
+    data = fetch_json(url)
+    if not data or data.get("status") != "1" or not data.get("result"):
+        return None
+
+    # Find biggest labeled sender
+    senders = {}  # label -> total ZRO
+    for tx in data["result"]:
+        if tx.get("to", "").lower() == address:
+            sender = tx.get("from", "").lower()
+            label = label_map.get(sender)
+            if label:
+                val = int(tx.get("value", "0")) / 1e18
+                senders[label] = senders.get(label, 0) + val
+
+    if senders:
+        best = max(senders, key=senders.get)
+        return best
+    return None
+
 
 def is_contract(address):
     """Check if an address is a contract (has code) via Etherscan."""
@@ -411,6 +442,13 @@ def main():
     with open(DATA_PATH) as f:
         data = json.load(f)
 
+    # Build label_map for funding source detection
+    label_map = {}
+    for h in data["top_holders"]:
+        lbl = h.get("label", "")
+        if lbl:
+            label_map[h["address"].lower()] = lbl
+
     # ── Phase 0: Age out expired FRESH/NEW_INST labels ──
     cache = load_cache()
     now = int(time.time())
@@ -505,6 +543,12 @@ def main():
                 if not h.get("type") or h.get("type") not in ("FRESH", "NEW_INST"):
                     h["label"] = "Fresh Wallet" if result == "FRESH" else "New Institutional"
                     h["type"] = result
+                    # Check funding source
+                    funder = get_funding_source(addr, label_map)
+                    if funder:
+                        h["funded_by"] = funder
+                        print(f"     💰 Funded by: {funder}")
+                    time.sleep(0.25)
                     relabeled += 1
                     print(f"  🔄 Re-labeled {addr[:14]}... as {result} (label was missing)")
                 cache_hits += 1
@@ -536,10 +580,14 @@ def main():
                     else:
                         h["label"] = "Fresh Wallet"
                         h["type"] = "FRESH"
+                        funder = get_funding_source(addr, label_map)
+                        if funder:
+                            h["funded_by"] = funder
+                        time.sleep(0.25)
                         new_fresh += 1
                         cache[addr] = {"result": "FRESH", "first_ts": creation_ts, "checked": now_ts}
-                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "FRESH", "wallet_type": "Contract"})
-                        print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old)")
+                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "FRESH", "wallet_type": "Contract", "funded_by": funder or ""})
+                        print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old{', via '+funder if funder else ''})")
                 elif deployer and deployer in KNOWN_DEPLOYERS:
                     wallet_age = (now - creation_ts) // 86400 if creation_ts else 0
                     skipped_contracts += 1
@@ -566,10 +614,14 @@ def main():
                     else:
                         h["label"] = "Fresh Wallet"
                         h["type"] = "FRESH"
+                        funder = get_funding_source(addr, label_map)
+                        if funder:
+                            h["funded_by"] = funder
+                        time.sleep(0.25)
                         new_fresh += 1
                         cache[addr] = {"result": "FRESH", "first_ts": first_ts, "checked": now_ts}
-                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "FRESH", "wallet_type": "EOA"})
-                        print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old, multi-chain)")
+                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "FRESH", "wallet_type": "EOA", "funded_by": funder or ""})
+                        print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old{', via '+funder if funder else ''})")
                 elif first_ts:
                     wallet_age = (now - first_ts) // 86400
                     cache[addr] = {"result": "OLD", "first_ts": first_ts, "checked": now_ts}
@@ -644,16 +696,20 @@ def send_discord_alerts(wallets):
         etherscan_url = f"https://etherscan.io/address/{addr}"
         debank_url = f"https://debank.com/profile/{addr}"
 
-        embed = {
-            "title": title,
-            "color": color,
-            "fields": [
+        fields = [
                 {"name": "Address", "value": f"[`{short_addr}`]({etherscan_url})", "inline": True},
                 {"name": "Balance", "value": f"**{balance:,.0f} ZRO**{usd_val}", "inline": True},
                 {"name": "Age", "value": f"{w['age_days']} days", "inline": True},
                 {"name": "Type", "value": w["wallet_type"], "inline": True},
-                {"name": "Links", "value": f"[Etherscan]({etherscan_url}) · [DeBank]({debank_url})", "inline": False},
-            ],
+            ]
+        if w.get("funded_by"):
+            fields.append({"name": "💰 Funded by", "value": f"**{w['funded_by']}**", "inline": True})
+        fields.append({"name": "Links", "value": f"[Etherscan]({etherscan_url}) · [DeBank]({debank_url})", "inline": False})
+
+        embed = {
+            "title": title,
+            "color": color,
+            "fields": fields,
             "footer": {"text": "ZRO Fresh Wallet Alert"},
             "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         }
