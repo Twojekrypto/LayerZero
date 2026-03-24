@@ -38,8 +38,10 @@ KNOWN_CEX = {
 
 MIN_ALERT_AMOUNT = 50_000  # Only alert for transfers >= 50K ZRO
 
-
-
+# Known internal/rebalancing wallets — no Discord alerts
+EXCLUDE_ADDRS = {
+    "0x26cc9d27b6dfa373a7a470839e4cf5220a22be02",  # Internal rebalancing wallet (Investor #11)
+}
 
 
 def get_zro_price():
@@ -203,6 +205,23 @@ def main():
 
     new_transfers = []  # Accumulate for persistence
 
+    # Auto-detect internal wallets: >90% transfers only with Hub
+    def is_internal_wallet(addr):
+        if addr in EXCLUDE_ADDRS:
+            return True
+        history = [t for t in data.get("cb_prime_transfers", [])
+                   if t["from"] == addr or t["to"] == addr]
+        if len(history) < 5:  # Not enough data to judge
+            return False
+        hub_only = sum(1 for t in history
+                       if (t["from"] == addr and t["to"] == COINBASE_PRIME_HUB) or
+                          (t["to"] == addr and t["from"] == COINBASE_PRIME_HUB))
+        ratio = hub_only / len(history)
+        if ratio >= 0.9:
+            print(f"   🔇 {addr[:10]}… auto-detected as internal ({hub_only}/{len(history)} = {ratio:.0%} Hub-only)")
+            return True
+        return False
+
     for tx_hash, tx in sorted(unique_txs.items(), key=lambda x: int(x[1].get("blockNumber", "0"))):
         from_addr = tx.get("from", "").lower()
         to_addr = tx.get("to", "").lower()
@@ -219,6 +238,9 @@ def main():
         to_is_cex = to_addr in KNOWN_CEX
         from_is_cex = from_addr in KNOWN_CEX
         from_is_hub = from_addr == COINBASE_PRIME_HUB
+
+        # Skip excluded/internal wallets for alerts (still persist)
+        skip_alert = is_internal_wallet(from_addr) or is_internal_wallet(to_addr)
 
         # Classify
         transfer_type = None
@@ -311,8 +333,11 @@ def main():
             "timestamp": now,
         }
 
-        send_discord(embed)
-        alerts_sent += 1
+        if not skip_alert:
+            send_discord(embed)
+            alerts_sent += 1
+        else:
+            print(f"   🔇 Skipped alert for internal wallet TX: {tx_hash[:12]}…")
         seen.add(tx_hash)
 
         # Build transfer record for persistence
@@ -325,7 +350,7 @@ def main():
                 "to_label": label_map.get(to_addr, ""),
                 "value": round(value, 2),
                 "timestamp": timestamp,
-                "type": transfer_type,
+                "type": "INTERNAL" if skip_alert else transfer_type,
             })
 
     # Persist new transfers to zro_data.json
