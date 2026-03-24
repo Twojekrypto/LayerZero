@@ -198,7 +198,16 @@ def main():
             addr = h["address"].lower()
             processed += 1
 
-            transfers = get_zro_transfers(addr, chain_id, start_block)
+            # For wallets NOT yet in cache, do a full scan (not just delta)
+            # This catches new holders whose historical transfers are missing
+            if is_incremental and addr not in cache["transfers"]:
+                blocks_back = int(FULL_SCAN_DAYS * 86400 / block_time)
+                full_start = max(0, current_block - blocks_back)
+                transfers = get_zro_transfers(addr, chain_id, full_start)
+                if transfers:
+                    print(f"   🆕 Full scan for new wallet {addr[:10]}…: {len(transfers)} transfers")
+            else:
+                transfers = get_zro_transfers(addr, chain_id, start_block)
             total_requests += 1
             time.sleep(0.22)
 
