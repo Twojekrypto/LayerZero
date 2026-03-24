@@ -504,6 +504,7 @@ def main():
                 if not h.get("type") or h.get("type") not in ("FRESH", "NEW_INST"):
                     h["label"] = "Fresh Wallet" if result == "FRESH" else "New Institutional"
                     h["type"] = result
+                    relabeled += 1
                     print(f"  🔄 Re-labeled {addr[:14]}... as {result} (label was missing)")
                 cache_hits += 1
                 continue
@@ -595,7 +596,7 @@ def main():
     save_cache(cache)
     print(f"💾 Cache saved ({len(cache)} entries)")
 
-    has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0 or aged_out > 0
+    has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0 or aged_out > 0 or relabeled > 0
     if has_changes:
         atomic_json_dump(data, DATA_PATH)
         print(f"💾 Saved to {DATA_PATH}")
