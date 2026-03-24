@@ -2,8 +2,8 @@ name: Daily Full Holder Scan
 
 on:
   schedule:
-    # Run twice daily: 06:00 UTC (07:00 CET) and 18:00 UTC (19:00 CET)
-    - cron: '0 6,18 * * *'
+    # Run every 2 hours
+    - cron: '0 */2 * * *'
   workflow_dispatch:
     # Allow manual trigger
 
