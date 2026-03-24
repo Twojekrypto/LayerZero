@@ -472,6 +472,7 @@ def main():
     skipped_contracts = 0
     checked = 0
     cache_hits = 0
+    relabeled = 0
     new_wallets = []  # Collect for Discord alerts
 
     now_ts = now
