@@ -92,7 +92,7 @@
             </div>
             <div class="table-scroll">
                 <table class="data-table" id="fresh-table">
-                    <colgroup><col style="width:50px"><col><col style="width:120px"><col style="width:160px"><col style="width:120px"></colgroup>
+                    <colgroup><col><col><col><col><col></colgroup>
                     <thead><tr>
                         <th style="width:40px">#</th>
                         <th>Address</th>
@@ -123,11 +123,12 @@
             </div>
             <div class="table-scroll">
                 <table class="data-table" id="cb-table">
-                    <colgroup><col style="width:50px"><col><col style="width:200px"><col style="width:220px"></colgroup>
+                    <colgroup><col><col><col><col><col></colgroup>
                     <thead><tr>
                         <th style="width:40px">#</th>
                         <th>Address</th>
-                        <th class="right">Balance</th>
+                        <th class="right sortable" onclick="toggleCbSort('date')" id="cb-sort-date">First Funded</th>
+                        <th class="right sortable" onclick="toggleCbSort('balance')" id="cb-sort-balance">Balance ▼</th>
                         <th class="right">% of Supply</th>
                     </tr></thead>
                     <tbody id="cb-tbody"></tbody>

@@ -125,10 +125,6 @@ function renderChains() {
         return `<div class="chain-bar-row" onclick="window.open('${c.explorer}','_blank')"><div class="chain-bar-label"><span class="chain-dot" style="background:${c.color}"></span>${c.short}</div><div class="chain-bar-track"><div class="chain-bar-fill" style="width:${pct}%;background:${c.color}">${sPct}%</div></div><div class="chain-bar-value">${fmt(c.supply)}</div></div>`;
     }).join('');
     document.getElementById('chain-stats').innerHTML=`
-        <div style="text-align:center;padding:16px 0 12px">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Total Holders (7 chains)</div>
-            <div style="font-size:32px;font-weight:800;color:var(--accent-cyan);font-variant-numeric:tabular-nums">${totalHolders.toLocaleString()}</div>
-        </div>
         ${entries.map(([k,c])=>{
             const hPct=(c.holders/maxHolders*100).toFixed(0);
             const hShare=(c.holders/totalHolders*100).toFixed(1);
@@ -356,15 +352,28 @@ function goFreshPage(delta) {
 function filterFresh() { freshSearchQuery=document.getElementById('fresh-search').value.trim();freshPage=1;renderFreshWallets(); }
 
 // ── Coinbase Prime Investors ──
-let cbPage=1, cbSearchQuery='', cbPeriodDays=0;
+let cbPage=1, cbSearchQuery='', cbPeriodDays=0, cbSortMode='balance';
 const CB_PER_PAGE=15;
+function toggleCbSort(mode) {
+    cbSortMode = (cbSortMode === mode) ? (mode === 'balance' ? 'date' : 'balance') : mode;
+    cbPage = 1;
+    renderCoinbasePrime();
+}
 function renderCoinbasePrime() {
     const nowSec = Math.floor(Date.now() / 1000);
     let cbHolders = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor').sort((a,b) => {
+        if (cbSortMode === 'date') {
+            return (b.cb_first_funded || 0) - (a.cb_first_funded || 0);
+        }
         const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
     });
+    // Update sort indicators
+    const dateTh = document.getElementById('cb-sort-date');
+    const balTh = document.getElementById('cb-sort-balance');
+    if(dateTh) dateTh.textContent = cbSortMode === 'date' ? 'First Funded ▼' : 'First Funded';
+    if(balTh) balTh.textContent = cbSortMode === 'balance' ? 'Balance ▼' : 'Balance';
     // Period filter — filter by cb_first_funded timestamp
     if(cbPeriodDays > 0) {
         const cutoff = nowSec - (cbPeriodDays * 86400);
@@ -402,18 +411,21 @@ function renderCoinbasePrime() {
         const explorerIcon=`<a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-explorer-icon" title="View on Etherscan">${explorerSvg}</a>`;
         const rank = start+i+1;
         const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
+        const fundedDate = h.cb_first_funded ? new Date(h.cb_first_funded * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '—';
+        const fundedAge = h.cb_first_funded ? Math.floor((Date.now()/1000 - h.cb_first_funded) / 86400) + 'd ago' : '';
         const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">Coinbase Prime</a><span class="h-badge h-badge-inst">INST</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
         html += `<tr>
             <td><span class="${rankCls}">${rank}</span></td>
             <td>${addrTd}</td>
+            <td class="right"><div class="fresh-date">${fundedDate}</div><div class="val-muted">${fundedAge}</div></td>
             <td class="right"><div class="bal-main">${fmt(bal)}<span class="bal-unit">ZRO</span></div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
             <td class="right"><div class="supply-bar-wrap"><span class="val-muted">${pct}%</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${barW}%"></div></div></div></td>
         </tr>`;
     });
     const emptyRows = CB_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="4"></td></tr>';
-    if(!total && !cbSearchQuery) html = '<tr><td colspan="4"><div class="table-empty-state"><div class="empty-icon">🏦</div><div class="empty-text">No Coinbase Prime wallets in this period</div></div></td></tr>';
-    if(!total && cbSearchQuery) html = '<tr><td colspan="4"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+cbSearchQuery+'"</div></div></td></tr>';
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="5"></td></tr>';
+    if(!total && !cbSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🏦</div><div class="empty-text">No Coinbase Prime wallets in this period</div></div></td></tr>';
+    if(!total && cbSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+cbSearchQuery+'"</div></div></td></tr>';
     document.getElementById('cb-tbody').innerHTML = html;
     const totalBal = allCb.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';
