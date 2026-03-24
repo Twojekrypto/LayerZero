@@ -910,11 +910,60 @@ function updateFreshness() {
     el.innerHTML = `<span style="color:${fresh ? 'var(--accent-emerald)' : 'var(--accent-amber)'}">${fresh ? '🟢' : '🟡'}</span> Updated ${ago} <span style="color:var(--text-muted);font-size:11px">(${gen.toLocaleString()})</span>`;
 }
 
+// ── Whale Transfers ──
+let whalePageNum = 1;
+const WHALE_PER_PAGE = 15;
+function renderWhaleTransfers() {
+    const transfers = (DATA.whale_transfers || []).slice().sort((a, b) => b.timestamp - a.timestamp);
+    const card = document.getElementById('whale-card');
+    if (!card) return;
+    if (!transfers.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const total = transfers.length;
+    const totalPages = Math.max(1, Math.ceil(total / WHALE_PER_PAGE));
+    whalePageNum = Math.min(whalePageNum, totalPages);
+    const start = (whalePageNum - 1) * WHALE_PER_PAGE;
+    const pageItems = transfers.slice(start, start + WHALE_PER_PAGE);
+    const price = DATA.meta.price_usd || 0;
+    let html = '';
+    pageItems.forEach(t => {
+        const date = new Date(t.timestamp * 1000);
+        const timeStr = date.toLocaleDateString('en-GB', {day:'numeric',month:'short'}) + ' ' + date.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+        const ago = Math.floor((Date.now()/1000 - t.timestamp) / 86400);
+        const agoStr = ago === 0 ? 'today' : ago + 'd ago';
+        const typeCls = t.type === 'CEX_WITHDRAWAL' ? 'h-badge-fresh' : t.type === 'CEX_DEPOSIT' ? 'h-badge-sell' : 'h-badge-inst';
+        const typeLabel = t.type === 'CEX_WITHDRAWAL' ? '🟢 BUY' : t.type === 'CEX_DEPOSIT' ? '🔴 SELL' : '🔄 MOVE';
+        const fromShort = t.from_label || (t.from.slice(0,6) + '…' + t.from.slice(-4));
+        const toShort = t.to_label || (t.to.slice(0,6) + '…' + t.to.slice(-4));
+        const fromLink = `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" class="h-addr-hex-sm">${fromShort}</a>`;
+        const toLink = `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" class="h-addr-hex-sm">${toShort}</a>`;
+        const usdVal = price ? fmtUSD(t.value * price) : '';
+        const amtColor = t.type === 'CEX_DEPOSIT' ? 'color:#f87171' : 'color:#4ade80';
+        const amtSign = t.type === 'CEX_DEPOSIT' ? '-' : '+';
+        html += `<tr onclick="window.open('https://etherscan.io/tx/${t.tx_hash}','_blank')" style="cursor:pointer">
+            <td><div class="fresh-date">${timeStr}</div><div class="val-muted">${agoStr}</div></td>
+            <td><span class="h-badge ${typeCls}">${typeLabel}</span></td>
+            <td>${fromLink}</td>
+            <td>${toLink}</td>
+            <td class="right" style="${amtColor};font-weight:600">${amtSign}${fmt(t.value)} ZRO${usdVal ? `<div class="h-usd-sub">${usdVal}</div>` : ''}</td>
+        </tr>`;
+    });
+    document.getElementById('whale-tbody').innerHTML = html;
+    document.getElementById('whale-sub').textContent = `${total} large transfers tracked`;
+    const pager = document.getElementById('whale-pager');
+    pager.innerHTML = `
+        <button class="pg-btn" onclick="whalePageNum=1;renderWhaleTransfers()" ${whalePageNum<=1?'disabled':''}>&laquo;</button>
+        <button class="pg-btn" onclick="whalePageNum--;renderWhaleTransfers()" ${whalePageNum<=1?'disabled':''}>&lsaquo;</button>
+        <span class="pg-info">${whalePageNum} / ${totalPages}</span>
+        <button class="pg-btn" onclick="whalePageNum++;renderWhaleTransfers()" ${whalePageNum>=totalPages?'disabled':''}>&rsaquo;</button>
+        <button class="pg-btn" onclick="whalePageNum=${totalPages};renderWhaleTransfers()" ${whalePageNum>=totalPages?'disabled':''}>&raquo;</button>`;
+}
+
 // ── Init ──
 async function init() {
     try { DATA=await(await fetch('zro_data.json')).json(); }
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
-    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderCbTransfers(); renderNewInstitutional(); renderFlows();
+    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderCbTransfers(); renderNewInstitutional(); renderFlows(); renderWhaleTransfers();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
     initTabs(); initChainFilter(); initPeriodPills(); initCbPeriodPills(); initCbtPills();
     updateFreshness(); setInterval(updateFreshness, 30000);
