@@ -134,44 +134,48 @@ def main():
         addr = h["address"]
         old_balances = h.get("balances", {})
 
-        # Determine which chains to check
-        chains_to_check = list(old_balances.keys()) if old_balances else ["ethereum"]
-        # Always include ethereum
-        if "ethereum" not in chains_to_check:
-            chains_to_check.append("ethereum")
+        try:
+            # Determine which chains to check
+            chains_to_check = list(old_balances.keys()) if old_balances else ["ethereum"]
+            # Always include ethereum
+            if "ethereum" not in chains_to_check:
+                chains_to_check.append("ethereum")
 
-        new_balances = {}
-        for chain in chains_to_check:
-            chain_id = CHAINS.get(chain)
-            if not chain_id:
-                new_balances[chain] = old_balances.get(chain, 0)
-                continue
+            new_balances = {}
+            for chain in chains_to_check:
+                chain_id = CHAINS.get(chain)
+                if not chain_id:
+                    new_balances[chain] = old_balances.get(chain, 0)
+                    continue
 
-            bal = get_token_balance(addr, chain_id)
-            req_count += 1
+                bal = get_token_balance(addr, chain_id)
+                req_count += 1
 
-            if bal is not None:
-                new_balances[chain] = round(bal)
-            else:
-                # Keep old value on API error
-                new_balances[chain] = old_balances.get(chain, 0)
-                errors += 1
+                if bal is not None:
+                    new_balances[chain] = round(bal)
+                else:
+                    # Keep old value on API error
+                    new_balances[chain] = old_balances.get(chain, 0)
+                    errors += 1
 
-            # Rate limit: 5 req/s → 0.22s between requests
-            time.sleep(0.22)
+                # Rate limit: 5 req/s → 0.22s between requests
+                time.sleep(0.22)
 
-        # Check if balance changed
-        old_total = sum(old_balances.values())
-        new_total = sum(new_balances.values())
-        if old_total != new_total:
-            updated += 1
-            diff = new_total - old_total
-            label = h.get("label", "")
-            sign = "+" if diff > 0 else ""
-            if abs(diff) > 1000:
-                print(f"   {'📈' if diff > 0 else '📉'} {addr[:14]}... {label:20s} {old_total:>12,.0f} → {new_total:>12,.0f} ({sign}{diff:,.0f})")
+            # Check if balance changed
+            old_total = sum(old_balances.values())
+            new_total = sum(new_balances.values())
+            if old_total != new_total:
+                updated += 1
+                diff = new_total - old_total
+                label = h.get("label", "")
+                sign = "+" if diff > 0 else ""
+                if abs(diff) > 1000:
+                    print(f"   {'📈' if diff > 0 else '📉'} {addr[:14]}... {label:20s} {old_total:>12,.0f} → {new_total:>12,.0f} ({sign}{diff:,.0f})")
 
-        h["balances"] = new_balances
+            h["balances"] = new_balances
+        except Exception as e:
+            errors += 1
+            print(f"   ❌ Error refreshing {addr[:14]}...: {e}")
 
         # Progress every 100
         if (i + 1) % 100 == 0:

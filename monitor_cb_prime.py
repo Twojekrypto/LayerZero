@@ -145,7 +145,11 @@ def main():
         url = f"https://api.etherscan.io/v2/api?chainid=1&module=proxy&action=eth_blockNumber&apikey={API_KEY}"
         resp = fetch_json(url)
         if resp and resp.get("result"):
-            latest = int(resp["result"], 16)
+            try:
+                latest = int(resp["result"], 16)
+            except (ValueError, TypeError):
+                print(f"   ⚠️ Could not get block number: {str(resp['result'])[:60]}")
+                return
             start_block = latest - 7200  # ~24 hours back
             print(f"   First run — starting from block {start_block}")
 
