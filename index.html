@@ -92,11 +92,12 @@
             </div>
             <div class="table-scroll">
                 <table class="data-table" id="fresh-table">
-                    <colgroup><col><col><col><col><col></colgroup>
+                    <colgroup><col><col><col><col><col><col></colgroup>
                     <thead><tr>
                         <th style="width:40px">#</th>
                         <th>Address</th>
                         <th class="right sortable" onclick="toggleFreshSort('date')" id="fresh-sort-date">Created</th>
+                        <th class="right sortable" onclick="toggleFreshSort('flow')" id="fresh-sort-flow">Last Flow</th>
                         <th class="right sortable" onclick="toggleFreshSort('balance')" id="fresh-sort-balance">Balance ▼</th>
                         <th class="right">% of Supply</th>
                     </tr></thead>
@@ -123,11 +124,12 @@
             </div>
             <div class="table-scroll">
                 <table class="data-table" id="cb-table">
-                    <colgroup><col><col><col><col><col></colgroup>
+                    <colgroup><col><col><col><col><col><col></colgroup>
                     <thead><tr>
                         <th style="width:40px">#</th>
                         <th>Address</th>
                         <th class="right sortable" onclick="toggleCbSort('date')" id="cb-sort-date">First Funded</th>
+                        <th class="right sortable" onclick="toggleCbSort('flow')" id="cb-sort-flow">Last Flow</th>
                         <th class="right sortable" onclick="toggleCbSort('balance')" id="cb-sort-balance">Balance ▼</th>
                         <th class="right">% of Supply</th>
                     </tr></thead>

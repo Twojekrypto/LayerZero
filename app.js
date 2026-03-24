@@ -255,17 +255,18 @@ function toggleFreshSort(mode) {
 }
 function renderFreshWallets() {
     let freshHolders = DATA.top_holders.filter(h => (h.type === 'FRESH' || h.fresh === true) && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
-        if (freshSortMode === 'date') {
-            return (b.wallet_created || 0) - (a.wallet_created || 0);
-        }
+        if (freshSortMode === 'date') return (b.wallet_created || 0) - (a.wallet_created || 0);
+        if (freshSortMode === 'flow') return (b.last_flow || 0) - (a.last_flow || 0);
         const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
     });
     // Update sort indicators
     const dateTh = document.getElementById('fresh-sort-date');
+    const flowTh = document.getElementById('fresh-sort-flow');
     const balTh = document.getElementById('fresh-sort-balance');
     if(dateTh) dateTh.textContent = freshSortMode === 'date' ? 'Created ▼' : 'Created';
+    if(flowTh) flowTh.textContent = freshSortMode === 'flow' ? 'Last Flow ▼' : 'Last Flow';
     if(balTh) balTh.textContent = freshSortMode === 'balance' ? 'Balance ▼' : 'Balance';
     const allFresh = freshHolders;
     // Search filter
@@ -302,19 +303,26 @@ function renderFreshWallets() {
         const createdDate = h.wallet_created ? new Date(h.wallet_created * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '—';
         const createdAge = h.wallet_created ? Math.floor((Date.now()/1000 - h.wallet_created) / 86400) + 'd ago' : '';
         const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span>${fundedBy}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
+        const lastFlowDate = h.last_flow ? new Date(h.last_flow * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
+        const lastFlowAge = h.last_flow ? Math.floor((Date.now()/1000 - h.last_flow) / 86400) + 'd ago' : '';
+        const lfAmt = h.last_flow_amount || 0;
+        const lfSign = lfAmt >= 0 ? '+' : '';
+        const lfColor = lfAmt >= 0 ? 'color:#4ade80' : 'color:#f87171';
+        const lastFlowLine1 = lfAmt ? `<span style="${lfColor}">${lfSign}${fmt(lfAmt)} ZRO</span> · ${lastFlowDate}` : '—';
         html += `<tr>
             <td><span class="${rankCls}">${rank}</span></td>
             <td>${addrTd}</td>
             <td class="right"><div class="fresh-date">${createdDate}</div><div class="val-muted">${createdAge}</div></td>
+            <td class="right"><div class="fresh-date">${lastFlowLine1}</div><div class="val-muted">${lastFlowAge}</div></td>
             <td class="right"><div class="bal-main">${fmt(bal)}<span class="bal-unit">ZRO</span></div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
             <td class="right"><div class="supply-bar-wrap"><span class="val-muted">${pct}%</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${barW}%"></div></div></div></td>
         </tr>`;
     });
     // Pad empty rows to keep constant height
     const emptyRows = FRESH_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="5"></td></tr>';
-    if(!total && !freshSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🌱</div><div class="empty-text">No fresh wallets tracked</div></div></td></tr>';
-    if(!total && freshSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+freshSearchQuery+'"</div></div></td></tr>';
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="6"></td></tr>';
+    if(!total && !freshSearchQuery) html = '<tr><td colspan="6"><div class="table-empty-state"><div class="empty-icon">🌱</div><div class="empty-text">No fresh wallets tracked</div></div></td></tr>';
+    if(!total && freshSearchQuery) html = '<tr><td colspan="6"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+freshSearchQuery+'"</div></div></td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
     const totalBal = allFresh.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';
@@ -362,17 +370,18 @@ function toggleCbSort(mode) {
 function renderCoinbasePrime() {
     const nowSec = Math.floor(Date.now() / 1000);
     let cbHolders = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor').sort((a,b) => {
-        if (cbSortMode === 'date') {
-            return (b.cb_first_funded || 0) - (a.cb_first_funded || 0);
-        }
+        if (cbSortMode === 'date') return (b.cb_first_funded || 0) - (a.cb_first_funded || 0);
+        if (cbSortMode === 'flow') return (b.cb_last_funded || 0) - (a.cb_last_funded || 0);
         const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
     });
     // Update sort indicators
     const dateTh = document.getElementById('cb-sort-date');
+    const flowTh = document.getElementById('cb-sort-flow');
     const balTh = document.getElementById('cb-sort-balance');
     if(dateTh) dateTh.textContent = cbSortMode === 'date' ? 'First Funded ▼' : 'First Funded';
+    if(flowTh) flowTh.textContent = cbSortMode === 'flow' ? 'Last Flow ▼' : 'Last Flow';
     if(balTh) balTh.textContent = cbSortMode === 'balance' ? 'Balance ▼' : 'Balance';
     // Period filter — filter by cb_first_funded timestamp
     if(cbPeriodDays > 0) {
@@ -414,18 +423,22 @@ function renderCoinbasePrime() {
         const fundedDate = h.cb_first_funded ? new Date(h.cb_first_funded * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '—';
         const fundedAge = h.cb_first_funded ? Math.floor((Date.now()/1000 - h.cb_first_funded) / 86400) + 'd ago' : '';
         const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">Coinbase Prime</a><span class="h-badge h-badge-inst">INST</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
+        const lastFundedDate = h.cb_last_funded ? new Date(h.cb_last_funded * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
+        const lastFundedAge = h.cb_last_funded ? Math.floor((Date.now()/1000 - h.cb_last_funded) / 86400) + 'd ago' : '';
+        const cbTotalRcv = h.cb_total_received ? `<span style="color:#4ade80">+${fmt(h.cb_total_received)} ZRO</span> · ${lastFundedDate}` : '—';
         html += `<tr>
             <td><span class="${rankCls}">${rank}</span></td>
             <td>${addrTd}</td>
             <td class="right"><div class="fresh-date">${fundedDate}</div><div class="val-muted">${fundedAge}</div></td>
+            <td class="right"><div class="fresh-date">${cbTotalRcv}</div><div class="val-muted">${lastFundedAge}</div></td>
             <td class="right"><div class="bal-main">${fmt(bal)}<span class="bal-unit">ZRO</span></div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
             <td class="right"><div class="supply-bar-wrap"><span class="val-muted">${pct}%</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${barW}%"></div></div></div></td>
         </tr>`;
     });
     const emptyRows = CB_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="5"></td></tr>';
-    if(!total && !cbSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🏦</div><div class="empty-text">No Coinbase Prime wallets in this period</div></div></td></tr>';
-    if(!total && cbSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+cbSearchQuery+'"</div></div></td></tr>';
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="6"></td></tr>';
+    if(!total && !cbSearchQuery) html = '<tr><td colspan="6"><div class="table-empty-state"><div class="empty-icon">🏦</div><div class="empty-text">No Coinbase Prime wallets in this period</div></div></td></tr>';
+    if(!total && cbSearchQuery) html = '<tr><td colspan="6"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+cbSearchQuery+'"</div></div></td></tr>';
     document.getElementById('cb-tbody').innerHTML = html;
     const totalBal = allCb.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';

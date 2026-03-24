@@ -74,8 +74,9 @@ def save_cache(cache):
 
 
 def get_funding_source(address, label_map):
-    """Check who sent ZRO to this address. Returns label of biggest known sender.
-    Uses 1 API call — fetches last 20 incoming ZRO transfers."""
+    """Check who sent ZRO to this address. Returns (label, last_flow_ts, last_flow_amount).
+    last_flow_amount is positive for inflows, negative for outflows.
+    Uses 1 API call — fetches last 20 ZRO transfers."""
     url = (
         f"https://api.etherscan.io/v2/api?chainid=1"
         f"&module=account&action=tokentx"
@@ -87,22 +88,29 @@ def get_funding_source(address, label_map):
     )
     data = fetch_json(url)
     if not data or data.get("status") != "1" or not data.get("result"):
-        return None
+        return None, 0, 0
 
-    # Find biggest labeled sender
+    # Find biggest labeled sender + latest flow (in or out)
     senders = {}  # label -> total ZRO
+    last_flow_ts = 0
+    last_flow_amount = 0
     for tx in data["result"]:
-        if tx.get("to", "").lower() == address:
-            sender = tx.get("from", "").lower()
-            label = label_map.get(sender)
+        val = int(tx.get("value", "0")) / 1e18
+        ts = int(tx.get("timeStamp", "0"))
+        to_addr = tx.get("to", "").lower()
+        from_addr = tx.get("from", "").lower()
+        # Track latest flow regardless of direction
+        if ts > last_flow_ts and val > 0:
+            last_flow_ts = ts
+            last_flow_amount = val if to_addr == address else -val
+        # Track labeled senders (inflows only)
+        if to_addr == address:
+            label = label_map.get(from_addr)
             if label:
-                val = int(tx.get("value", "0")) / 1e18
                 senders[label] = senders.get(label, 0) + val
 
-    if senders:
-        best = max(senders, key=senders.get)
-        return best
-    return None
+    best = max(senders, key=senders.get) if senders else None
+    return best, last_flow_ts, last_flow_amount
 
 
 def is_contract(address):
@@ -544,11 +552,14 @@ def main():
                 if not h.get("type") or h.get("type") not in ("FRESH", "NEW_INST"):
                     h["label"] = "Fresh Wallet" if result == "FRESH" else "New Institutional"
                     h["type"] = result
-                    # Check funding source
-                    funder = get_funding_source(addr, label_map)
+                    # Check funding source + last inflow
+                    funder, li_ts, li_amt = get_funding_source(addr, label_map)
                     if funder:
                         h["funded_by"] = funder
                         print(f"     💰 Funded by: {funder}")
+                    if li_ts:
+                        h["last_flow"] = li_ts
+                        h["last_flow_amount"] = li_amt
                     time.sleep(0.25)
                     relabeled += 1
                     print(f"  🔄 Re-labeled {addr[:14]}... as {result} (label was missing)")
@@ -585,9 +596,12 @@ def main():
                         h["label"] = "Fresh Wallet"
                         h["type"] = "FRESH"
                         h["wallet_created"] = creation_ts
-                        funder = get_funding_source(addr, label_map)
+                        funder, li_ts, li_amt = get_funding_source(addr, label_map)
                         if funder:
                             h["funded_by"] = funder
+                        if li_ts:
+                            h["last_flow"] = li_ts
+                            h["last_flow_amount"] = li_amt
                         time.sleep(0.25)
                         new_fresh += 1
                         cache[addr] = {"result": "FRESH", "first_ts": creation_ts, "checked": now_ts}
@@ -620,9 +634,12 @@ def main():
                         h["label"] = "Fresh Wallet"
                         h["type"] = "FRESH"
                         h["wallet_created"] = first_ts
-                        funder = get_funding_source(addr, label_map)
+                        funder, li_ts, li_amt = get_funding_source(addr, label_map)
                         if funder:
                             h["funded_by"] = funder
+                        if li_ts:
+                            h["last_flow"] = li_ts
+                            h["last_flow_amount"] = li_amt
                         time.sleep(0.25)
                         new_fresh += 1
                         cache[addr] = {"result": "FRESH", "first_ts": first_ts, "checked": now_ts}
