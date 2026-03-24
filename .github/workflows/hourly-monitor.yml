@@ -38,18 +38,26 @@ jobs:
           DISCORD_CB_WEBHOOK_URL: ${{ secrets.DISCORD_CB_WEBHOOK_URL }}
         run: python monitor_cb_prime.py
 
+      # --- 3. Fresh wallet detection ---
+      - name: Detect fresh wallets
+        continue-on-error: true
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python detect_fresh.py
+
       # --- Commit all changes in one push ---
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet zro_data.json cb_monitor_state.json 2>/dev/null && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet zro_data.json cb_monitor_state.json fresh_cache.json 2>/dev/null && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add zro_data.json cb_monitor_state.json
+          git add zro_data.json cb_monitor_state.json fresh_cache.json
           git commit -m "🔄 Hourly monitor $(date -u +'%Y-%m-%d %H:%M UTC')"
           git pull --rebase -X theirs origin master
           git push
