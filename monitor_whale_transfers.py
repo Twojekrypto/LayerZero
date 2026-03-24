@@ -371,6 +371,23 @@ def main():
     whale_transfers = whale_transfers[-500:]
     data["whale_transfers"] = whale_transfers
 
+    # Final dedup + cleanup (this is last script in pipeline)
+    holders = data["top_holders"]
+    holders.sort(key=lambda x: sum(x.get("balances", {}).values()), reverse=True)
+    seen_addrs = set()
+    deduped = []
+    for h in holders:
+        a = h["address"].lower()
+        if a not in seen_addrs:
+            seen_addrs.add(a)
+            deduped.append(h)
+    dup_rm = len(holders) - len(deduped)
+    deduped = [h for h in deduped if sum(h.get("balances", {}).values()) > 0]
+    zero_rm = len(holders) - dup_rm - len(deduped)
+    if dup_rm: print(f"   🔄 Removed {dup_rm} duplicate holders")
+    if zero_rm: print(f"   🧹 Removed {zero_rm} zero-balance holders")
+    data["top_holders"] = deduped
+
     # Save data
     atomic_json_dump(data, DATA_PATH)
 
