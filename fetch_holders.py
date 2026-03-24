@@ -41,6 +41,17 @@ CHAINS = {
     "avalanche": {"chainid": 43114, "name": "Avalanche", "short": "AVAX"},
 }
 
+# Top N holders to keep per chain
+TOP_PER_CHAIN = {
+    "ethereum": 500,
+    "arbitrum": 100,
+    "base":     50,
+    "bsc":      50,
+    "optimism": 50,
+    "polygon":  50,
+    "avalanche": 50,
+}
+
 ALCHEMY_URLS = {
     "ethereum":  "eth-mainnet.g.alchemy.com",
     "arbitrum":  "arb-mainnet.g.alchemy.com",
@@ -432,6 +443,32 @@ def main():
             })
 
     holders_list.sort(key=lambda x: x["total"], reverse=True)
+    pre_prune = len(holders_list)
+
+    # --- Prune to top N per chain ---
+    # Collect addresses that qualify as top per any chain
+    keep_addrs = set()
+    for chain_key, limit in TOP_PER_CHAIN.items():
+        chain_sorted = sorted(
+            [h for h in holders_list if chain_key in h["balances"]],
+            key=lambda x: x["balances"].get(chain_key, 0),
+            reverse=True
+        )
+        for h in chain_sorted[:limit]:
+            keep_addrs.add(h["address"])
+
+    # Also keep labeled wallets (from existing data) regardless of rank
+    existing_data_path = os.path.join(DIR, "zro_data.json")
+    if os.path.exists(existing_data_path):
+        with open(existing_data_path) as f:
+            existing_zro = json.load(f)
+        for h in existing_zro.get("top_holders", []):
+            if h.get("label"):
+                keep_addrs.add(h["address"].lower())
+
+    holders_list = [h for h in holders_list if h["address"] in keep_addrs]
+    holders_list.sort(key=lambda x: x["total"], reverse=True)
+    print(f"   ✂️ Pruned {pre_prune:,} → {len(holders_list)} holders (top per chain + labeled)")
 
     # Update state
     if is_full:
