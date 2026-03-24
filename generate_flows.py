@@ -96,7 +96,12 @@ def get_current_block(chain_id):
     )
     data = fetch_json(url)
     if data and data.get("result"):
-        return int(data["result"], 16)
+        try:
+            return int(data["result"], 16)
+        except (ValueError, TypeError):
+            # Free API may not support this chain
+            print(f"   ⚠️ Chain {chain_id}: {str(data['result'])[:80]}")
+            return 0
     return 0
 
 
