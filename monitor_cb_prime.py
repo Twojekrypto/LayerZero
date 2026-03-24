@@ -38,9 +38,13 @@ KNOWN_CEX = {
 
 MIN_ALERT_AMOUNT = 50_000  # Only alert for transfers >= 50K ZRO
 
-# Known internal/rebalancing wallets — no Discord alerts
+# Known internal/rebalancing wallets — no Discord alerts, type=INTERNAL
 EXCLUDE_ADDRS = {
-    "0x26cc9d27b6dfa373a7a470839e4cf5220a22be02",  # Internal rebalancing wallet (Investor #11)
+    "0x26cc9d27b6dfa373a7a470839e4cf5220a22be02",  # Internal rebalancing
+    "0xd23b59111d168760c8eea27b01cf8f21369a7040",  # Internal rebalancing
+    "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4",  # Internal rebalancing
+    "0x1e51767f345b1a7404fac03828e02a3fbceb4c95",  # Internal rebalancing
+    "0xeb2629a2734e272bcc07bda959863f316f4bd4cf",  # Internal rebalancing
 }
 
 
