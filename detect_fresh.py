@@ -500,7 +500,11 @@ def main():
                 cache_hits += 1
                 continue
             elif result in ("FRESH", "NEW_INST"):
-                # Still fresh — keep existing label, skip API call
+                # Still fresh — ensure label is applied (may have been lost during merge)
+                if not h.get("type") or h.get("type") not in ("FRESH", "NEW_INST"):
+                    h["label"] = "Fresh Wallet" if result == "FRESH" else "New Institutional"
+                    h["type"] = result
+                    print(f"  🔄 Re-labeled {addr[:14]}... as {result} (label was missing)")
                 cache_hits += 1
                 continue
             # SKIP results: re-check periodically (every 7 days)
