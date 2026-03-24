@@ -250,14 +250,27 @@ function renderHolders() {
 function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==='asc'?'desc':'asc'; else {holdersSortKey=k;holdersSortDir='desc';} holdersPage=1;renderHolders(); }
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
 // ── Fresh Wallets ──
-let freshPage=1, freshSearchQuery='';
+let freshPage=1, freshSearchQuery='', freshSortMode='balance';
 const FRESH_PER_PAGE=15;
+function toggleFreshSort(mode) {
+    freshSortMode = (freshSortMode === mode) ? (mode === 'balance' ? 'date' : 'balance') : mode;
+    freshPage = 1;
+    renderFreshWallets();
+}
 function renderFreshWallets() {
     let freshHolders = DATA.top_holders.filter(h => (h.type === 'FRESH' || h.fresh === true) && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
+        if (freshSortMode === 'date') {
+            return (b.wallet_created || 0) - (a.wallet_created || 0);
+        }
         const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
         const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
         return bTotal - aTotal;
     });
+    // Update sort indicators
+    const dateTh = document.getElementById('fresh-sort-date');
+    const balTh = document.getElementById('fresh-sort-balance');
+    if(dateTh) dateTh.textContent = freshSortMode === 'date' ? 'Created ▼' : 'Created';
+    if(balTh) balTh.textContent = freshSortMode === 'balance' ? 'Balance ▼' : 'Balance';
     const allFresh = freshHolders;
     // Search filter
     if(freshSearchQuery) {
@@ -290,19 +303,22 @@ function renderFreshWallets() {
         const rank = start+i+1;
         const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
         const fundedBy = h.funded_by ? `<span class="h-badge h-badge-funded" title="Funded by ${h.funded_by}">via ${h.funded_by}</span>` : '';
+        const createdDate = h.wallet_created ? new Date(h.wallet_created * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '—';
+        const createdAge = h.wallet_created ? Math.floor((Date.now()/1000 - h.wallet_created) / 86400) + 'd ago' : '';
         const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span>${fundedBy}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
         html += `<tr>
             <td><span class="${rankCls}">${rank}</span></td>
             <td>${addrTd}</td>
+            <td class="right"><div class="fresh-date">${createdDate}</div><div class="val-muted">${createdAge}</div></td>
             <td class="right"><div class="bal-main">${fmt(bal)}<span class="bal-unit">ZRO</span></div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
             <td class="right"><div class="supply-bar-wrap"><span class="val-muted">${pct}%</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${barW}%"></div></div></div></td>
         </tr>`;
     });
     // Pad empty rows to keep constant height
     const emptyRows = FRESH_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="4"></td></tr>';
-    if(!total && !freshSearchQuery) html = '<tr><td colspan="4"><div class="table-empty-state"><div class="empty-icon">🌱</div><div class="empty-text">No fresh wallets tracked</div></div></td></tr>';
-    if(!total && freshSearchQuery) html = '<tr><td colspan="4"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+freshSearchQuery+'"</div></div></td></tr>';
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="5"></td></tr>';
+    if(!total && !freshSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🌱</div><div class="empty-text">No fresh wallets tracked</div></div></td></tr>';
+    if(!total && freshSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+freshSearchQuery+'"</div></div></td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
     const totalBal = allFresh.reduce((s,h) => s + Object.values(h.balances).reduce((a,v)=>a+v,0), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';

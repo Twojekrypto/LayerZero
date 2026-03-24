@@ -540,6 +540,7 @@ def main():
                 continue
             elif result in ("FRESH", "NEW_INST"):
                 # Still fresh — ensure label is applied (may have been lost during merge)
+                first_ts = cached.get("first_ts", 0)
                 if not h.get("type") or h.get("type") not in ("FRESH", "NEW_INST"):
                     h["label"] = "Fresh Wallet" if result == "FRESH" else "New Institutional"
                     h["type"] = result
@@ -551,6 +552,9 @@ def main():
                     time.sleep(0.25)
                     relabeled += 1
                     print(f"  🔄 Re-labeled {addr[:14]}... as {result} (label was missing)")
+                # Always ensure wallet_created is set from cache
+                if first_ts and not h.get("wallet_created"):
+                    h["wallet_created"] = first_ts
                 cache_hits += 1
                 continue
             # SKIP results: re-check periodically (every 7 days)
@@ -580,6 +584,7 @@ def main():
                     else:
                         h["label"] = "Fresh Wallet"
                         h["type"] = "FRESH"
+                        h["wallet_created"] = creation_ts
                         funder = get_funding_source(addr, label_map)
                         if funder:
                             h["funded_by"] = funder
@@ -614,6 +619,7 @@ def main():
                     else:
                         h["label"] = "Fresh Wallet"
                         h["type"] = "FRESH"
+                        h["wallet_created"] = first_ts
                         funder = get_funding_source(addr, label_map)
                         if funder:
                             h["funded_by"] = funder

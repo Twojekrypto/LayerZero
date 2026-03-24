@@ -55,8 +55,8 @@ def main():
         if addr in label_map:
             entry["label"] = label_map[addr]["label"]
             entry["type"] = label_map[addr]["type"]
-            # Preserve CB Prime metadata and funded_by
-            for key in ("funded_by", "cb_first_funded", "cb_last_funded", "cb_total_received"):
+            # Preserve CB Prime metadata, funded_by, and wallet_created
+            for key in ("funded_by", "wallet_created", "cb_first_funded", "cb_last_funded", "cb_total_received"):
                 if label_map[addr].get(key) is not None:
                     entry[key] = label_map[addr][key]
 
