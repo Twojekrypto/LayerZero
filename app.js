@@ -517,7 +517,7 @@ function renderCbTransfers() {
     const txs = DATA.cb_prime_transfers || [];
     const nowSec = Math.floor(Date.now() / 1000);
     const price = DATA.meta?.price_usd || 0;
-    let filtered = cbtTypeFilter === 'ALL' ? txs.filter(t => t.type !== 'INTERNAL') : txs.filter(t => t.type === cbtTypeFilter);
+    let filtered = cbtTypeFilter === 'ALL' ? txs.filter(t => t.type !== 'INTERNAL' && t.value >= 10000) : txs.filter(t => t.type === cbtTypeFilter && t.value >= 10000);
     if(cbtPeriodDays > 0) {
         const cutoff = nowSec - (cbtPeriodDays * 86400);
         filtered = filtered.filter(t => t.timestamp >= cutoff);
@@ -618,7 +618,7 @@ function renderCbTransfers() {
 function goCbtPage(delta) {
     const txs = DATA.cb_prime_transfers || [];
     const nowSec = Math.floor(Date.now() / 1000);
-    let filtered = cbtTypeFilter === 'ALL' ? txs.filter(t => t.type !== 'INTERNAL') : txs.filter(t => t.type === cbtTypeFilter);
+    let filtered = cbtTypeFilter === 'ALL' ? txs.filter(t => t.type !== 'INTERNAL' && t.value >= 10000) : txs.filter(t => t.type === cbtTypeFilter && t.value >= 10000);
     if(cbtPeriodDays > 0) { const cutoff = nowSec - (cbtPeriodDays * 86400); filtered = filtered.filter(t => t.timestamp >= cutoff); }
     if(cbtSearchQuery) { const q=cbtSearchQuery.toLowerCase(); filtered=filtered.filter(t=>t.from.toLowerCase().includes(q)||t.to.toLowerCase().includes(q)||(t.from_label||'').toLowerCase().includes(q)||(t.to_label||'').toLowerCase().includes(q)); }
     if(cbtSortDir === 1) filtered.sort((a,b) => b.value - a.value);
