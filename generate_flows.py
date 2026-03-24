@@ -11,9 +11,9 @@ Subsequent runs: ~2-3 min (incremental from last block)
 import json, os, time
 from urllib.request import urlopen, Request
 from collections import defaultdict
-from utils import atomic_json_dump, fetch_json
+from utils import atomic_json_dump, fetch_json, get_api_key
 
-API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+API_KEY = get_api_key()
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
 DECIMALS = 18
 

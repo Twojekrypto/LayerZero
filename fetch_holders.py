@@ -15,9 +15,9 @@ import json, time, sys, os, csv
 from urllib.request import urlopen, Request
 from collections import defaultdict
 from datetime import datetime
-from utils import atomic_json_dump, fetch_json
+from utils import atomic_json_dump, fetch_json, get_api_key
 
-ETHERSCAN_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+ETHERSCAN_KEY = get_api_key()
 ALCHEMY_KEY = os.environ.get("ALCHEMY_API_KEY", "")
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
 MIN_BALANCE = 10

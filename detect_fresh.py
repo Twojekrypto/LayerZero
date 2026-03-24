@@ -14,9 +14,9 @@ Detection logic:
 """
 import json, os, time
 from urllib.request import urlopen, Request
-from utils import atomic_json_dump, fetch_json
+from utils import atomic_json_dump, fetch_json, get_api_key
 
-API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+API_KEY = get_api_key()
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 MIN_BALANCE_FOR_CHECK = 10_000  # Only check wallets with >10K ZRO
 FRESH_AGE_DAYS = 30  # Wallet younger than this = FRESH

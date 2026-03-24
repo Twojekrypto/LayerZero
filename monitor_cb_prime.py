@@ -7,9 +7,9 @@ Runs hourly via GitHub Actions alongside refresh_balances.py.
 """
 import json, os, time
 from urllib.request import urlopen, Request
-from utils import atomic_json_dump, fetch_json
+from utils import atomic_json_dump, fetch_json, get_api_key
 
-API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+API_KEY = get_api_key()
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_CB_WEBHOOK_URL", "")
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
 COINBASE_PRIME_HUB = "0xcd531ae9efcce479654c4926dec5f6209531ca7b"

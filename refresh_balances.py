@@ -10,9 +10,9 @@ Designed to run every hour via GitHub Actions.
 """
 import json, os, time
 from urllib.request import urlopen, Request
-from utils import atomic_json_dump, fetch_json
+from utils import atomic_json_dump, fetch_json, get_api_key
 
-API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
+API_KEY = get_api_key()
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
 DECIMALS = 18
 TOP_N = 500  # Refresh top N holders by balance

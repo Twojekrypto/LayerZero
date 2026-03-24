@@ -28,6 +28,7 @@ jobs:
       - name: Refresh top 500 balances + watch Token Unlocks
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          ETHERSCAN_API_KEY_2: ${{ secrets.ETHERSCAN_API_KEY_2 }}
         run: python refresh_balances.py
 
       # --- 2. Coinbase Prime transfer monitor ---
@@ -35,6 +36,7 @@ jobs:
         continue-on-error: true
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          ETHERSCAN_API_KEY_2: ${{ secrets.ETHERSCAN_API_KEY_2 }}
           DISCORD_CB_WEBHOOK_URL: ${{ secrets.DISCORD_CB_WEBHOOK_URL }}
         run: python monitor_cb_prime.py
 
@@ -43,6 +45,7 @@ jobs:
         continue-on-error: true
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          ETHERSCAN_API_KEY_2: ${{ secrets.ETHERSCAN_API_KEY_2 }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: python detect_fresh.py
 
