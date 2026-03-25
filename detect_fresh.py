@@ -420,6 +420,7 @@ def detect_coinbase_prime(data, cache=None):
     print(f"   Outgoing transfers to {len(all_recipients)} unique recipients")
 
     # Update timestamps for ALL existing CB Prime wallets (even already labeled)
+    cb_updated = 0
     for h in data["top_holders"]:
         addr = h["address"].lower()
         info = all_recipients.get(addr)
@@ -428,6 +429,8 @@ def detect_coinbase_prime(data, cache=None):
             h["cb_last_funded"] = info["last_ts"]
             h["cb_total_received"] = round(info["total"])
             h["cb_last_flow_amount"] = round(info.get("last_amount", 0))
+            cb_updated += 1
+    print(f"   Updated metadata for {cb_updated} existing CB Prime wallets")
 
     new_labeled = 0
     relabeled = 0
@@ -481,7 +484,7 @@ def detect_coinbase_prime(data, cache=None):
         print(f"   Pruned cb_prime_transfers: {len(transfers)} → 1000")
 
     print()
-    return new_cb_wallets
+    return new_cb_wallets, cb_updated
 
 
 def main():
@@ -521,7 +524,7 @@ def main():
     print()
 
     # Phase 1: Coinbase Prime detection (before fresh wallet scan)
-    cb_wallets = detect_coinbase_prime(data, cache)
+    cb_wallets, cb_updated = detect_coinbase_prime(data, cache)
 
     # Get existing labeled addresses (skip these)
     already_labeled = set()
@@ -714,7 +717,7 @@ def main():
     save_cache(cache)
     print(f"💾 Cache saved ({len(cache)} entries)")
 
-    has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0 or aged_out > 0 or relabeled > 0
+    has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0 or cb_updated > 0 or aged_out > 0 or relabeled > 0
     if has_changes:
         atomic_json_dump(data, DATA_PATH)
         print(f"💾 Saved to {DATA_PATH}")
