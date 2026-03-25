@@ -56,6 +56,9 @@ KNOWN_COINBASE_WALLETS = {
     "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511",
     "0xeb2629a2734e272bcc07bda959863f316f4bd4cf",
     "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
+    "0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d",
+    "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc",
+    "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4",
 } | COINBASE_PRIME_HUBS  # Include the hub itself
 
 DIR = os.path.dirname(os.path.abspath(__file__))
@@ -193,6 +196,9 @@ KNOWN_CEX_HOT_WALLETS = {
     "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511",
     "0xeb2629a2734e272bcc07bda959863f316f4bd4cf",
     "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
+    "0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d",
+    "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc",
+    "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4",
     # Binance
     "0x28c6c06298d514db089934071355e5743bf21d60",
     "0x21a31ee1afc51d94c2efccaa2092ad1028285549",

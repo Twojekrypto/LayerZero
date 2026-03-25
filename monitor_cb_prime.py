@@ -35,6 +35,9 @@ KNOWN_CEX = {
     "0x1db92e2eebc8e0c075a02bea49a2935bcd2dfcf4": "Bybit",
     "0xeb2629a2734e272bcc07bda959863f316f4bd4cf": "Coinbase",
     "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b": "Coinbase",
+    "0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d": "Coinbase",
+    "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc": "Coinbase",
+    "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4": "Coinbase",
     "0x63be42b40816eb08f6ea480e5875e6f4668da379": "Upbit",
 }
 
