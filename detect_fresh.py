@@ -400,10 +400,12 @@ def detect_coinbase_prime(data, cache=None):
                     val = int(tx.get("value", "0")) / 1e18
                     ts = int(tx.get("timeStamp", "0"))
                     if to not in all_recipients:
-                        all_recipients[to] = {"total": 0, "first_ts": ts, "last_ts": ts}
+                        all_recipients[to] = {"total": 0, "first_ts": ts, "last_ts": ts, "last_amount": val}
                     all_recipients[to]["total"] += val
                     all_recipients[to]["first_ts"] = min(all_recipients[to]["first_ts"], ts)
-                    all_recipients[to]["last_ts"] = max(all_recipients[to]["last_ts"], ts)
+                    if ts >= all_recipients[to]["last_ts"]:
+                        all_recipients[to]["last_ts"] = ts
+                        all_recipients[to]["last_amount"] = val
             if len(resp["result"]) < 100:
                 break
             page += 1
@@ -419,6 +421,7 @@ def detect_coinbase_prime(data, cache=None):
             h["cb_first_funded"] = info["first_ts"]
             h["cb_last_funded"] = info["last_ts"]
             h["cb_total_received"] = round(info["total"])
+            h["cb_last_flow_amount"] = round(info.get("last_amount", 0))
 
     new_labeled = 0
     relabeled = 0
@@ -453,6 +456,7 @@ def detect_coinbase_prime(data, cache=None):
         h["cb_first_funded"] = info["first_ts"]
         h["cb_last_funded"] = info["last_ts"]
         h["cb_total_received"] = round(info["total"])
+        h["cb_last_flow_amount"] = round(info.get("last_amount", 0))
         if old_label == "Fresh Wallet":
             relabeled += 1
             print(f"  🔄 Relabeled: {addr[:14]}... {old_label} → CB Prime ({balance:,.0f} ZRO)")

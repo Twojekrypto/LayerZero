@@ -425,7 +425,8 @@ function renderCoinbasePrime() {
         const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">Coinbase Prime</a><span class="h-badge h-badge-inst">INST</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
         const lastFundedDate = h.cb_last_funded ? new Date(h.cb_last_funded * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
         const lastFundedAge = h.cb_last_funded ? Math.floor((Date.now()/1000 - h.cb_last_funded) / 86400) + 'd ago' : '';
-        const cbTotalRcv = h.cb_total_received ? `<span style="color:#4ade80">+${fmt(h.cb_total_received)} ZRO</span> · ${lastFundedDate}` : '—';
+        const lastFlowAmt = h.cb_last_flow_amount || h.cb_total_received;
+        const cbTotalRcv = lastFlowAmt ? `<span style="color:#4ade80">+${fmt(lastFlowAmt)} ZRO</span> · ${lastFundedDate}` : '—';
         html += `<tr>
             <td><span class="${rankCls}">${rank}</span></td>
             <td>${addrTd}</td>

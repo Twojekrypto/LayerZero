@@ -39,6 +39,7 @@ def main():
                 "cb_first_funded": h.get("cb_first_funded"),
                 "cb_last_funded": h.get("cb_last_funded"),
                 "cb_total_received": h.get("cb_total_received"),
+                "cb_last_flow_amount": h.get("cb_last_flow_amount"),
             }
 
     # Build new top_holders from fresh data, preserving labels
@@ -56,7 +57,7 @@ def main():
             entry["label"] = label_map[addr]["label"]
             entry["type"] = label_map[addr]["type"]
             # Preserve CB Prime metadata, funded_by, wallet_created, and last_flow
-            for key in ("funded_by", "wallet_created", "last_flow", "last_flow_amount", "cb_first_funded", "cb_last_funded", "cb_total_received"):
+            for key in ("funded_by", "wallet_created", "last_flow", "last_flow_amount", "cb_first_funded", "cb_last_funded", "cb_total_received", "cb_last_flow_amount"):
                 if label_map[addr].get(key) is not None:
                     entry[key] = label_map[addr][key]
 
