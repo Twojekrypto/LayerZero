@@ -914,12 +914,49 @@ function updateFreshness() {
 // ── Whale Transfers ──
 let whalePageNum = 1;
 const WHALE_PER_PAGE = 15;
+// Known CEX addresses for label resolution (mirrors monitor_whale_transfers.py KNOWN_CEX)
+const KNOWN_CEX_LABELS = {
+    '0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43': 'Coinbase',
+    '0x503828976d22510aad0201ac7ec88293211d23da': 'Coinbase',
+    '0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740': 'Coinbase',
+    '0x3cd751e6b0078be393132286c442345e68ff0afc': 'Coinbase',
+    '0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511': 'Coinbase',
+    '0x28c6c06298d514db089934071355e5743bf21d60': 'Binance',
+    '0x21a31ee1afc51d94c2efccaa2092ad1028285549': 'Binance',
+    '0xdfd5293d8e347dfe59e90efd55b2956a1343963d': 'Binance',
+    '0x56eddb7aa87536c09ccc2793473599fd21a8b17f': 'Binance',
+    '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b': 'OKX',
+    '0x236f9f97e0e62388479bf9e5ba4889e46b0273c3': 'OKX',
+    '0xf89d7b9c864f589bbf53a82105107622b35eaa40': 'Bybit',
+    '0x1db92e2eebc8e0c075a02bea49a2935bcd2dfcf4': 'Bybit',
+    '0xeb2629a2734e272bcc07bda959863f316f4bd4cf': 'Coinbase',
+    '0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b': 'Coinbase',
+    '0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d': 'Coinbase',
+    '0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc': 'Coinbase',
+    '0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4': 'Coinbase',
+    '0x63be42b40816eb08f6ea480e5875e6f4668da379': 'Upbit',
+    '0xf977814e90da44bfa03b6295a0616a897441acec': 'Binance',
+    '0x5a52e96bacdabb82fd05763e25335261b270efcb': 'Binance',
+    '0xa6bf06200361009491bad8c57410c9ded24c2444': 'OKX',
+    '0xcd531ae9efcce479654c4926dec5f6209531ca7b': 'Coinbase Prime Hub',
+};
+function buildWhaleLabelMap() {
+    const map = {};
+    // 1. Known CEX addresses (highest priority)
+    for (const [addr, name] of Object.entries(KNOWN_CEX_LABELS)) map[addr.toLowerCase()] = name;
+    // 2. Labels from top_holders
+    for (const h of DATA.top_holders) {
+        if (h.label) map[h.address.toLowerCase()] = h.label;
+    }
+    return map;
+}
 function renderWhaleTransfers() {
     const transfers = (DATA.whale_transfers || []).slice().sort((a, b) => b.timestamp - a.timestamp);
     const card = document.getElementById('whale-card');
     if (!card) return;
     if (!transfers.length) { card.style.display = 'none'; return; }
     card.style.display = '';
+    const labelMap = buildWhaleLabelMap();
     const total = transfers.length;
     const totalPages = Math.max(1, Math.ceil(total / WHALE_PER_PAGE));
     whalePageNum = Math.min(whalePageNum, totalPages);
@@ -934,8 +971,10 @@ function renderWhaleTransfers() {
         const agoStr = ago === 0 ? 'today' : ago + 'd ago';
         const typeCls = t.type === 'CEX_WITHDRAWAL' ? 'h-badge-fresh' : t.type === 'CEX_DEPOSIT' ? 'h-badge-sell' : 'h-badge-inst';
         const typeLabel = t.type === 'CEX_WITHDRAWAL' ? '🟢 BUY' : t.type === 'CEX_DEPOSIT' ? '🔴 SELL' : '🔄 MOVE';
-        const fromShort = t.from_label || (t.from.slice(0,6) + '…' + t.from.slice(-4));
-        const toShort = t.to_label || (t.to.slice(0,6) + '…' + t.to.slice(-4));
+        const fromResolved = labelMap[t.from.toLowerCase()] || t.from_label;
+        const toResolved = labelMap[t.to.toLowerCase()] || t.to_label;
+        const fromShort = fromResolved || (t.from.slice(0,6) + '…' + t.from.slice(-4));
+        const toShort = toResolved || (t.to.slice(0,6) + '…' + t.to.slice(-4));
         const fromLink = `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" class="h-addr-hex-sm">${fromShort}</a>`;
         const toLink = `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" class="h-addr-hex-sm">${toShort}</a>`;
         const usdVal = price ? fmtUSD(t.value * price) : '';
