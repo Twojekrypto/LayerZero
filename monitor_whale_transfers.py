@@ -247,6 +247,12 @@ def main():
         from_label = label_map.get(from_addr, "")
         to_label = label_map.get(to_addr, "")
 
+        # Skip internal CEX-to-CEX transfers (e.g. Binance 14 → Binance 15)
+        if from_is_cex and to_is_cex:
+            seen.add(tx_hash)
+            print(f"  ⏭️ Skip CEX→CEX: {KNOWN_CEX[from_addr]} → {KNOWN_CEX[to_addr]} ({fmt(value)} ZRO)")
+            continue
+
         if from_is_cex:
             transfer_type = "CEX_WITHDRAWAL"
             direction_emoji = "🟢"
