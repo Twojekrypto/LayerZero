@@ -335,10 +335,13 @@ def has_coinbase_roundtrip(address, cache=None):
     is_roundtrip = cb_transfers >= 3
 
     # Heuristic 2: CB Prime internal/operational wallet pattern
-    # - Many ZRO transfers (>30 = settlement/staging, vs investors with <20)
-    # - Bidirectional: both sends AND receives large amounts
-    # - High OUT count relative to IN count (sweep pattern)
-    is_operational = (total_tx >= 30 and large_out_count >= 3 and total_out >= 5)
+    # Very conservative thresholds to avoid filtering real investors:
+    # - >100 ZRO transfers = high-volume settlement (investors have <50)
+    # - 10+ large OUTs (>10K ZRO) = systematic sweeping
+    # - 15+ total OUTs = not just occasional sends to other investors
+    # Example: 0x63be has 231 tx, 100+ large OUTs → operational ✅
+    # Example: 0x02546e has 2x deposits → investor, NOT filtered ✅
+    is_operational = (total_tx >= 100 and large_out_count >= 10 and total_out >= 15)
 
     result = is_roundtrip or is_operational
 
