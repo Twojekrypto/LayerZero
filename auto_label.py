@@ -66,6 +66,7 @@ KNOWN_CEX_ADDRESSES = {
     "0xd793281b45cebbdc1e30e3e3e47d7c5e7713e23d": "HTX",
     "0x46340b20830761efd32832a74d7169b29feb9758": "HTX",
     "0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23": "KuCoin",
+    "0x63be42b40816eb08f6ea480e5875e6f4668da379": "Upbit",
 }
 
 

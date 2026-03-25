@@ -43,7 +43,7 @@ COINBASE_INTERNAL_EXCLUDE = {
     "0x1e51767f345b1a7404fac03828e02a3fbceb4c95",
     "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc",
     "0x3fceb80de2a6fd3b46ab792f22858bbb24dd9e41",
-    "0x63be42b40816eb08f6ea480e5875e6f4668da379",  # CB Prime operational (14M ZRO, 231 tx)
+
     "0x9e17093991868768613dae0e857437076eef0ee9",  # CB Prime operational (688K ZRO, 27 tx)
 }
 
@@ -202,6 +202,8 @@ KNOWN_CEX_HOT_WALLETS = {
     # Bybit
     "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
     "0x1db92e2eebc8e0c075a02bea49a2935bcd2dfcf4",
+    # Upbit
+    "0x63be42b40816eb08f6ea480e5875e6f4668da379",
 }
 
 
