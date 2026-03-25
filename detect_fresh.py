@@ -302,7 +302,7 @@ def has_coinbase_roundtrip(address, cache=None):
         f"&address={address}"
         f"&contractaddress={ZRO_CONTRACT}"
         f"&startblock=0&endblock=99999999"
-        f"&page=1&offset=100&sort=desc"
+        f"&page=1&offset=200&sort=desc"
         f"&apikey={API_KEY}"
     )
     data = fetch_json(url)
@@ -310,17 +310,40 @@ def has_coinbase_roundtrip(address, cache=None):
         return False
 
     cb_transfers = 0
+    total_out = 0
+    total_in = 0
+    large_out_count = 0  # transfers OUT > 10K ZRO
     for tx in data["result"]:
         from_addr = tx.get("from", "").lower()
         to_addr = tx.get("to", "").lower()
-        # Count transfers where this wallet interacts with Coinbase wallets
-        # (sends TO or receives FROM Coinbase hot wallets — not CB Prime hub)
-        if from_addr == address.lower() and to_addr in KNOWN_COINBASE_WALLETS:
-            cb_transfers += 1
-        elif to_addr == address.lower() and from_addr in (KNOWN_COINBASE_WALLETS - COINBASE_PRIME_HUBS):
-            cb_transfers += 1
-    # 3+ round-trip transfers with Coinbase = internal wallet
-    result = cb_transfers >= 3
+        value = int(tx.get("value", "0")) / 1e18
+
+        if from_addr == address.lower():
+            total_out += 1
+            if value >= 10_000:
+                large_out_count += 1
+            if to_addr in KNOWN_COINBASE_WALLETS:
+                cb_transfers += 1
+        elif to_addr == address.lower():
+            total_in += 1
+            if from_addr in (KNOWN_COINBASE_WALLETS - COINBASE_PRIME_HUBS):
+                cb_transfers += 1
+
+    total_tx = len(data["result"])
+
+    # Heuristic 1: sends TO known Coinbase wallets (original check)
+    is_roundtrip = cb_transfers >= 3
+
+    # Heuristic 2: CB Prime internal/operational wallet pattern
+    # - Many ZRO transfers (>30 = settlement/staging, vs investors with <20)
+    # - Bidirectional: both sends AND receives large amounts
+    # - High OUT count relative to IN count (sweep pattern)
+    is_operational = (total_tx >= 30 and large_out_count >= 3 and total_out >= 5)
+
+    result = is_roundtrip or is_operational
+
+    if result and not is_roundtrip:
+        print(f"  ⛔ Filtered (operational pattern: {total_tx} tx, {large_out_count} large OUT): {address[:14]}...")
 
     # Save to cache
     if cache is not None:
