@@ -54,6 +54,7 @@ KNOWN_CEX_ADDRESSES = {
     "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511": "Coinbase",
     "0xeb2629a2734e272bcc07bda959863f316f4bd4cf": "Coinbase",
     "0xcd531ae9efcce479654c4926dec5f6209531ca7b": "Coinbase Prime",
+    "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b": "Coinbase",
     "0x6cc5f688a315f3dc28a7781717a9a798a59fda7b": "OKX",
     "0x98ec059dc3adfbdd63429227115d9f17bebe7455": "OKX",
     "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b": "OKX",
