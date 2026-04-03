@@ -74,6 +74,21 @@ KNOWN_CEX_ADDRESSES = {
     "0x63be42b40816eb08f6ea480e5875e6f4668da379": "Upbit",
     "0xfdd710fa25cf1e08775cb91a2bf65f1329ccbd09": "Binance",
     "0x6540f4a2f4c4fbac288fa738a249924a636020d0": "Upbit",
+    "0xcc282e2004428939ee5149a9e7872f0b4d5d5ec7": "Kraken",
+    "0x9b0c45d46d386cedd98873168c36efd0dcba8d46": "Revolut",
+    "0xa31231e727ca53ff95f0d00a06c645110c4ab647": "Bybit",
+    "0xd2dd7b597fd2435b6db61ddf48544fd931e6869f": "Kraken",
+    "0x7dafba1d69f6c01ae7567ffd7b046ca03b706f83": "Kraken",
+    "0x4680900fb91164ee22b9e8f7c66efc79d7c4e1f9": "Bithumb",
+    "0x76ec5a0d3632b2133d9f1980903305b62678fbd3": "BTCTurk",
+    "0x9642b23ed1e01df1092b92641051881a322f5d4e": "MEXC",
+    "0xe8c15aad9d4cd3f59c9dfa18828b91a8b2c49596": "KuCoin",
+    "0x4fb312915b779b1339388e14b6d079741ca83128": "HTX",
+    "0xab782bc7d4a2b306825de5a7730034f8f63ee1bc": "Bitvavo",
+    "0xa023f08c70a23abc7edfc5b6b5e171d78dfc947e": "Crypto.com",
+    "0x175ce6204bfda2a509c7e9c786b74407f569c9cc": "KuCoin",
+    "0x5b71d5fd6bb118665582dd87922bf3b9de6c75f9": "Crypto.com",
+    "0xff8a035ea6c80673f741c2265985ed976a40d390": "OKX",
 }
 
 
