@@ -26,6 +26,8 @@
 - **`detect_fresh.py` skanuje TYLKO wallety które JUŻ SĄ w `zro_data.json`.** Jeśli wallet nie jest w danych, nie zostanie sprawdzony. Dlatego `fetch_holders.py` musi znaleźć nowe wallety NAJPIERW.
 - **EOA bez ETH (tylko ZRO):** `detect_fresh.py` ma fallback z `txlist` na `tokentx` — złapie także wallety zasilone wyłącznie tokenami.
 - **"Fresh" = pierwsza transakcja <30 dni, nie "kiedy dostał ZRO".** Stary wallet z 2022 który dopiero teraz kupił ZRO NIE jest fresh.
+- **Multichain Consistency:** Skrypty takie jak `monitor_whale_transfers.py` MUszą weryfikować wiek portfela przez pobieranie historii ze wszystkich chainów, tak jak robi to główny skan `detect_fresh.py`. Weryfikacja tylko `chainid=1` doprowadzi do fałszywych alarmów, z tytułu starych wielorybów na warstwie L2 przerzucających swoje pierwsze środki na ETH.
+- **Zero tolerancji dla CEX Deposits w heurystyce spamu:** Portfele odnotowujące chociażby 1 transfer wyjściowy TO a CEX dyskwalifikują się jako 'Fresh Wallets' – nowi inwestorzy hodlują, a nie od razu zrzucają tokeny na CEX (pomaga usunąć arbitrage proxy accounts).
 
 ## Data Integrity
 

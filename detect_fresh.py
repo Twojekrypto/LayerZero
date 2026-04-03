@@ -188,31 +188,38 @@ def get_contract_creation_timestamp(address):
 
 
 KNOWN_CEX_HOT_WALLETS = {
-    # Coinbase
+    "0x28c6c06298d514db089934071355e5743bf21d60",
+    "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
+    "0xdfd5293d8e347dfe59e90efd55b2956a1343963d",
+    "0x56eddb7aa87536c09ccc2793473599fd21a8b17f",
+    "0xf977814e90da44bfa03b6295a0616a897441acec",
     "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
     "0x503828976d22510aad0201ac7ec88293211d23da",
     "0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740",
     "0x3cd751e6b0078be393132286c442345e68ff0afc",
     "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511",
     "0xeb2629a2734e272bcc07bda959863f316f4bd4cf",
+    "0xcd531ae9efcce479654c4926dec5f6209531ca7b",
     "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
     "0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d",
     "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc",
     "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4",
-    # Binance
-    "0x28c6c06298d514db089934071355e5743bf21d60",
-    "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
-    "0xdfd5293d8e347dfe59e90efd55b2956a1343963d",
-    "0x56eddb7aa87536c09ccc2793473599fd21a8b17f",
-    # OKX
     "0x6cc5f688a315f3dc28a7781717a9a798a59fda7b",
-    "0x236f9f97e0e62388479bf9e5ba4889e46b0273c3",
+    "0x98ec059dc3adfbdd63429227115d9f17bebe7455",
+    "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b",
     "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
-    # Bybit
+    "0x75e89d5979e4f6fba9f97c104c2f0afb3f1dcb88",
     "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
-    "0x1db92e2eebc8e0c075a02bea49a2935bcd2dfcf4",
-    # Upbit
+    "0x1ab4973a48dc892cd9971ece8e01dcc7688f8f23",
+    "0xd9d93951896b4ef97d251334ef2a0e39f6f6d7d7",
+    "0x2faf487a4414fe77e2327f0bf4ae2a264a776ad2",
+    "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
+    "0xd793281b45cebbdc1e30e3e3e47d7c5e7713e23d",
+    "0x46340b20830761efd32832a74d7169b29feb9758",
+    "0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23",
     "0x63be42b40816eb08f6ea480e5875e6f4668da379",
+    "0xfdd710fa25cf1e08775cb91a2bf65f1329ccbd09",
+    "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
 }
 
 
@@ -289,14 +296,18 @@ def has_cex_interaction(address):
         return False
 
     cex_interactions = 0
+    has_deposit = False
     for tx in data["result"]:
         from_addr = tx.get("from", "").lower()
         to_addr = tx.get("to", "").lower()
         if from_addr in KNOWN_CEX_HOT_WALLETS or to_addr in KNOWN_CEX_HOT_WALLETS:
             cex_interactions += 1
+        # If the wallet sends ZRO TO a CEX, it is likely an arbitrageur or cashing out, NOT a fresh accumulator
+        if to_addr in KNOWN_CEX_HOT_WALLETS:
+            has_deposit = True
 
-    # If 2+ interactions with CEX → likely a CEX-related wallet
-    return cex_interactions >= 2
+    # Reject if it transferred TO a CEX (deposit) OR if it has multiple interactions (CEX hot wallet proxy)
+    return has_deposit or cex_interactions >= 2
 
 
 def has_coinbase_roundtrip(address, cache=None):
