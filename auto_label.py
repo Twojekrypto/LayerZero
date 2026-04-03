@@ -61,6 +61,7 @@ KNOWN_CEX_ADDRESSES = {
     "0x6cc5f688a315f3dc28a7781717a9a798a59fda7b": "OKX",
     "0x98ec059dc3adfbdd63429227115d9f17bebe7455": "OKX",
     "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b": "OKX",
+    "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d": "OKX",
     "0x75e89d5979e4f6fba9f97c104c2f0afb3f1dcb88": "MEXC",
     "0xf89d7b9c864f589bbf53a82105107622b35eaa40": "ByBit",
     "0x1ab4973a48dc892cd9971ece8e01dcc7688f8f23": "ByBit",
@@ -71,6 +72,8 @@ KNOWN_CEX_ADDRESSES = {
     "0x46340b20830761efd32832a74d7169b29feb9758": "HTX",
     "0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23": "KuCoin",
     "0x63be42b40816eb08f6ea480e5875e6f4668da379": "Upbit",
+    "0xfdd710fa25cf1e08775cb91a2bf65f1329ccbd09": "Binance",
+    "0x6540f4a2f4c4fbac288fa738a249924a636020d0": "Upbit",
 }
 
 

@@ -31,6 +31,7 @@ KNOWN_CEX = {
     "0x56eddb7aa87536c09ccc2793473599fd21a8b17f": "Binance",
     "0x6cc5f688a315f3dc28a7781717a9a798a59fda7b": "OKX",
     "0x236f9f97e0e62388479bf9e5ba4889e46b0273c3": "OKX",
+    "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d": "OKX",
     "0xf89d7b9c864f589bbf53a82105107622b35eaa40": "Bybit",
     "0x1db92e2eebc8e0c075a02bea49a2935bcd2dfcf4": "Bybit",
     "0xeb2629a2734e272bcc07bda959863f316f4bd4cf": "Coinbase",

@@ -927,6 +927,7 @@ const KNOWN_CEX_LABELS = {
     '0x56eddb7aa87536c09ccc2793473599fd21a8b17f': 'Binance',
     '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b': 'OKX',
     '0x236f9f97e0e62388479bf9e5ba4889e46b0273c3': 'OKX',
+    '0x4a4aaa0155237881fbd5c34bfae16e985a7b068d': 'OKX',
     '0xf89d7b9c864f589bbf53a82105107622b35eaa40': 'Bybit',
     '0x1db92e2eebc8e0c075a02bea49a2935bcd2dfcf4': 'Bybit',
     '0xeb2629a2734e272bcc07bda959863f316f4bd4cf': 'Coinbase',
@@ -939,6 +940,12 @@ const KNOWN_CEX_LABELS = {
     '0x5a52e96bacdabb82fd05763e25335261b270efcb': 'Binance',
     '0xa6bf06200361009491bad8c57410c9ded24c2444': 'OKX',
     '0xcd531ae9efcce479654c4926dec5f6209531ca7b': 'Coinbase Prime Hub',
+    '0xfdd710fa25cf1e08775cb91a2bf65f1329ccbd09': 'Binance',
+    '0x723a7d0d7a3ab85c851db744edf789855088c9e3': 'Contract',
+    '0x84b38bc60f3bd82640ecefa320dab2be62e2da15': 'Market Maker / Bridge',
+    '0x4355951b4f1a5bab81a3bebcbf9f263302cc742d': 'Alameda Research',
+    '0x6540f4a2f4c4fbac288fa738a249924a636020d0': 'Upbit',
+    '0x56264e5ec5215c3974cfb550d3aefa6720f5ee9d': 'Borderless Capital',
 };
 function buildWhaleLabelMap() {
     const map = {};

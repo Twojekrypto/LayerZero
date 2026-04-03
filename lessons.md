@@ -51,6 +51,7 @@
 
 ## General Patterns
 
+- **Wallet Labels are stored in multiple places:** For the UI, update `KNOWN_CEX_LABELS` in `app.js`. For the python scripts, update `KNOWN_CEX_ADDRESSES` in `auto_label.py`. And to permanently attach it to holder data, update `top_holders` in `zro_data.json` with `.label` and `.type`.
 - **Pierwszy run po zmianach zawsze odpów ręcznie** (`gh workflow run`) i sprawdź logi. Nie czekaj na cron.
 - **Zawsze sprawdź `headSha` workflow** — jeśli pushowałeś fix i odpaliłeś workflow, sprawdź czy workflow użył nowego SHA. Jeśli nie, anuluj i odpal ponownie.
 - **Nie ruszaj tego co nie jest konieczne** — minimalna zmiana, minimal impact.
