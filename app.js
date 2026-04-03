@@ -1008,7 +1008,7 @@ function renderWhaleTransfers() {
 
 // ── Init ──
 async function init() {
-    try { DATA=await(await fetch('zro_data.json')).json(); }
+    try { DATA=await(await fetch('zro_data.json?v=' + new Date().getTime())).json(); }
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
     renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderCbTransfers(); renderNewInstitutional(); renderFlows(); renderWhaleTransfers();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
