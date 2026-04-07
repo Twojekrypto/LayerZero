@@ -11,6 +11,7 @@ Designed to run every hour via GitHub Actions.
 import json, os, time
 from urllib.request import urlopen, Request
 from utils import atomic_json_dump, fetch_json, get_api_key
+from auto_label import KNOWN_CEX_ADDRESSES
 
 API_KEY = get_api_key()
 ZRO_CONTRACT = "0x6985884c4392d348587b19cb9eaaf157f13271cd"
@@ -94,6 +95,14 @@ def main():
     holders = data.get("top_holders", [])
     print(f"🔄 ZRO Balance Refresh")
     print(f"   Total holders in data: {len(holders)}")
+    
+    # Enforce CEX labels immediately upon load
+    for h in holders:
+        addr = h["address"].lower()
+        if addr in KNOWN_CEX_ADDRESSES:
+            if h.get("label") != KNOWN_CEX_ADDRESSES[addr]:
+                h["label"] = KNOWN_CEX_ADDRESSES[addr]
+                h["type"] = "CEX"
 
     # ── Step 1: Watch Token Unlocks for new recipients ──
     print(f"\n📡 Watching Token Unlocks for new transfers...")

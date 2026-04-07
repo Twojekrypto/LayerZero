@@ -6,6 +6,7 @@ Updates: balances, total counts, timestamp.
 """
 import json, os, time
 from utils import atomic_json_dump
+from auto_label import KNOWN_CEX_ADDRESSES
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -85,7 +86,16 @@ def main():
             })
 
     # Apply Whale labels: >5M ZRO, no existing label
+    # Apply KNOWN_CEX labels directly
     for h in new_holders:
+        addr = h["address"].lower()
+        
+        # Enforce known CEX
+        if addr in KNOWN_CEX_ADDRESSES:
+            h["label"] = KNOWN_CEX_ADDRESSES[addr]
+            h["type"] = "CEX"
+
+        # Whale mapping
         total = sum(h["balances"].values())
         if total > 5_000_000 and not h["label"]:
             h["label"] = "Whale"

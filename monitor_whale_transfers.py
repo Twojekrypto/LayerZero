@@ -443,6 +443,13 @@ def main():
         a = h["address"].lower()
         if a not in seen_addrs:
             seen_addrs.add(a)
+
+            # Enforce known CEX labels
+            if a in KNOWN_CEX:
+                if h.get("label") != KNOWN_CEX[a]:
+                    h["label"] = KNOWN_CEX[a]
+                    h["type"] = "CEX"
+
             deduped.append(h)
     dup_rm = len(holders) - len(deduped)
     deduped = [h for h in deduped if sum(h.get("balances", {}).values()) > 0]
