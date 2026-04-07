@@ -926,6 +926,8 @@ const KNOWN_CEX_LABELS = {
     '0xdfd5293d8e347dfe59e90efd55b2956a1343963d': 'Binance',
     '0x56eddb7aa87536c09ccc2793473599fd21a8b17f': 'Binance',
     '0xb5bc3e38b5b683ce357ffd04d70354dcbbf813b2': 'Binance',
+    '0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe': 'OKX',
+    '0x841ed663f2636863d40be4ee76243377dff13a34': 'Robinhood',
     '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b': 'OKX',
     '0x236f9f97e0e62388479bf9e5ba4889e46b0273c3': 'OKX',
     '0x4a4aaa0155237881fbd5c34bfae16e985a7b068d': 'OKX',

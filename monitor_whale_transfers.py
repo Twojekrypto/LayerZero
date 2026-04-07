@@ -28,6 +28,8 @@ KNOWN_CEX = {
     "0x56eddb7aa87536c09ccc2793473599fd21a8b17f": "Binance",
     "0xf977814e90da44bfa03b6295a0616a897441acec": "Binance",
     "0xb5bc3e38b5b683ce357ffd04d70354dcbbf813b2": "Binance",
+    "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe": "OKX",
+    "0x841ed663f2636863d40be4ee76243377dff13a34": "Robinhood",
     "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43": "Coinbase",
     "0x503828976d22510aad0201ac7ec88293211d23da": "Coinbase",
     "0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740": "Coinbase",
