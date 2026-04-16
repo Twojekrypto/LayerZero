@@ -1,7 +1,8 @@
 /* ZRO Analytics Dashboard — app.js */
-let DATA = null, currentPeriod = '30d', holdersPage = 1;
+let DATA = null, currentPeriod = '30d', holdersPage = 1, toastTimer = null, activeTab = 'overview', stateSyncReady = false, nextHistoryMode = 'replace';
 const HOLDERS_PER_PAGE = 25, FLOW_PER_PAGE = 10;
-let holdersSortKey = 'total', holdersSortDir = 'desc', holdersSearchQuery = '';
+let holdersSortKey = 'total', holdersSortDir = 'desc', holdersSearchQuery = '', holdersHideEntities = false;
+const HIDDEN_HOLDER_ENTITY_TYPES = new Set(['CEX', 'DEX', 'PROTOCOL', 'INST', 'VC', 'TEAM', 'CUSTODY', 'MULTISIG', 'MM', 'UNLOCK']);
 
 function fmt(n, d=0) {
     if (n==null||isNaN(n)) return '—';
@@ -18,8 +19,81 @@ function fmtUSD(n) {
     return '$'+n.toFixed(2);
 }
 function shortAddr(a) { return (!a||a.length<12)?a||'':a.slice(0,6)+'…'+a.slice(-4); }
-function copyText(t) { navigator.clipboard.writeText(t).then(()=>showToast('Copied: '+shortAddr(t))); }
-function showToast(m) { const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+function setText(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
+function setInputValue(id, value) { const el = document.getElementById(id); if (el) el.value = value; }
+function setCheckboxValue(id, checked) { const el = document.getElementById(id); if (el) el.checked = checked; }
+function escapeAttr(value) { return String(value).replace(/"/g, '&quot;'); }
+function fallbackCopyText(t) {
+    const ta = document.createElement('textarea');
+    ta.value = t;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'absolute';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); showToast('Copied: ' + shortAddr(t)); }
+    catch (e) { showToast('Copy failed'); }
+    finally { document.body.removeChild(ta); }
+}
+function copyText(t) {
+    if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(t).then(() => showToast('Copied: ' + shortAddr(t))).catch(() => fallbackCopyText(t));
+        return;
+    }
+    fallbackCopyText(t);
+}
+function showToast(m) {
+    const t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = m;
+    t.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+function navigateToExternal(url) { window.open(url, '_blank', 'noopener,noreferrer'); }
+function copyButtonHTML(value, label='Copy address') {
+    const copySvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
+    return `<button type="button" class="h-copy-btn" data-copy="${escapeAttr(value)}" aria-label="${escapeAttr(label)}" title="${escapeAttr(label)}">${copySvg}</button>`;
+}
+function debankIconHTML(url) {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="h-debank-icon" title="Open in DeBank" aria-label="Open in DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" alt="" aria-hidden="true" class="h-debank-favicon"></a>`;
+}
+function explorerIconHTML(url, label='View on explorer') {
+    const explorerSvg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="h-explorer-icon" title="${escapeAttr(label)}" aria-label="${escapeAttr(label)}">${explorerSvg}</a>`;
+}
+function clickableRowAttrs(url, label='Open external details') {
+    return `role="link" tabindex="0" data-nav-url="${escapeAttr(url)}" aria-label="${escapeAttr(label)}"`;
+}
+function sortLabel(baseLabel, activeKey, key, dir) {
+    if (activeKey !== key) return baseLabel;
+    return `${baseLabel} ${dir === 'desc' ? '▼' : '▲'}`;
+}
+function pageButtonHTML(target, delta, label, disabled=false) {
+    return `<button type="button" class="pg-btn" data-page-target="${escapeAttr(target)}" data-page-delta="${delta}" ${disabled ? 'disabled' : ''}>${label}</button>`;
+}
+function applyPageDelta(currentPage, totalPages, delta) {
+    if (delta === -999) return 1;
+    if (delta === 999) return totalPages;
+    return Math.max(1, Math.min(totalPages, currentPage + delta));
+}
+function pickAllowedValue(value, allowed, fallback) {
+    return allowed.includes(value) ? value : fallback;
+}
+function parsePositiveInt(value, fallback=1) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+function parseBooleanParam(value) { return value === '1' || value === 'true'; }
+function setActivePill(containerId, value) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.querySelectorAll('button').forEach(btn => btn.classList.toggle('active', btn.dataset.period === String(value)));
+}
+function requestHistoryMode(mode='replace') {
+    if (mode === 'push') nextHistoryMode = 'push';
+    else if (nextHistoryMode !== 'push') nextHistoryMode = 'replace';
+}
 
 function badgeHTML(type) {
     const m={'CEX':'badge-cex','DEX':'badge-dex','PROTOCOL':'badge-protocol','VC':'badge-vc','INST':'badge-inst','WALLET':'badge-wallet'};
@@ -54,54 +128,332 @@ function addrCell(item) {
     const chain = getMainChain(addr);
     const explorerUrl = (EXPLORER_MAP[chain] || EXPLORER_MAP.ethereum) + addr;
     const dbUrl=`https://debank.com/profile/${addr}`;
-    const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
-    const explorerSvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-    const dbIcon=`<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
-    const explorerIcon=`<a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-explorer-icon" title="View on Explorer">${explorerSvg}</a>`;
+    const copyButton = copyButtonHTML(addr);
+    const dbIcon = debankIconHTML(dbUrl);
+    const explorerIcon = explorerIconHTML(explorerUrl, `View ${shortA} on explorer`);
     if (item.label) {
         const bCls={'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','WALLET':'h-badge-wallet','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[item.type]||'h-badge-whale';
-        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${addr}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
+        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
     }
-    return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${addr}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
+    return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
 }
 
 // ── Tabs ──
+function setActiveTab(tabId, options = {}) {
+    const nextTab = ['overview', 'flows', 'tokenomics'].includes(tabId) ? tabId : 'overview';
+    activeTab = nextTab;
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const isActive = btn.dataset.tab === nextTab;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', String(isActive));
+    });
+    document.querySelectorAll('.tab-view').forEach(view => view.classList.toggle('active', view.id === `view-${nextTab}`));
+    if (options.syncUrl !== false) {
+        requestHistoryMode(options.historyMode || 'push');
+        updateUrlState();
+    }
+}
 function initTabs() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelector('.tab-btn.active').classList.remove('active');
-            btn.classList.add('active');
-            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
-            document.getElementById('view-'+btn.dataset.tab).classList.add('active');
-        });
+        btn.setAttribute('aria-selected', String(btn.classList.contains('active')));
     });
+}
+function applyStateFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    activeTab = pickAllowedValue(params.get('tab'), ['overview', 'flows', 'tokenomics'], 'overview');
+    currentPeriod = pickAllowedValue(params.get('flowPeriod'), ['1d', '7d', '30d', '90d', '180d', 'all'], '30d');
+
+    holdersSearchQuery = params.get('holdersSearch')?.trim() || '';
+    holdersSortKey = pickAllowedValue(params.get('holdersSort'), ['address', 'total', ...CHAIN_KEYS], 'total');
+    holdersSortDir = pickAllowedValue(params.get('holdersDir'), ['asc', 'desc'], holdersSortKey === 'address' ? 'asc' : 'desc');
+    holdersHideEntities = parseBooleanParam(params.get('holdersHide'));
+    holdersPage = parsePositiveInt(params.get('holdersPage'), 1);
+
+    freshSearchQuery = params.get('freshSearch')?.trim() || '';
+    freshSortKey = pickAllowedValue(params.get('freshSort'), ['date', 'flow', 'balance'], 'balance');
+    freshSortDir = pickAllowedValue(params.get('freshDir'), ['asc', 'desc'], 'desc');
+    freshPage = parsePositiveInt(params.get('freshPage'), 1);
+
+    cbSearchQuery = params.get('cbSearch')?.trim() || '';
+    cbPeriodDays = Number.parseInt(pickAllowedValue(params.get('cbPeriod'), ['0', '1', '7', '30', '90', '180'], '0'), 10);
+    cbSortKey = pickAllowedValue(params.get('cbSort'), ['date', 'flow', 'balance'], 'balance');
+    cbSortDir = pickAllowedValue(params.get('cbDir'), ['asc', 'desc'], 'desc');
+    cbPage = parsePositiveInt(params.get('cbPage'), 1);
+
+    cbtSearchQuery = params.get('cbtSearch')?.trim() || '';
+    cbtTypeFilter = pickAllowedValue(params.get('cbtType'), ['ALL', 'BUY', 'SELL', 'TRANSFER', 'OUTFLOW', 'INFLOW'], 'ALL');
+    cbtPeriodDays = Number.parseInt(pickAllowedValue(params.get('cbtPeriod'), ['0', '1', '7', '30', '90', '180'], '0'), 10);
+    cbtSortDir = Number.parseInt(pickAllowedValue(params.get('cbtSort'), ['0', '1', '2'], '0'), 10);
+    cbtPage = parsePositiveInt(params.get('cbtPage'), 1);
+
+    flowSearchQuery = params.get('flowSearch')?.trim() || '';
+    flowChain = pickAllowedValue(params.get('flowChain'), ['all', ...Object.keys(DATA.chains || {})], 'all');
+    hideCex = parseBooleanParam(params.get('hideCex'));
+    flowPageAcc = parsePositiveInt(params.get('flowAccPage'), 1);
+    flowPageSell = parsePositiveInt(params.get('flowSellPage'), 1);
+
+    whalePageNum = parsePositiveInt(params.get('whalePage'), 1);
+}
+function updateUrlState(modeOverride) {
+    if (!stateSyncReady) return;
+    const params = new URLSearchParams();
+
+    if (activeTab !== 'overview') params.set('tab', activeTab);
+    if (currentPeriod !== '30d') params.set('flowPeriod', currentPeriod);
+
+    if (holdersSearchQuery) params.set('holdersSearch', holdersSearchQuery);
+    if (holdersSortKey !== 'total') params.set('holdersSort', holdersSortKey);
+    if (holdersSortDir !== 'desc') params.set('holdersDir', holdersSortDir);
+    if (holdersHideEntities) params.set('holdersHide', '1');
+    if (holdersPage !== 1) params.set('holdersPage', String(holdersPage));
+
+    if (freshSearchQuery) params.set('freshSearch', freshSearchQuery);
+    if (freshSortKey !== 'balance') params.set('freshSort', freshSortKey);
+    if (freshSortDir !== 'desc') params.set('freshDir', freshSortDir);
+    if (freshPage !== 1) params.set('freshPage', String(freshPage));
+
+    if (cbSearchQuery) params.set('cbSearch', cbSearchQuery);
+    if (cbPeriodDays !== 0) params.set('cbPeriod', String(cbPeriodDays));
+    if (cbSortKey !== 'balance') params.set('cbSort', cbSortKey);
+    if (cbSortDir !== 'desc') params.set('cbDir', cbSortDir);
+    if (cbPage !== 1) params.set('cbPage', String(cbPage));
+
+    if (cbtSearchQuery) params.set('cbtSearch', cbtSearchQuery);
+    if (cbtTypeFilter !== 'ALL') params.set('cbtType', cbtTypeFilter);
+    if (cbtPeriodDays !== 0) params.set('cbtPeriod', String(cbtPeriodDays));
+    if (cbtSortDir !== 0) params.set('cbtSort', String(cbtSortDir));
+    if (cbtPage !== 1) params.set('cbtPage', String(cbtPage));
+
+    if (flowSearchQuery) params.set('flowSearch', flowSearchQuery);
+    if (flowChain !== 'all') params.set('flowChain', flowChain);
+    if (hideCex) params.set('hideCex', '1');
+    if (flowPageAcc !== 1) params.set('flowAccPage', String(flowPageAcc));
+    if (flowPageSell !== 1) params.set('flowSellPage', String(flowPageSell));
+
+    if (whalePageNum !== 1) params.set('whalePage', String(whalePageNum));
+
+    const nextQuery = params.toString();
+    const nextUrl = `${window.location.pathname}${nextQuery ? `?${nextQuery}` : ''}${window.location.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    const historyMode = modeOverride || nextHistoryMode;
+    nextHistoryMode = 'replace';
+    if (nextUrl !== currentUrl) {
+        history[historyMode === 'push' ? 'pushState' : 'replaceState'](null, '', nextUrl);
+    }
+}
+function syncControlsFromState() {
+    setInputValue('holders-search', holdersSearchQuery);
+    setCheckboxValue('holders-hide-cex', holdersHideEntities);
+    setInputValue('fresh-search', freshSearchQuery);
+    setInputValue('cb-search', cbSearchQuery);
+    setInputValue('cbt-search', cbtSearchQuery);
+    setInputValue('flow-search', flowSearchQuery);
+
+    setActivePill('flow-period-pills', currentPeriod);
+    setActivePill('cb-period-pills', cbPeriodDays);
+    setActivePill('cbt-period-pills', cbtPeriodDays);
+    setCbtTypeTriggerLabel();
+
+    const trigger = document.getElementById('chain-dd-trigger');
+    const chainLabel = flowChain === 'all' ? 'All Chains' : (DATA.chains[flowChain]?.short || 'All Chains');
+    setText('chain-dd-label', chainLabel);
+    if (trigger) {
+        trigger.classList.toggle('active', flowChain !== 'all');
+        trigger.setAttribute('aria-expanded', 'false');
+    }
+
+    const flowHideButton = document.getElementById('flow-hide-cex');
+    if (flowHideButton) {
+        flowHideButton.classList.toggle('active', hideCex);
+        flowHideButton.setAttribute('aria-pressed', String(hideCex));
+    }
+
+    setActiveTab(activeTab, { syncUrl: false });
+}
+function handlePageButtonClick(target, delta) {
+    switch (target) {
+        case 'holders': goHoldersPage(delta); break;
+        case 'fresh': goFreshPage(delta); break;
+        case 'cb': goCbPage(delta); break;
+        case 'cbt': goCbtPage(delta); break;
+        case 'flow-acc': goFlowPage('acc', delta); break;
+        case 'flow-sell': goFlowPage('sell', delta); break;
+        case 'whale': goWhalePage(delta); break;
+        default: break;
+    }
+}
+function handleDelegatedInput(event) {
+    switch (event.target.id) {
+        case 'holders-search': filterHolders(); break;
+        case 'fresh-search': filterFresh(); break;
+        case 'cb-search': filterCb(); break;
+        case 'cbt-search': filterCbt(); break;
+        case 'flow-search': filterFlows(); break;
+        default: break;
+    }
+}
+function handleDelegatedChange(event) {
+    if (event.target.id === 'holders-hide-cex') {
+        holdersHideEntities = event.target.checked;
+        holdersPage = 1;
+        requestHistoryMode('push');
+        renderHolders();
+    }
+}
+function handleDelegatedClick(event) {
+    const copyBtn = event.target.closest('[data-copy]');
+    if (copyBtn) {
+        event.preventDefault();
+        copyText(copyBtn.dataset.copy);
+        return;
+    }
+
+    const tabBtn = event.target.closest('.tab-btn[data-tab]');
+    if (tabBtn) {
+        setActiveTab(tabBtn.dataset.tab);
+        return;
+    }
+
+    const holdersSortTrigger = event.target.closest('[data-holders-sort]');
+    if (holdersSortTrigger) {
+        sortHolders(holdersSortTrigger.dataset.holdersSort);
+        return;
+    }
+
+    const freshSortTrigger = event.target.closest('[data-fresh-sort]');
+    if (freshSortTrigger) {
+        toggleFreshSort(freshSortTrigger.dataset.freshSort);
+        return;
+    }
+
+    const cbSortTrigger = event.target.closest('[data-cb-sort]');
+    if (cbSortTrigger) {
+        toggleCbSort(cbSortTrigger.dataset.cbSort);
+        return;
+    }
+
+    const cbtToggle = event.target.closest('[data-cbt-toggle]');
+    if (cbtToggle) {
+        toggleCbtTypeDropdown();
+        return;
+    }
+
+    const cbtTypeButton = event.target.closest('[data-cbt-type]');
+    if (cbtTypeButton) {
+        setCbtType(cbtTypeButton.dataset.cbtType);
+        return;
+    }
+
+    const flowChainToggle = event.target.closest('[data-flow-chain-toggle]');
+    if (flowChainToggle) {
+        toggleChainDropdown();
+        return;
+    }
+
+    const flowChainButton = event.target.closest('[data-flow-chain]');
+    if (flowChainButton) {
+        setFlowChain(flowChainButton.dataset.flowChain, flowChainButton.dataset.flowLabel);
+        return;
+    }
+
+    const flowHideButton = event.target.closest('#flow-hide-cex');
+    if (flowHideButton) {
+        toggleHideCex();
+        return;
+    }
+
+    const pageButton = event.target.closest('[data-page-target]');
+    if (pageButton) {
+        handlePageButtonClick(pageButton.dataset.pageTarget, Number.parseInt(pageButton.dataset.pageDelta, 10));
+        return;
+    }
+
+    const row = event.target.closest('[data-nav-url]');
+    if (row) {
+        if (event.target.closest('a, button, input, label')) return;
+        navigateToExternal(row.dataset.navUrl);
+    }
+}
+function handleDelegatedKeydown(event) {
+    const row = event.target.closest('[data-nav-url]');
+    if (!row || event.target !== row) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        navigateToExternal(row.dataset.navUrl);
+    }
+}
+function handleDelegatedAssetError(event) {
+    if (!(event.target instanceof HTMLImageElement)) return;
+    if (!event.target.classList.contains('h-debank-favicon')) return;
+    const parentLink = event.target.closest('.h-debank-icon');
+    if (parentLink) parentLink.style.display = 'none';
+}
+function initEventDelegation() {
+    document.addEventListener('input', handleDelegatedInput);
+    document.addEventListener('change', handleDelegatedChange);
+    document.addEventListener('click', handleDelegatedClick);
+    document.addEventListener('keydown', handleDelegatedKeydown);
+    document.addEventListener('error', handleDelegatedAssetError, true);
+    window.addEventListener('popstate', handlePopState);
+}
+function renderStatefulViews() {
+    syncControlsFromState();
+    renderHolders();
+    renderFreshWallets();
+    renderCoinbasePrime();
+    renderCbTransfers();
+    renderNewInstitutional();
+    renderFlows();
+    renderWhaleTransfers();
+}
+function handlePopState() {
+    if (!DATA) return;
+    applyStateFromUrl();
+    renderStatefulViews();
 }
 
 // ── Price + Circulating Supply (live from CoinGecko) ──
 async function fetchPrice() {
     try {
         const r=await fetch('https://api.coingecko.com/api/v3/coins/layerzero?localization=false&tickers=false&community_data=false&developer_data=false');
+        if (!r.ok) throw new Error(`CoinGecko ${r.status}`);
         const j=await r.json();
         if (j.market_data) {
             const md=j.market_data;
+            const prevPrice = DATA.meta.price_usd;
             DATA.meta.price_usd=md.current_price.usd;
             DATA.meta.circulating_supply=md.circulating_supply||DATA.meta.circulating_supply;
             DATA.meta.market_cap=md.market_cap.usd||DATA.meta.market_cap;
             DATA.meta.fdv=md.fully_diluted_valuation.usd||DATA.meta.fdv;
             renderMetrics();
+            if (prevPrice !== DATA.meta.price_usd) rerenderPriceSensitiveViews();
             const ch=md.price_change_percentage_24h;
-            document.getElementById('m-price-src').innerHTML=`via CoinGecko · <span style="color:${ch>=0?'var(--accent-green)':'var(--accent-rose)'}">${ch>=0?'+':''}${ch.toFixed(2)}% 24h</span>`;
+            if (typeof ch === 'number') {
+                document.getElementById('m-price-src').innerHTML=`Live via CoinGecko · <span style="color:${ch>=0?'var(--accent-green)':'var(--accent-rose)'}">${ch>=0?'+':''}${ch.toFixed(2)}% 24h</span>`;
+            } else {
+                setText('m-price-src', 'Live via CoinGecko');
+            }
         }
     } catch(e) { console.warn('CoinGecko failed',e); }
 }
 
 function renderMetrics() {
     const m=DATA.meta;
-    document.getElementById('m-circ').textContent=fmt(m.circulating_supply);
-    document.getElementById('m-circ-pct').textContent=((m.circulating_supply/m.total_supply)*100).toFixed(1)+'% of total';
-    document.getElementById('m-price').textContent='$'+m.price_usd.toFixed(2);
-    document.getElementById('m-mcap').textContent=fmtUSD(m.market_cap);
-    document.getElementById('m-fdv').textContent=fmtUSD(m.fdv);
+    const totalSupply = m.total_supply || DATA.total_supply || 0;
+    setText('m-circ', fmt(m.circulating_supply));
+    setText('m-circ-pct', totalSupply ? ((m.circulating_supply/totalSupply)*100).toFixed(1)+'% of total' : '—');
+    setText('m-price', fmtUSD(m.price_usd));
+    setText('m-mcap', fmtUSD(m.market_cap));
+    setText('m-fdv', fmtUSD(m.fdv));
+}
+function rerenderPriceSensitiveViews() {
+    renderHolders();
+    renderFreshWallets();
+    renderCoinbasePrime();
+    renderCbTransfers();
+    renderFlows();
+    renderWhaleTransfers();
+    renderVesting();
 }
 
 function renderNetworkStats() {
@@ -122,7 +474,7 @@ function renderChains() {
     const maxHolders=Math.max(...entries.map(([,c])=>c.holders));
     document.getElementById('chain-bars').innerHTML=entries.map(([k,c])=>{
         const pct=(c.supply/maxSupply*100).toFixed(1), sPct=(c.supply/totalSupply*100).toFixed(1);
-        return `<div class="chain-bar-row" onclick="window.open('${c.explorer}','_blank')"><div class="chain-bar-label"><span class="chain-dot" style="background:${c.color}"></span>${c.short}</div><div class="chain-bar-track"><div class="chain-bar-fill" style="width:${pct}%;background:${c.color}">${sPct}%</div></div><div class="chain-bar-value">${fmt(c.supply)}</div></div>`;
+        return `<a class="chain-bar-row" href="${c.explorer}" target="_blank" rel="noopener noreferrer" aria-label="Open ${c.name} explorer"><div class="chain-bar-label"><span class="chain-dot" style="background:${c.color}"></span>${c.short}</div><div class="chain-bar-track"><div class="chain-bar-fill" style="width:${pct}%;background:${c.color}">${sPct}%</div></div><div class="chain-bar-value">${fmt(c.supply)}</div></a>`;
     }).join('');
     document.getElementById('chain-stats').innerHTML=`
         ${entries.map(([k,c])=>{
@@ -156,12 +508,10 @@ const CHAIN_ICONS = {
     avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'
 };
 let activeChains = new Set(CHAIN_KEYS);
-function initChainToggles() {}
 function getFilteredHolders() {
     let items=[...DATA.top_holders];
     if(holdersSearchQuery) { const q=holdersSearchQuery.toLowerCase(); items=items.filter(h=>h.address.toLowerCase().includes(q)||(h.label&&h.label.toLowerCase().includes(q))); }
-    const hideCex=document.getElementById('holders-hide-cex')?.checked;
-    if(hideCex) { const hide=new Set(['CEX','PROTOCOL','DEX','INST']); items=items.filter(h=>!hide.has(h.type)); }
+    if(holdersHideEntities) items=items.filter(h=>!HIDDEN_HOLDER_ENTITY_TYPES.has(h.type));
     items.sort((a,b)=>{
         if(holdersSortKey==='address'){const va=(a.label||a.address).toLowerCase(),vb=(b.label||b.address).toLowerCase();return holdersSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va);}
         const va=holdersSortKey==='total'?getDisplayBalance(a):(a.balances[holdersSortKey]||0);
@@ -187,21 +537,20 @@ function renderHolders() {
         return `<span class="sort-arrow active">${holdersSortDir==='desc'?'▼':'▲'}</span>`;
     };
     let thead=`<tr>
-        <th class="h-th" onclick="sortHolders('rank')"># ${sa('rank')}</th>
-        <th class="h-th" onclick="sortHolders('address')">Address ${sa('address')}</th>`;
+        <th class="h-th">#</th>
+        <th class="h-th sortable" data-holders-sort="address">Address ${sa('address')}</th>`;
     visChains.forEach(k=>{
         const c=DATA.chains[k];
-        thead+=`<th class="h-th h-th-chain" style="color:${c.color}" onclick="sortHolders('${k}')">
+        thead+=`<th class="h-th h-th-chain sortable" style="color:${c.color}" data-holders-sort="${k}">
             <div class="h-chain-hdr"><img src="${CHAIN_ICONS[k]}" width="16" height="16" class="h-chain-icon" alt="${c.short}"><span class="h-chain-name">${c.short}</span> ${sa(k)}</div>
         </th>`;
     });
-    thead+=`<th class="h-th h-th-chain" style="color:#fff" onclick="sortHolders('total')">⚪ Balance ${sa('total')}</th></tr>`;
+    thead+=`<th class="h-th h-th-chain sortable" style="color:#fff" data-holders-sort="total">⚪ Balance ${sa('total')}</th></tr>`;
     document.getElementById('holders-thead').innerHTML=thead;
     // Tbody
     const items=getFilteredHolders(), totalPages=Math.max(1,Math.ceil(items.length/HOLDERS_PER_PAGE));
     if(holdersPage>totalPages) holdersPage=totalPages;
     const start=(holdersPage-1)*HOLDERS_PER_PAGE, page=items.slice(start,start+HOLDERS_PER_PAGE);
-    const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
     const colCount=2+numCols+1;
     let html='';
     const price=DATA.meta.price_usd||0;
@@ -210,13 +559,14 @@ function renderHolders() {
         const shortA=h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dispBal=getDisplayBalance(h);
         const usdVal=dispBal*price;
-        const dbIcon=`<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
+        const dbIcon=debankIconHTML(dbUrl);
+        const copyButton=copyButtonHTML(h.address);
         let addrTd;
         if(h.label){
             const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[h.type]||'h-badge-whale';
-            addrTd=`<td class="h-td h-td-addr"><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${h.label}</a><span class="h-badge ${bCls}">${h.type}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</div></div></td>`;
+            addrTd=`<td class="h-td h-td-addr"><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${h.label}</a><span class="h-badge ${bCls}">${h.type}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}</div></div></td>`;
         } else {
-            addrTd=`<td class="h-td h-td-addr"><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-hex">${shortA}</a><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}</div></div></div></td>`;
+            addrTd=`<td class="h-td h-td-addr"><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${copyButton}${dbIcon}</div></div></div></td>`;
         }
         let chainCells='';
         visChains.forEach(k=>{
@@ -224,56 +574,87 @@ function renderHolders() {
             if(bal>0){
                 const expUrl=CHAIN_EXPLORERS[k]+h.address;
                 const chainUsd=bal*price;
-                chainCells+=`<td class="h-td h-td-right"><a href="${expUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:${CHAIN_COLORS[k]};text-decoration:none;font-size:11px" title="${bal.toLocaleString('en-US')} ZRO on ${DATA.chains[k].name}">${fmt(bal)}</a><div class="h-usd-sub">${fmtUSD(chainUsd)}</div></td>`;
+                chainCells+=`<td class="h-td h-td-right"><a href="${expUrl}" target="_blank" rel="noopener noreferrer" style="color:${CHAIN_COLORS[k]};text-decoration:none;font-size:11px" title="${bal.toLocaleString('en-US')} ZRO on ${DATA.chains[k].name}">${fmt(bal)}</a><div class="h-usd-sub">${fmtUSD(chainUsd)}</div></td>`;
             } else {
                 chainCells+=`<td class="h-td h-td-right"><span class="h-dash">—</span></td>`;
             }
         });
         const balCell=`<td class="h-td h-td-right" title="${dispBal.toLocaleString('en-US')} ZRO"><span class="h-bal-total">${fmt(dispBal)}</span><div class="h-usd-sub">${fmtUSD(usdVal)}</div></td>`;
-        html+=`<tr class="h-row" onclick="window.open('${dbUrl}','_blank')"><td class="h-td h-td-rank">${start+idx+1}</td>${addrTd}${chainCells}${balCell}</tr>`;
+        html+=`<tr class="h-row" ${clickableRowAttrs(dbUrl, 'Open wallet in DeBank')}><td class="h-td h-td-rank">${start+idx+1}</td>${addrTd}${chainCells}${balCell}</tr>`;
     });
     for(let i=page.length;i<HOLDERS_PER_PAGE;i++) html+=`<tr class="h-row-empty">${('<td class="h-td">&nbsp;</td>').repeat(colCount)}</tr>`;
     document.getElementById('holders-tbody').innerHTML=html;
-    document.getElementById('holders-count').textContent=`${items.length.toLocaleString()} hodlers`;
+    setText('holders-count-header', `${DATA.top_holders.length.toLocaleString()} tracked`);
+    setText('holders-count-toolbar', `${items.length.toLocaleString()} visible`);
     // Pagination — always visible (Dolomite constant pager)
     document.getElementById('holders-pager').innerHTML=
-        `<button class="pg-btn" onclick="holdersPage=1;renderHolders()" ${holdersPage<=1?'disabled':''}>«</button>`+
-        `<button class="pg-btn" onclick="holdersPage--;renderHolders()" ${holdersPage<=1?'disabled':''}>‹</button>`+
+        pageButtonHTML('holders', -999, '«', holdersPage<=1)+
+        pageButtonHTML('holders', -1, '‹', holdersPage<=1)+
         `<span class="pg-info">${holdersPage} / ${totalPages.toLocaleString()}</span>`+
-        `<button class="pg-btn" onclick="holdersPage++;renderHolders()" ${holdersPage>=totalPages?'disabled':''}>›</button>`+
-        `<button class="pg-btn" onclick="holdersPage=${totalPages};renderHolders()" ${holdersPage>=totalPages?'disabled':''}>»</button>`;
+        pageButtonHTML('holders', 1, '›', holdersPage>=totalPages)+
+        pageButtonHTML('holders', 999, '»', holdersPage>=totalPages);
+    updateUrlState();
 }
-function sortHolders(k) { if(holdersSortKey===k) holdersSortDir=holdersSortDir==='asc'?'desc':'asc'; else {holdersSortKey=k;holdersSortDir='desc';} holdersPage=1;renderHolders(); }
+function sortHolders(k) {
+    if(k==='rank') return;
+    if(holdersSortKey===k) holdersSortDir=holdersSortDir==='asc'?'desc':'asc';
+    else {holdersSortKey=k;holdersSortDir=(k==='address'?'asc':'desc');}
+    holdersPage=1;
+    requestHistoryMode('push');
+    renderHolders();
+}
+function goHoldersPage(delta) {
+    const totalPages = Math.max(1, Math.ceil(getFilteredHolders().length / HOLDERS_PER_PAGE));
+    holdersPage = applyPageDelta(holdersPage, totalPages, delta);
+    requestHistoryMode('push');
+    renderHolders();
+}
 function filterHolders() { holdersSearchQuery=document.getElementById('holders-search').value.trim();holdersPage=1;renderHolders(); }
 // ── Fresh Wallets ──
-let freshPage=1, freshSearchQuery='', freshSortMode='balance';
+let freshPage=1, freshSearchQuery='', freshSortKey='balance', freshSortDir='desc';
 const FRESH_PER_PAGE=15;
-function toggleFreshSort(mode) {
-    freshSortMode = (freshSortMode === mode) ? (mode === 'balance' ? 'date' : 'balance') : mode;
+function getFreshWallets(includeSearch=true) {
+    let items = DATA.top_holders.filter(h => (h.type === 'FRESH' || h.fresh === true) && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000);
+    if(includeSearch && freshSearchQuery) {
+        const q = freshSearchQuery.toLowerCase();
+        items = items.filter(h => h.address.toLowerCase().includes(q) || (h.label||'').toLowerCase().includes(q));
+    }
+    items.sort((a,b) => {
+        let aVal = 0, bVal = 0;
+        if (freshSortKey === 'date') {
+            aVal = a.wallet_created || 0;
+            bVal = b.wallet_created || 0;
+        } else if (freshSortKey === 'flow') {
+            aVal = a.last_flow || 0;
+            bVal = b.last_flow || 0;
+        } else {
+            aVal = Object.values(a.balances).reduce((s,v)=>s+v,0);
+            bVal = Object.values(b.balances).reduce((s,v)=>s+v,0);
+        }
+        return freshSortDir === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+    return items;
+}
+function toggleFreshSort(key) {
+    if (freshSortKey === key) freshSortDir = freshSortDir === 'desc' ? 'asc' : 'desc';
+    else {
+        freshSortKey = key;
+        freshSortDir = 'desc';
+    }
     freshPage = 1;
+    requestHistoryMode('push');
     renderFreshWallets();
 }
 function renderFreshWallets() {
-    let freshHolders = DATA.top_holders.filter(h => (h.type === 'FRESH' || h.fresh === true) && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000).sort((a,b) => {
-        if (freshSortMode === 'date') return (b.wallet_created || 0) - (a.wallet_created || 0);
-        if (freshSortMode === 'flow') return (b.last_flow || 0) - (a.last_flow || 0);
-        const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
-        const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
-        return bTotal - aTotal;
-    });
+    let freshHolders = getFreshWallets();
     // Update sort indicators
     const dateTh = document.getElementById('fresh-sort-date');
     const flowTh = document.getElementById('fresh-sort-flow');
     const balTh = document.getElementById('fresh-sort-balance');
-    if(dateTh) dateTh.textContent = freshSortMode === 'date' ? 'Created ▼' : 'Created';
-    if(flowTh) flowTh.textContent = freshSortMode === 'flow' ? 'Last Flow ▼' : 'Last Flow';
-    if(balTh) balTh.textContent = freshSortMode === 'balance' ? 'Balance ▼' : 'Balance';
-    const allFresh = freshHolders;
-    // Search filter
-    if(freshSearchQuery) {
-        const q = freshSearchQuery.toLowerCase();
-        freshHolders = freshHolders.filter(h => h.address.toLowerCase().includes(q) || (h.label||'').toLowerCase().includes(q));
-    }
+    if(dateTh) dateTh.textContent = sortLabel('Created', freshSortKey, 'date', freshSortDir);
+    if(flowTh) flowTh.textContent = sortLabel('Last Flow', freshSortKey, 'flow', freshSortDir);
+    if(balTh) balTh.textContent = sortLabel('Balance', freshSortKey, 'balance', freshSortDir);
+    const allFresh = getFreshWallets(false);
     const totalSupply = DATA.total_supply || 1000000000;
     const price = DATA.meta?.price_usd || 0;
     const total = freshHolders.length;
@@ -282,7 +663,6 @@ function renderFreshWallets() {
     const start = (freshPage - 1) * FRESH_PER_PAGE;
     const pageItems = freshHolders.slice(start, start + FRESH_PER_PAGE);
     let html = '';
-    const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
     const maxPct = pageItems.length ? Math.max(...pageItems.map(h => Object.values(h.balances).reduce((s,v)=>s+v,0) / totalSupply * 100)) : 0.01;
     pageItems.forEach((h, i) => {
         const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
@@ -293,16 +673,15 @@ function renderFreshWallets() {
         const shortA = h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dbUrl = `https://debank.com/profile/${h.address}`;
         const explorerUrl = `https://etherscan.io/address/${h.address}`;
-        const dbIcon = `<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
-        const explorerSvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-        const explorerIcon=`<a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-explorer-icon" title="Etherscan">${explorerSvg}</a>`;
+        const dbIcon = debankIconHTML(dbUrl);
+        const explorerIcon = explorerIconHTML(explorerUrl, `View ${shortA} on Etherscan`);
         const label = h.label || 'Fresh Wallet';
         const rank = start+i+1;
         const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
         const fundedBy = h.funded_by ? `<span class="h-badge h-badge-funded" title="Funded by ${h.funded_by}">via ${h.funded_by}</span>` : '';
         const createdDate = h.wallet_created ? new Date(h.wallet_created * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '—';
         const createdAge = h.wallet_created ? Math.floor((Date.now()/1000 - h.wallet_created) / 86400) + 'd ago' : '';
-        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span>${fundedBy}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
+        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span>${fundedBy}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButtonHTML(h.address)}${dbIcon}${explorerIcon}</div></div>`;
         const lastFlowDate = h.last_flow ? new Date(h.last_flow * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
         const lastFlowAge = h.last_flow ? Math.floor((Date.now()/1000 - h.last_flow) / 86400) + 'd ago' : '';
         const lfAmt = h.last_flow_amount || 0;
@@ -342,60 +721,75 @@ function renderFreshWallets() {
     const pagerEl = document.getElementById('fresh-pager');
     if(pagerEl) {
         pagerEl.innerHTML = `
-            <button class="pg-btn" onclick="goFreshPage(-999)" ${freshPage<=1?'disabled':''}>&laquo;</button>
-            <button class="pg-btn" onclick="goFreshPage(-1)" ${freshPage<=1?'disabled':''}>&lsaquo;</button>
+            ${pageButtonHTML('fresh', -999, '&laquo;', freshPage<=1)}
+            ${pageButtonHTML('fresh', -1, '&lsaquo;', freshPage<=1)}
             <span class="pg-info">${freshPage} / ${totalPages}</span>
-            <button class="pg-btn" onclick="goFreshPage(1)" ${freshPage>=totalPages?'disabled':''}>&rsaquo;</button>
-            <button class="pg-btn" onclick="goFreshPage(999)" ${freshPage>=totalPages?'disabled':''}>&raquo;</button>`;
+            ${pageButtonHTML('fresh', 1, '&rsaquo;', freshPage>=totalPages)}
+            ${pageButtonHTML('fresh', 999, '&raquo;', freshPage>=totalPages)}`;
     }
+    updateUrlState();
 }
 function goFreshPage(delta) {
-    const freshHolders = DATA.top_holders.filter(h => (h.type === 'FRESH' || h.fresh === true) && Object.values(h.balances).reduce((s,v)=>s+v,0) >= 10000);
-    let filtered = freshHolders;
-    if(freshSearchQuery) { const q=freshSearchQuery.toLowerCase(); filtered=filtered.filter(h=>h.address.toLowerCase().includes(q)||(h.label||'').toLowerCase().includes(q)); }
-    const totalPages = Math.max(1, Math.ceil(filtered.length / FRESH_PER_PAGE));
-    freshPage = Math.max(1, Math.min(totalPages, delta===-999?1:delta===999?totalPages:freshPage+delta));
+    const totalPages = Math.max(1, Math.ceil(getFreshWallets().length / FRESH_PER_PAGE));
+    freshPage = applyPageDelta(freshPage, totalPages, delta);
+    requestHistoryMode('push');
     renderFreshWallets();
 }
 function filterFresh() { freshSearchQuery=document.getElementById('fresh-search').value.trim();freshPage=1;renderFreshWallets(); }
 
 // ── Coinbase Prime Investors ──
-let cbPage=1, cbSearchQuery='', cbPeriodDays=0, cbSortMode='balance';
+let cbPage=1, cbSearchQuery='', cbPeriodDays=0, cbSortKey='balance', cbSortDir='desc';
 const CB_PER_PAGE=15;
-function toggleCbSort(mode) {
-    cbSortMode = (cbSortMode === mode) ? (mode === 'balance' ? 'date' : 'balance') : mode;
-    cbPage = 1;
-    renderCoinbasePrime();
-}
-function renderCoinbasePrime() {
+function getCoinbasePrimeHolders(includeSearch=true) {
     const nowSec = Math.floor(Date.now() / 1000);
-    let cbHolders = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor').sort((a,b) => {
-        if (cbSortMode === 'date') return (b.cb_first_funded || 0) - (a.cb_first_funded || 0);
-        if (cbSortMode === 'flow') return (b.cb_last_funded || 0) - (a.cb_last_funded || 0);
-        const aTotal = Object.values(a.balances).reduce((s,v)=>s+v,0);
-        const bTotal = Object.values(b.balances).reduce((s,v)=>s+v,0);
-        return bTotal - aTotal;
-    });
-    // Update sort indicators
-    const dateTh = document.getElementById('cb-sort-date');
-    const flowTh = document.getElementById('cb-sort-flow');
-    const balTh = document.getElementById('cb-sort-balance');
-    if(dateTh) dateTh.textContent = cbSortMode === 'date' ? 'First Funded ▼' : 'First Funded';
-    if(flowTh) flowTh.textContent = cbSortMode === 'flow' ? 'Last Flow ▼' : 'Last Flow';
-    if(balTh) balTh.textContent = cbSortMode === 'balance' ? 'Balance ▼' : 'Balance';
-    // Period filter — filter by cb_first_funded timestamp
+    let items = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor');
     if(cbPeriodDays > 0) {
         const cutoff = nowSec - (cbPeriodDays * 86400);
-        cbHolders = cbHolders.filter(h => {
+        items = items.filter(h => {
             const ts = h.cb_first_funded || h.cb_last_funded || 0;
             return ts >= cutoff;
         });
     }
-    const allCb = cbHolders;
-    if(cbSearchQuery) {
+    if(includeSearch && cbSearchQuery) {
         const q = cbSearchQuery.toLowerCase();
-        cbHolders = cbHolders.filter(h => h.address.toLowerCase().includes(q) || (h.label||'').toLowerCase().includes(q));
+        items = items.filter(h => h.address.toLowerCase().includes(q) || (h.label||'').toLowerCase().includes(q));
     }
+    items.sort((a,b) => {
+        let aVal = 0, bVal = 0;
+        if (cbSortKey === 'date') {
+            aVal = a.cb_first_funded || 0;
+            bVal = b.cb_first_funded || 0;
+        } else if (cbSortKey === 'flow') {
+            aVal = a.cb_last_funded || 0;
+            bVal = b.cb_last_funded || 0;
+        } else {
+            aVal = Object.values(a.balances).reduce((s,v)=>s+v,0);
+            bVal = Object.values(b.balances).reduce((s,v)=>s+v,0);
+        }
+        return cbSortDir === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+    return items;
+}
+function toggleCbSort(key) {
+    if (cbSortKey === key) cbSortDir = cbSortDir === 'desc' ? 'asc' : 'desc';
+    else {
+        cbSortKey = key;
+        cbSortDir = 'desc';
+    }
+    cbPage = 1;
+    requestHistoryMode('push');
+    renderCoinbasePrime();
+}
+function renderCoinbasePrime() {
+    let cbHolders = getCoinbasePrimeHolders();
+    // Update sort indicators
+    const dateTh = document.getElementById('cb-sort-date');
+    const flowTh = document.getElementById('cb-sort-flow');
+    const balTh = document.getElementById('cb-sort-balance');
+    if(dateTh) dateTh.textContent = sortLabel('First Funded', cbSortKey, 'date', cbSortDir);
+    if(flowTh) flowTh.textContent = sortLabel('Last Flow', cbSortKey, 'flow', cbSortDir);
+    if(balTh) balTh.textContent = sortLabel('Balance', cbSortKey, 'balance', cbSortDir);
+    const allCb = getCoinbasePrimeHolders(false);
     const totalSupply = DATA.total_supply || 1000000000;
     const price = DATA.meta?.price_usd || 0;
     const total = cbHolders.length;
@@ -404,7 +798,6 @@ function renderCoinbasePrime() {
     const start = (cbPage - 1) * CB_PER_PAGE;
     const pageItems = cbHolders.slice(start, start + CB_PER_PAGE);
     let html = '';
-    const copySvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
     const maxPct = pageItems.length ? Math.max(...pageItems.map(h => Object.values(h.balances).reduce((s,v)=>s+v,0) / totalSupply * 100)) : 0.01;
     pageItems.forEach((h, i) => {
         const bal = Object.values(h.balances).reduce((s,v)=>s+v,0);
@@ -415,14 +808,13 @@ function renderCoinbasePrime() {
         const shortA = h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dbUrl = `https://debank.com/profile/${h.address}`;
         const explorerUrl = `https://etherscan.io/address/${h.address}`;
-        const dbIcon = `<a href="${dbUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-debank-icon" title="DeBank"><img src="https://debank.com/favicon.ico" width="14" height="14" onerror="this.parentElement.style.display='none'"></a>`;
-        const explorerSvg='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-        const explorerIcon=`<a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-explorer-icon" title="View on Etherscan">${explorerSvg}</a>`;
+        const dbIcon = debankIconHTML(dbUrl);
+        const explorerIcon = explorerIconHTML(explorerUrl, `View ${shortA} on Etherscan`);
         const rank = start+i+1;
         const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
         const fundedDate = h.cb_first_funded ? new Date(h.cb_first_funded * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '—';
         const fundedAge = h.cb_first_funded ? Math.floor((Date.now()/1000 - h.cb_first_funded) / 86400) + 'd ago' : '';
-        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" class="h-addr-label">Coinbase Prime</a><span class="h-badge h-badge-inst">INST</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span>${dbIcon}${explorerIcon}</div></div>`;
+        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">Coinbase Prime</a><span class="h-badge h-badge-inst">INST</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButtonHTML(h.address)}${dbIcon}${explorerIcon}</div></div>`;
         const lastFundedDate = h.cb_last_funded ? new Date(h.cb_last_funded * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
         const lastFundedAge = h.cb_last_funded ? Math.floor((Date.now()/1000 - h.cb_last_funded) / 86400) + 'd ago' : '';
         const lastFlowAmt = h.cb_last_flow_amount || h.cb_total_received;
@@ -459,23 +851,18 @@ function renderCoinbasePrime() {
     const pagerEl = document.getElementById('cb-pager');
     if(pagerEl) {
         pagerEl.innerHTML = `
-            <button class="pg-btn" onclick="goCbPage(-999)" ${cbPage<=1?'disabled':''}>&laquo;</button>
-            <button class="pg-btn" onclick="goCbPage(-1)" ${cbPage<=1?'disabled':''}>&lsaquo;</button>
+            ${pageButtonHTML('cb', -999, '&laquo;', cbPage<=1)}
+            ${pageButtonHTML('cb', -1, '&lsaquo;', cbPage<=1)}
             <span class="pg-info">${cbPage} / ${totalPages}</span>
-            <button class="pg-btn" onclick="goCbPage(1)" ${cbPage>=totalPages?'disabled':''}>&rsaquo;</button>
-            <button class="pg-btn" onclick="goCbPage(999)" ${cbPage>=totalPages?'disabled':''}>&raquo;</button>`;
+            ${pageButtonHTML('cb', 1, '&rsaquo;', cbPage>=totalPages)}
+            ${pageButtonHTML('cb', 999, '&raquo;', cbPage>=totalPages)}`;
     }
+    updateUrlState();
 }
 function goCbPage(delta) {
-    const nowSec = Math.floor(Date.now() / 1000);
-    let cbHolders = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor');
-    if(cbPeriodDays > 0) {
-        const cutoff = nowSec - (cbPeriodDays * 86400);
-        cbHolders = cbHolders.filter(h => (h.cb_first_funded || 0) >= cutoff);
-    }
-    if(cbSearchQuery) { const q=cbSearchQuery.toLowerCase(); cbHolders=cbHolders.filter(h=>h.address.toLowerCase().includes(q)||(h.label||'').toLowerCase().includes(q)); }
-    const totalPages = Math.max(1, Math.ceil(cbHolders.length / CB_PER_PAGE));
-    cbPage = Math.max(1, Math.min(totalPages, delta===-999?1:delta===999?totalPages:cbPage+delta));
+    const totalPages = Math.max(1, Math.ceil(getCoinbasePrimeHolders().length / CB_PER_PAGE));
+    cbPage = applyPageDelta(cbPage, totalPages, delta);
+    requestHistoryMode('push');
     renderCoinbasePrime();
 }
 function filterCb() { cbSearchQuery=document.getElementById('cb-search').value.trim();cbPage=1;renderCoinbasePrime(); }
@@ -483,10 +870,11 @@ function filterCbt() { cbtSearchQuery=document.getElementById('cbt-search').valu
 function initCbPeriodPills() {
     document.getElementById('cb-period-pills').querySelectorAll('button').forEach(b => {
         b.addEventListener('click', () => {
-            document.querySelector('#cb-period-pills .active').classList.remove('active');
+            document.querySelector('#cb-period-pills .active')?.classList.remove('active');
             b.classList.add('active');
             cbPeriodDays = parseInt(b.dataset.period);
             cbPage = 1;
+            requestHistoryMode('push');
             renderCoinbasePrime();
         });
     });
@@ -504,9 +892,9 @@ function cbtAddrCell(addr, label) {
     const explorerUrl = `https://etherscan.io/address/${addr}`;
     return `<div class="cbt-addr-cell">
         <div class="cbt-addr-main">
-            <a href="${explorerUrl}" target="_blank" rel="noopener" class="cbt-addr-name" title="${addr}">${label||short}</a>
-            <button class="addr-icon-btn" onclick="copyText('${addr}')" title="Copy"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-            <a href="${dbUrl}" target="_blank" rel="noopener" class="addr-icon-btn" title="DeBank"><img src="https://debank.com/favicon.ico" width="12" height="12" style="border-radius:2px"></a>
+            <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="cbt-addr-name" title="${addr}">${label||short}</a>
+            <button type="button" class="addr-icon-btn" data-copy="${escapeAttr(addr)}" title="Copy address" aria-label="Copy address"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <a href="${dbUrl}" target="_blank" rel="noopener noreferrer" class="addr-icon-btn" title="Open in DeBank" aria-label="Open in DeBank"><img src="https://debank.com/favicon.ico" width="12" height="12" alt="" aria-hidden="true" class="h-debank-favicon" style="border-radius:2px"></a>
         </div>
         ${label ? `<div class="cbt-addr-hex">${short}</div>` : ''}
     </div>`;
@@ -532,34 +920,49 @@ const CBT_COLUMNS = [
     { id:'amount', header:'Amount ⇅', width:177, align:'right', sortable:true, render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
 ];
 let cbtSortDir = 0; // 0=date desc, 1=amount desc, 2=amount asc
-function toggleCbtSort() { cbtSortDir = (cbtSortDir + 1) % 3; cbtPage = 1; renderCbTransfers(); }
+function toggleCbtSort() { cbtSortDir = (cbtSortDir + 1) % 3; cbtPage = 1; requestHistoryMode('push'); renderCbTransfers(); }
+function setCbtTypeTriggerLabel() {
+    const trigger = document.getElementById('cbt-type-trigger');
+    if (!trigger) return;
+    const icon = CBT_TYPE_ICONS[cbtTypeFilter] || '';
+    trigger.textContent = cbtTypeFilter === 'ALL' ? 'ALL ▾' : `${icon} ${cbtTypeFilter} ▾`;
+}
 function toggleCbtTypeDropdown() {
     const menu = document.getElementById('cbt-type-menu');
     const trigger = document.getElementById('cbt-type-trigger');
     if(!menu) return;
     const isOpen = menu.classList.toggle('open');
     trigger.classList.toggle('active', isOpen);
+    trigger.setAttribute('aria-expanded', String(isOpen));
     if(isOpen) {
-        const close = e => { if(!menu.contains(e.target) && e.target !== trigger) { menu.classList.remove('open'); trigger.classList.remove('active'); document.removeEventListener('click', close); } };
+        const close = e => {
+            if(!menu.contains(e.target) && e.target !== trigger) {
+                menu.classList.remove('open');
+                trigger.classList.remove('active');
+                trigger.setAttribute('aria-expanded', 'false');
+                document.removeEventListener('click', close);
+            }
+        };
         setTimeout(() => document.addEventListener('click', close), 0);
     }
 }
 function setCbtType(type) {
     cbtTypeFilter = type;
     const trigger = document.getElementById('cbt-type-trigger');
-    const icon = CBT_TYPE_ICONS[type] || '';
-    trigger.innerHTML = type === 'ALL' ? 'ALL ▾' : `${icon} ${type} ▾`;
+    setCbtTypeTriggerLabel();
     document.getElementById('cbt-type-menu').classList.remove('open');
     trigger.classList.remove('active');
+    trigger.setAttribute('aria-expanded', 'false');
     cbtPage = 1;
+    requestHistoryMode('push');
     renderCbTransfers();
 }
-
-function renderCbTransfers() {
+function getFilteredCbtTransfers() {
     const txs = DATA.cb_prime_transfers || [];
     const nowSec = Math.floor(Date.now() / 1000);
-    const price = DATA.meta?.price_usd || 0;
-    let filtered = cbtTypeFilter === 'ALL' ? txs.filter(t => t.type !== 'INTERNAL' && t.value >= 10000) : txs.filter(t => t.type === cbtTypeFilter && t.value >= 10000);
+    let filtered = cbtTypeFilter === 'ALL'
+        ? txs.filter(t => t.type !== 'INTERNAL' && t.value >= 10000)
+        : txs.filter(t => t.type === cbtTypeFilter && t.value >= 10000);
     if(cbtPeriodDays > 0) {
         const cutoff = nowSec - (cbtPeriodDays * 86400);
         filtered = filtered.filter(t => t.timestamp >= cutoff);
@@ -573,10 +976,14 @@ function renderCbTransfers() {
             (t.to_label||'').toLowerCase().includes(q)
         );
     }
-    // Sort
     if(cbtSortDir === 1) filtered.sort((a,b) => b.value - a.value);
     else if(cbtSortDir === 2) filtered.sort((a,b) => a.value - b.value);
+    return filtered;
+}
 
+function renderCbTransfers() {
+    const price = DATA.meta?.price_usd || 0;
+    const filtered = getFilteredCbtTransfers();
     const total = filtered.length;
     const totalPages = Math.max(1, Math.ceil(total / CBT_PER_PAGE));
     cbtPage = Math.min(cbtPage, totalPages);
@@ -649,33 +1056,29 @@ function renderCbTransfers() {
     const pagerEl = document.getElementById('cbt-pager');
     if(pagerEl) {
         pagerEl.innerHTML = `
-            <button class="pg-btn" onclick="goCbtPage(-999)" ${cbtPage<=1?'disabled':''}>&laquo;</button>
-            <button class="pg-btn" onclick="goCbtPage(-1)" ${cbtPage<=1?'disabled':''}>&lsaquo;</button>
+            ${pageButtonHTML('cbt', -999, '&laquo;', cbtPage<=1)}
+            ${pageButtonHTML('cbt', -1, '&lsaquo;', cbtPage<=1)}
             <span class="pg-info">${cbtPage} / ${totalPages}</span>
-            <button class="pg-btn" onclick="goCbtPage(1)" ${cbtPage>=totalPages?'disabled':''}>&rsaquo;</button>
-            <button class="pg-btn" onclick="goCbtPage(999)" ${cbtPage>=totalPages?'disabled':''}>&raquo;</button>`;
+            ${pageButtonHTML('cbt', 1, '&rsaquo;', cbtPage>=totalPages)}
+            ${pageButtonHTML('cbt', 999, '&raquo;', cbtPage>=totalPages)}`;
     }
+    updateUrlState();
 }
 
 function goCbtPage(delta) {
-    const txs = DATA.cb_prime_transfers || [];
-    const nowSec = Math.floor(Date.now() / 1000);
-    let filtered = cbtTypeFilter === 'ALL' ? txs.filter(t => t.type !== 'INTERNAL' && t.value >= 10000) : txs.filter(t => t.type === cbtTypeFilter && t.value >= 10000);
-    if(cbtPeriodDays > 0) { const cutoff = nowSec - (cbtPeriodDays * 86400); filtered = filtered.filter(t => t.timestamp >= cutoff); }
-    if(cbtSearchQuery) { const q=cbtSearchQuery.toLowerCase(); filtered=filtered.filter(t=>t.from.toLowerCase().includes(q)||t.to.toLowerCase().includes(q)||(t.from_label||'').toLowerCase().includes(q)||(t.to_label||'').toLowerCase().includes(q)); }
-    if(cbtSortDir === 1) filtered.sort((a,b) => b.value - a.value);
-    else if(cbtSortDir === 2) filtered.sort((a,b) => a.value - b.value);
-    const totalPages = Math.max(1, Math.ceil(filtered.length / CBT_PER_PAGE));
-    cbtPage = Math.max(1, Math.min(totalPages, delta===-999?1:delta===999?totalPages:cbtPage+delta));
+    const totalPages = Math.max(1, Math.ceil(getFilteredCbtTransfers().length / CBT_PER_PAGE));
+    cbtPage = applyPageDelta(cbtPage, totalPages, delta);
+    requestHistoryMode('push');
     renderCbTransfers();
 }
 function initCbtPills() {
     document.getElementById('cbt-period-pills').querySelectorAll('button').forEach(b => {
         b.addEventListener('click', () => {
-            document.querySelector('#cbt-period-pills .active').classList.remove('active');
+            document.querySelector('#cbt-period-pills .active')?.classList.remove('active');
             b.classList.add('active');
             cbtPeriodDays = parseInt(b.dataset.period);
             cbtPage = 1;
+            requestHistoryMode('push');
             renderCbTransfers();
         });
     });
@@ -690,7 +1093,6 @@ function renderNewInstitutional() {
         return bTotal - aTotal;
     });
     const totalSupply = DATA.total_supply || 1000000000;
-    const copySvg='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>';
     const total = instHolders.length;
     let html = '';
     instHolders.forEach((h, i) => {
@@ -700,7 +1102,7 @@ function renderNewInstitutional() {
         const dbUrl = `https://debank.com/profile/${h.address}`;
         html += `<tr>
             <td class="rank-cell">${i+1}</td>
-            <td><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener" class="h-addr-hex">${short}</a><span class="h-badge h-badge-inst">NEW INST</span><span class="h-copy" onclick="event.stopPropagation();copyText('${h.address}')" title="Copy">${copySvg}</span></span></td>
+            <td><span class="h-addr-wrap"><a href="${dbUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${short}</a><span class="h-badge h-badge-inst">NEW INST</span>${copyButtonHTML(h.address)}</span></td>
             <td class="right val-white" style="font-variant-numeric:tabular-nums">${fmt(bal)}</td>
             <td class="right val-muted" style="font-variant-numeric:tabular-nums">${pct}%</td>
             <td class="right" style="font-size:10px;color:var(--text-muted)">BitGo / Gnosis Safe</td>
@@ -716,13 +1118,13 @@ function renderNewInstitutional() {
     if(card) card.style.display = total ? '' : 'none';
 }
 
-let flowPageAcc=1, flowPageSell=1, flowChain='all', hideCex=false;
+let flowPageAcc=1, flowPageSell=1, flowChain='all', hideCex=false, flowSearchQuery='';
 const CHAIN_ICONS_MAP={ethereum:'https://icons.llamao.fi/icons/chains/rsz_ethereum.jpg',arbitrum:'https://icons.llamao.fi/icons/chains/rsz_arbitrum.jpg',base:'https://icons.llamao.fi/icons/chains/rsz_base.jpg',bsc:'https://icons.llamao.fi/icons/chains/rsz_binance.jpg',optimism:'https://icons.llamao.fi/icons/chains/rsz_optimism.jpg',polygon:'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg',avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'};
 
 function getFlowItems(type){
     const flows=DATA.flows[currentPeriod]; if(!flows) return [];
     let items=flows[type]||[];
-    const q=(document.getElementById('flow-search').value||'').trim().toLowerCase();
+    const q=flowSearchQuery.trim().toLowerCase();
     if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
     if(flowChain!=='all'){
         const holders=DATA.top_holders;
@@ -740,7 +1142,9 @@ function toggleHideCex(){
     hideCex=!hideCex;
     const btn=document.getElementById('flow-hide-cex');
     btn.classList.toggle('active',hideCex);
+    btn.setAttribute('aria-pressed', String(hideCex));
     flowPageAcc=1; flowPageSell=1;
+    requestHistoryMode('push');
     renderFlows();
 }
 
@@ -763,30 +1167,34 @@ function renderFlows() {
         for(let i=pageItems.length;i<FLOW_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
         document.getElementById(isAcc?'acc-tbody':'sell-tbody').innerHTML=html;
         const pagerEl=document.getElementById(isAcc?'acc-pager':'sell-pager');
-        const pfx=isAcc?'acc':'sell';
+        const target=isAcc?'flow-acc':'flow-sell';
         pagerEl.innerHTML=`
-            <button class="pg-btn" onclick="goFlowPage('${pfx}',-999)" ${page<=1?'disabled':''}>&laquo;</button>
-            <button class="pg-btn" onclick="goFlowPage('${pfx}',-1)" ${page<=1?'disabled':''}>&lsaquo;</button>
+            ${pageButtonHTML(target, -999, '&laquo;', page<=1)}
+            ${pageButtonHTML(target, -1, '&lsaquo;', page<=1)}
             <span class="pg-info">${page} / ${totalPages}</span>
-            <button class="pg-btn" onclick="goFlowPage('${pfx}',1)" ${page>=totalPages?'disabled':''}>&rsaquo;</button>
-            <button class="pg-btn" onclick="goFlowPage('${pfx}',999)" ${page>=totalPages?'disabled':''}>&raquo;</button>`;
+            ${pageButtonHTML(target, 1, '&rsaquo;', page>=totalPages)}
+            ${pageButtonHTML(target, 999, '&raquo;', page>=totalPages)}`;
     });
+    updateUrlState();
 }
 function goFlowPage(pfx,delta){
     const type=pfx==='acc'?'accumulators':'sellers';
     const items=getFlowItems(type);
     const totalPages=Math.max(1,Math.ceil(items.length/FLOW_PER_PAGE));
-    if(pfx==='acc') flowPageAcc=Math.max(1,Math.min(totalPages,delta===-999?1:delta===999?totalPages:flowPageAcc+delta));
-    else flowPageSell=Math.max(1,Math.min(totalPages,delta===-999?1:delta===999?totalPages:flowPageSell+delta));
+    if(pfx==='acc') flowPageAcc=applyPageDelta(flowPageAcc, totalPages, delta);
+    else flowPageSell=applyPageDelta(flowPageSell, totalPages, delta);
+    requestHistoryMode('push');
     renderFlows();
 }
-function filterFlows() { flowPageAcc=1; flowPageSell=1; renderFlows(); }
+function filterFlows() { flowSearchQuery=document.getElementById('flow-search').value.trim(); flowPageAcc=1; flowPageSell=1; renderFlows(); }
 function setFlowChain(chain, label) {
     flowChain=chain; flowPageAcc=1; flowPageSell=1;
     document.getElementById('chain-dd-label').textContent = label || 'All Chains';
     document.getElementById('chain-dd-menu').classList.remove('open');
     const trigger = document.getElementById('chain-dd-trigger');
     trigger.classList.toggle('active', chain !== 'all');
+    trigger.setAttribute('aria-expanded', 'false');
+    requestHistoryMode('push');
     renderFlows();
 }
 function toggleChainDropdown() {
@@ -794,13 +1202,14 @@ function toggleChainDropdown() {
     const trigger = document.getElementById('chain-dd-trigger');
     const isOpen = menu.classList.toggle('open');
     trigger.classList.toggle('active', isOpen || flowChain !== 'all');
+    trigger.setAttribute('aria-expanded', String(isOpen));
 }
 function initChainFilter() {
     const menu=document.getElementById('chain-dd-menu');
-    let html=`<button class="chain-dd-item" onclick="setFlowChain('all','All Chains')"><span class="chain-dd-dot" style="background:#a855f7"></span>All Chains</button>`;
+    let html=`<button type="button" class="chain-dd-item" data-flow-chain="all" data-flow-label="All Chains"><span class="chain-dd-dot" style="background:#a855f7"></span>All Chains</button>`;
     Object.entries(DATA.chains).forEach(([k,c])=>{
         const icon=CHAIN_ICONS_MAP[k]||'';
-        html+=`<button class="chain-dd-item" onclick="setFlowChain('${k}','${c.short}')">${icon?`<img src="${icon}" width="16" height="16" style="border-radius:50%">`:`<span class="chain-dd-dot" style="background:${c.color}"></span>`}${c.short}</button>`;
+        html+=`<button type="button" class="chain-dd-item" data-flow-chain="${k}" data-flow-label="${c.short}">${icon?`<img src="${icon}" width="16" height="16" alt="" aria-hidden="true" style="border-radius:50%">`:`<span class="chain-dd-dot" style="background:${c.color}"></span>`}${c.short}</button>`;
     });
     menu.innerHTML=html;
     // Click outside to close
@@ -810,18 +1219,20 @@ function initChainFilter() {
             document.getElementById('chain-dd-menu').classList.remove('open');
             const trigger = document.getElementById('chain-dd-trigger');
             if (flowChain === 'all') trigger.classList.remove('active');
+            trigger.setAttribute('aria-expanded', 'false');
         }
     });
 }
 function initPeriodPills() {
     document.getElementById('flow-period-pills').querySelectorAll('button').forEach(b=>{
-        b.addEventListener('click',()=>{ document.querySelector('#flow-period-pills .active').classList.remove('active'); b.classList.add('active'); currentPeriod=b.dataset.period; flowPageAcc=1; flowPageSell=1; renderFlows(); });
+        b.addEventListener('click',()=>{ document.querySelector('#flow-period-pills .active')?.classList.remove('active'); b.classList.add('active'); currentPeriod=b.dataset.period; flowPageAcc=1; flowPageSell=1; requestHistoryMode('push'); renderFlows(); });
     });
 }
 
 // ── Tokenomics ──
 function renderAllocation() {
     const a=DATA.allocation, el=document.getElementById('alloc-section');
+    const maxPct = Math.max(...Object.values(a).map(cat => cat.pct));
     let html='<div class="alloc-bars">';
     Object.values(a).forEach(cat=>{
         const unlockedPct=(cat.unlocked/cat.tokens*100).toFixed(0);
@@ -829,7 +1240,7 @@ function renderAllocation() {
     });
     html+='</div><div class="alloc-donut" style="flex-direction:column;gap:12px">';
     Object.values(a).forEach(cat=>{
-        html+=`<div style="display:flex;align-items:center;gap:8px;width:100%"><div class="alloc-color" style="background:${cat.color}"></div><span style="font-size:11px;color:var(--text-secondary);flex:1">${cat.label}</span><div class="alloc-bar-track" style="flex:2"><div class="alloc-bar-fill" style="width:${cat.pct/38.3*100}%;background:${cat.color}"></div></div></div>`;
+        html+=`<div style="display:flex;align-items:center;gap:8px;width:100%"><div class="alloc-color" style="background:${cat.color}"></div><span style="font-size:11px;color:var(--text-secondary);flex:1">${cat.label}</span><div class="alloc-bar-track" style="flex:2"><div class="alloc-bar-fill" style="width:${cat.pct/maxPct*100}%;background:${cat.color}"></div></div></div>`;
     });
     html+='</div>';
     el.innerHTML=html;
@@ -840,10 +1251,12 @@ function renderVesting() {
     const now=new Date(), start=new Date(v.cliff_end), end=new Date(v.vesting_end);
     const totalMs=end-start, elapsedMs=now-start, pct=Math.min(100,Math.max(0,(elapsedMs/totalMs)*100));
     const monthsLeft=Math.max(0,Math.ceil((end-now)/(30*24*60*60*1000)));
+    const cliffLabel = start.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
+    const endLabel = end.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
     el.innerHTML=`
         <div class="vest-progress"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Vesting Progress · ${pct.toFixed(1)}% elapsed</div>
         <div class="vest-bar-track"><div class="vest-bar-fill" style="width:${pct}%"></div></div>
-        <div class="vest-labels"><span>Cliff End: Jun 2025</span><span>Now</span><span>Vesting End: Jun 2027</span></div></div>
+        <div class="vest-labels"><span>Cliff End: ${cliffLabel}</span><span>Now</span><span>Vesting End: ${endLabel}</span></div></div>
         <div class="vest-grid">
             <div class="vest-card"><div class="vest-card-label">Monthly Unlock</div><div class="vest-card-val" style="color:var(--accent-amber)">~${fmt(v.monthly_unlock_total)}</div><div class="vest-card-sub">ZRO / month (20th)</div></div>
             <div class="vest-card"><div class="vest-card-label">Next Unlock</div><div class="vest-card-val" style="color:var(--accent-rose)">${v.next_unlock.date}</div><div class="vest-card-sub">~${fmt(v.next_unlock.amount)} ZRO</div></div>
@@ -897,8 +1310,9 @@ function renderTimeline() {
 
 // ── Data Freshness ──
 function updateFreshness() {
-    const el = document.getElementById('footer-updated');
-    if(!el || !DATA || !DATA.meta) return;
+    const footerEl = document.getElementById('footer-updated');
+    const bannerEl = document.getElementById('snapshot-banner');
+    if((!footerEl && !bannerEl) || !DATA || !DATA.meta) return;
     const gen = new Date(DATA.meta.generated);
     const now = new Date();
     const diff = Math.floor((now - gen) / 1000);
@@ -907,8 +1321,35 @@ function updateFreshness() {
     else if(diff < 3600) ago = Math.floor(diff/60) + ' min ago';
     else if(diff < 86400) ago = Math.floor(diff/3600) + 'h ' + Math.floor((diff%3600)/60) + 'min ago';
     else ago = Math.floor(diff/86400) + 'd ago';
-    const fresh = diff < 7200; // <2h = fresh
-    el.innerHTML = `<span style="color:${fresh ? 'var(--accent-emerald)' : 'var(--accent-amber)'}">${fresh ? '🟢' : '🟡'}</span> Updated ${ago} <span style="color:var(--text-muted);font-size:11px">(${gen.toLocaleString()})</span>`;
+    const status = diff < 7200 ? 'fresh' : diff < 86400 ? 'delayed' : 'historical';
+    const statusIcon = status === 'fresh' ? '🟢' : status === 'delayed' ? '🟡' : '🟠';
+    const statusColor = status === 'fresh' ? 'var(--accent-green)' : status === 'delayed' ? 'var(--accent-amber)' : 'var(--accent-orange)';
+    const chipLabel = status === 'fresh' ? 'Fresh Snapshot' : status === 'delayed' ? 'Delayed Snapshot' : 'Historical Snapshot';
+    const absolute = gen.toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+    if (footerEl) {
+        footerEl.innerHTML = `<span style="color:${statusColor}">${statusIcon}</span> Snapshot Updated ${ago} <span style="color:var(--text-muted);font-size:11px">(${absolute})</span>`;
+    }
+    if (bannerEl) {
+        const title = status === 'fresh'
+            ? `Indexed on-chain tables were refreshed ${ago}.`
+            : status === 'delayed'
+                ? `Indexed on-chain tables are slightly delayed and were refreshed ${ago}.`
+                : `On-chain tables currently reflect an older indexed snapshot from ${absolute}.`;
+        const detail = status === 'fresh'
+            ? 'Token price refreshes live from CoinGecko, and the rest of the dashboard is aligned with a recent indexed dataset.'
+            : status === 'delayed'
+                ? 'Token price refreshes live from CoinGecko, while holder tables, flows and whale activity use the latest indexed dataset available locally.'
+                : 'Token price still refreshes live from CoinGecko, but holder tables, flows and whale activity stay tied to the last indexed dataset until zro_data.json is regenerated.';
+        bannerEl.className = `snapshot-banner snapshot-${status}`;
+        bannerEl.innerHTML = `
+            <div class="snapshot-banner-inner">
+                <span class="snapshot-chip">${chipLabel}</span>
+                <div class="snapshot-copy">
+                    <div class="snapshot-title">${title}</div>
+                    <div class="snapshot-detail">${detail}</div>
+                </div>
+            </div>`;
+    }
 }
 
 // ── Whale Transfers ──
@@ -985,12 +1426,12 @@ function renderWhaleTransfers() {
         const toResolved = labelMap[t.to.toLowerCase()] || t.to_label;
         const fromShort = fromResolved || (t.from.slice(0,6) + '…' + t.from.slice(-4));
         const toShort = toResolved || (t.to.slice(0,6) + '…' + t.to.slice(-4));
-        const fromLink = `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener" class="h-addr-hex-sm">${fromShort}</a>`;
-        const toLink = `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener" class="h-addr-hex-sm">${toShort}</a>`;
+        const fromLink = `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm">${fromShort}</a>`;
+        const toLink = `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm">${toShort}</a>`;
         const usdVal = price ? fmtUSD(t.value * price) : '';
         const amtColor = t.type === 'CEX_DEPOSIT' ? 'color:#f87171' : 'color:#4ade80';
         const amtSign = t.type === 'CEX_DEPOSIT' ? '-' : '+';
-        html += `<tr onclick="window.open('https://etherscan.io/tx/${t.tx_hash}','_blank')" style="cursor:pointer">
+        html += `<tr ${clickableRowAttrs(`https://etherscan.io/tx/${t.tx_hash}`, 'Open whale transfer transaction')} style="cursor:pointer">
             <td><div class="fresh-date">${timeStr}</div><div class="val-muted">${agoStr}</div></td>
             <td><span class="h-badge ${typeCls}">${typeLabel}</span></td>
             <td>${fromLink}</td>
@@ -1002,20 +1443,36 @@ function renderWhaleTransfers() {
     document.getElementById('whale-sub').textContent = `${total} large transfers tracked`;
     const pager = document.getElementById('whale-pager');
     pager.innerHTML = `
-        <button class="pg-btn" onclick="whalePageNum=1;renderWhaleTransfers()" ${whalePageNum<=1?'disabled':''}>&laquo;</button>
-        <button class="pg-btn" onclick="whalePageNum--;renderWhaleTransfers()" ${whalePageNum<=1?'disabled':''}>&lsaquo;</button>
+        ${pageButtonHTML('whale', -999, '&laquo;', whalePageNum<=1)}
+        ${pageButtonHTML('whale', -1, '&lsaquo;', whalePageNum<=1)}
         <span class="pg-info">${whalePageNum} / ${totalPages}</span>
-        <button class="pg-btn" onclick="whalePageNum++;renderWhaleTransfers()" ${whalePageNum>=totalPages?'disabled':''}>&rsaquo;</button>
-        <button class="pg-btn" onclick="whalePageNum=${totalPages};renderWhaleTransfers()" ${whalePageNum>=totalPages?'disabled':''}>&raquo;</button>`;
+        ${pageButtonHTML('whale', 1, '&rsaquo;', whalePageNum>=totalPages)}
+        ${pageButtonHTML('whale', 999, '&raquo;', whalePageNum>=totalPages)}`;
+    updateUrlState();
+}
+function goWhalePage(delta) {
+    const totalPages = Math.max(1, Math.ceil((DATA.whale_transfers || []).length / WHALE_PER_PAGE));
+    whalePageNum = applyPageDelta(whalePageNum, totalPages, delta);
+    requestHistoryMode('push');
+    renderWhaleTransfers();
 }
 
 // ── Init ──
 async function init() {
     try { DATA=await(await fetch('zro_data.json?v=' + new Date().getTime())).json(); }
     catch(e) { document.querySelector('.page-wrapper').innerHTML='<div style="text-align:center;padding:80px;color:var(--text-muted)"><h2 style="color:var(--accent-rose)">Failed to load data</h2></div>'; return; }
-    renderMetrics(); renderNetworkStats(); renderChains(); initChainToggles(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderCbTransfers(); renderNewInstitutional(); renderFlows(); renderWhaleTransfers();
+    applyStateFromUrl();
+    initTabs();
+    initEventDelegation();
+    initChainFilter();
+    initPeriodPills();
+    initCbPeriodPills();
+    initCbtPills();
+    syncControlsFromState();
+    renderMetrics(); renderNetworkStats(); renderChains(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderCbTransfers(); renderNewInstitutional(); renderFlows(); renderWhaleTransfers();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
-    initTabs(); initChainFilter(); initPeriodPills(); initCbPeriodPills(); initCbtPills();
+    stateSyncReady = true;
+    updateUrlState();
     updateFreshness(); setInterval(updateFreshness, 30000);
     fetchPrice(); setInterval(fetchPrice,60000);
 }

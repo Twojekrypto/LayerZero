@@ -84,6 +84,15 @@ ZRO/
 - **Push:** `git push origin master`
 - **Local testing:** `python3 -m http.server` (bo `file://` blokuje `fetch()`)
 
+## 🧪 Local Refresh Commands
+
+- **Full refresh:** `npm run refresh:data`
+- **Hourly-style refresh:** `npm run refresh:data:hourly`
+- **Preview plan only:** `npm run refresh:data:plan`
+- **Direct Python entrypoint:** `python3 refresh_dashboard_data.py --mode full`
+
+Wrapper uruchamia lokalnie ten sam układ kroków co workflowy repo, a na końcu odpala weryfikację MemPalace i smoke testy dashboardu.
+
 ## ⚠️ Kluczowe Reguły
 
 1. **Zawsze czytaj `lessons.md` na starcie sesji**
