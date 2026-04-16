@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZRO Analytics Dashboard — LayerZero Token Flows</title>
-    <meta name="description" content="Real-time analytics for ZRO (LayerZero) — multi-chain distribution, holder flows, tokenomics, vesting, buybacks.">
+    <meta name="description" content="ZRO analytics dashboard for LayerZero with indexed on-chain snapshot data, holder flows, tokenomics, vesting and buybacks.">
+    <meta name="theme-color" content="#090910">
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=18">
 </head>
@@ -15,7 +17,7 @@
     <header class="site-header">
         <div class="header-logo"><img src="logo-layerzero.png" alt="LayerZero" id="header-logo-img"></div>
         <h1 class="header-title"><span class="title-zro">ZRO</span> <span class="title-analytics">Analytics</span></h1>
-        <p class="header-sub"><span class="live-dot"></span> Real-time LayerZero Protocol Intelligence</p>
+        <p class="header-sub"><span class="live-dot"></span> Live ZRO Price + Indexed On-Chain Snapshot</p>
         <!-- Tab Navigation -->
         <nav class="tab-nav" id="tab-nav">
             <button class="tab-btn active" data-tab="overview"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> Overview</button>
@@ -23,6 +25,7 @@
             <button class="tab-btn" data-tab="tokenomics"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Tokenomics</button>
         </nav>
     </header>
+    <div class="snapshot-banner" id="snapshot-banner" aria-live="polite"></div>
 
     <!-- ========== TAB: OVERVIEW ========== -->
     <div id="view-overview" class="tab-view active">
@@ -56,19 +59,19 @@
 
         <!-- HODLERS -->
         <div class="card anim anim-d2" id="holders-card">
-            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> ZRO Hodlers <span id="holders-count" class="card-sub"></span></h3></div>
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> ZRO Hodlers <span id="holders-count-header" class="card-sub"></span></h3></div>
             <div class="flow-toolbar">
                 <div class="search-wrap">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" class="search-input" id="holders-search" placeholder="Search 0x…" oninput="filterHolders()">
+                    <input type="search" class="search-input" id="holders-search" name="holders-search" placeholder="Search Wallets Or Labels…" aria-label="Search holder wallets or labels" autocomplete="off" spellcheck="false" inputmode="search">
                 </div>
                 <div class="flow-toolbar-divider"></div>
-                <label class="hide-toggle" title="Hide CEX exchanges, protocol contracts, team vesting, and smart contracts from the table">
-                    <input type="checkbox" id="holders-hide-cex" onchange="filterHolders()">
+                <label class="hide-toggle" title="Hide exchanges, funds, team wallets and contract entities from the table">
+                    <input type="checkbox" id="holders-hide-cex">
                     <span class="hide-toggle-track"></span>
-                    <span class="hide-toggle-label">Hide CEX, CA & Bots</span>
+                    <span class="hide-toggle-label">Hide Funds & Contracts</span>
                 </label>
-                <span id="holders-count" class="toolbar-count"></span>
+                <span id="holders-count-toolbar" class="toolbar-count" aria-live="polite"></span>
             </div>
             <div class="table-scroll">
                 <table class="holders-table" id="holders-table">
@@ -86,9 +89,9 @@
             <div class="flow-toolbar">
                 <div class="search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    <input type="text" class="search-input" id="fresh-search" placeholder="Search address..." oninput="filterFresh()">
+                    <input type="search" class="search-input" id="fresh-search" name="fresh-search" placeholder="Search Fresh Addresses…" aria-label="Search fresh wallet addresses" autocomplete="off" spellcheck="false" inputmode="search">
                 </div>
-                <span class="toolbar-count" id="fresh-count"></span>
+                <span class="toolbar-count" id="fresh-count" aria-live="polite"></span>
             </div>
             <div class="table-scroll">
                 <table class="data-table" id="fresh-table">
@@ -96,9 +99,9 @@
                     <thead><tr>
                         <th style="width:40px">#</th>
                         <th>Address</th>
-                        <th class="right sortable" onclick="toggleFreshSort('date')" id="fresh-sort-date">Created</th>
-                        <th class="right sortable" onclick="toggleFreshSort('flow')" id="fresh-sort-flow">Last Flow</th>
-                        <th class="right sortable" onclick="toggleFreshSort('balance')" id="fresh-sort-balance">Balance ▼</th>
+                        <th class="right sortable" data-fresh-sort="date" id="fresh-sort-date">Created</th>
+                        <th class="right sortable" data-fresh-sort="flow" id="fresh-sort-flow">Last Flow</th>
+                        <th class="right sortable" data-fresh-sort="balance" id="fresh-sort-balance">Balance ▼</th>
                         <th class="right">% of Supply</th>
                     </tr></thead>
                     <tbody id="fresh-tbody"></tbody>
@@ -113,13 +116,13 @@
             <div class="flow-toolbar">
                 <div class="search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    <input type="text" class="search-input" id="cb-search" placeholder="Search address..." oninput="filterCb()">
+                    <input type="search" class="search-input" id="cb-search" name="cb-search" placeholder="Search Coinbase Prime Wallets…" aria-label="Search Coinbase Prime wallet addresses" autocomplete="off" spellcheck="false" inputmode="search">
                 </div>
-                <span class="toolbar-count" id="cb-count"></span>
+                <span class="toolbar-count" id="cb-count" aria-live="polite"></span>
                 <div class="period-pills" id="cb-period-pills" style="margin-left:auto">
-                    <button data-period="1">1D</button><button data-period="7">7D</button>
-                    <button data-period="30">30D</button><button data-period="90">90D</button>
-                    <button data-period="180">180D</button><button data-period="0" class="active">ALL</button>
+                    <button type="button" data-period="1">1D</button><button type="button" data-period="7">7D</button>
+                    <button type="button" data-period="30">30D</button><button type="button" data-period="90">90D</button>
+                    <button type="button" data-period="180">180D</button><button type="button" data-period="0" class="active">ALL</button>
                 </div>
             </div>
             <div class="table-scroll">
@@ -128,9 +131,9 @@
                     <thead><tr>
                         <th style="width:40px">#</th>
                         <th>Address</th>
-                        <th class="right sortable" onclick="toggleCbSort('date')" id="cb-sort-date">First Funded</th>
-                        <th class="right sortable" onclick="toggleCbSort('flow')" id="cb-sort-flow">Last Flow</th>
-                        <th class="right sortable" onclick="toggleCbSort('balance')" id="cb-sort-balance">Balance ▼</th>
+                        <th class="right sortable" data-cb-sort="date" id="cb-sort-date">First Funded</th>
+                        <th class="right sortable" data-cb-sort="flow" id="cb-sort-flow">Last Flow</th>
+                        <th class="right sortable" data-cb-sort="balance" id="cb-sort-balance">Balance ▼</th>
                         <th class="right">% of Supply</th>
                     </tr></thead>
                     <tbody id="cb-tbody"></tbody>
@@ -145,23 +148,23 @@
             <div class="flow-toolbar" style="flex-wrap:wrap;gap:8px">
                 <div class="search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                    <input type="text" class="search-input" id="cbt-search" placeholder="Filter by address 0x…" oninput="filterCbt()" style="width:200px">
+                    <input type="search" class="search-input" id="cbt-search" name="cbt-search" placeholder="Filter Transfers By Address…" aria-label="Filter Coinbase Prime transfers by address or label" autocomplete="off" spellcheck="false" inputmode="search" style="width:200px">
                 </div>
                 <div class="cbt-type-dropdown" style="position:relative">
-                    <button class="period-pill active" id="cbt-type-trigger" onclick="toggleCbtTypeDropdown()">ALL ▾</button>
+                    <button type="button" class="period-pill active" id="cbt-type-trigger" data-cbt-toggle aria-haspopup="menu" aria-expanded="false">ALL ▾</button>
                     <div class="cbt-type-menu" id="cbt-type-menu">
-                        <button onclick="setCbtType('ALL')">ALL</button>
-                        <button onclick="setCbtType('BUY')">🟢 BUY</button>
-                        <button onclick="setCbtType('SELL')">🔴 SELL</button>
-                        <button onclick="setCbtType('TRANSFER')">🔄 TRANSFER</button>
-                        <button onclick="setCbtType('OUTFLOW')">🟠 OUT</button>
-                        <button onclick="setCbtType('INFLOW')">🟢 IN</button>
+                        <button type="button" data-cbt-type="ALL">ALL</button>
+                        <button type="button" data-cbt-type="BUY">🟢 BUY</button>
+                        <button type="button" data-cbt-type="SELL">🔴 SELL</button>
+                        <button type="button" data-cbt-type="TRANSFER">🔄 TRANSFER</button>
+                        <button type="button" data-cbt-type="OUTFLOW">🟠 OUT</button>
+                        <button type="button" data-cbt-type="INFLOW">🟢 IN</button>
                     </div>
                 </div>
                 <div class="period-pills" id="cbt-period-pills" style="margin-left:auto">
-                    <button data-period="1">1D</button><button data-period="7">7D</button>
-                    <button data-period="30">30D</button><button data-period="90">90D</button>
-                    <button data-period="180">180D</button><button data-period="0" class="active">ALL</button>
+                    <button type="button" data-period="1">1D</button><button type="button" data-period="7">7D</button>
+                    <button type="button" data-period="30">30D</button><button type="button" data-period="90">90D</button>
+                    <button type="button" data-period="180">180D</button><button type="button" data-period="0" class="active">ALL</button>
                 </div>
             </div>
             <div class="table-scroll">
@@ -195,25 +198,25 @@
             <div class="flow-toolbar">
                 <div class="search-wrap">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" class="search-input" id="flow-search" placeholder="Search address 0x… or label" oninput="filterFlows()">
+                    <input type="search" class="search-input" id="flow-search" name="flow-search" placeholder="Search Address Or Label…" aria-label="Search flow addresses or labels" autocomplete="off" spellcheck="false" inputmode="search">
                 </div>
                 <div class="flow-toolbar-divider"></div>
                 <div class="chain-dropdown" id="chain-dropdown">
-                    <button class="chain-dd-trigger" id="chain-dd-trigger" onclick="toggleChainDropdown()">
+                    <button type="button" class="chain-dd-trigger" id="chain-dd-trigger" data-flow-chain-toggle aria-haspopup="menu" aria-expanded="false">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                         <span id="chain-dd-label">All Chains</span>
                         <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
                     </button>
                     <div class="chain-dd-menu" id="chain-dd-menu"></div>
                 </div>
-                <button class="cex-toggle" id="flow-hide-cex" onclick="toggleHideCex()" title="Hide CEX deposit wallets from the flow analysis">
+                <button type="button" class="cex-toggle" id="flow-hide-cex" title="Hide CEX deposit wallets from the flow analysis">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
                     Hide CEX
                 </button>
                 <div class="period-pills" id="flow-period-pills" style="margin-left:auto">
-                    <button data-period="1d">1D</button><button data-period="7d">7D</button>
-                    <button data-period="30d" class="active">30D</button><button data-period="90d">90D</button>
-                    <button data-period="180d">180D</button><button data-period="all">ALL</button>
+                    <button type="button" data-period="1d">1D</button><button type="button" data-period="7d">7D</button>
+                    <button type="button" data-period="30d" class="active">30D</button><button type="button" data-period="90d">90D</button>
+                    <button type="button" data-period="180d">180D</button><button type="button" data-period="all">ALL</button>
                 </div>
             </div>
             <div class="flow-grid">
@@ -296,11 +299,11 @@
     </div>
 
     <footer class="site-footer">
-        <p>ZRO Analytics · Data via <a href="https://etherscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd" target="_blank">Etherscan</a> · Price via <a href="https://coingecko.com" target="_blank">CoinGecko</a> · Tokenomics from <a href="https://layerzero.foundation" target="_blank">LayerZero Foundation</a></p>
-        <p style="margin-top:4px" id="footer-updated"></p>
+        <p>ZRO Analytics · Indexed On-Chain Snapshot via <a href="https://etherscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd" target="_blank" rel="noopener">Etherscan</a> · Live Price via <a href="https://coingecko.com" target="_blank" rel="noopener">CoinGecko</a> · Tokenomics from <a href="https://layerzero.foundation" target="_blank" rel="noopener">LayerZero Foundation</a></p>
+        <p style="margin-top:4px" id="footer-updated" aria-live="polite"></p>
     </footer>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
 <script src="app.js?v=18"></script>
 </body>
 </html>
