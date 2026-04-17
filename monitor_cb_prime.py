@@ -7,6 +7,7 @@ Runs hourly via GitHub Actions alongside refresh_balances.py.
 """
 import json, os, time
 from urllib.request import urlopen, Request
+from cex_addresses import KNOWN_CEX_ADDRESSES
 from utils import atomic_json_dump, fetch_json, get_api_key
 
 API_KEY = get_api_key()
@@ -18,32 +19,7 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(DIR, "zro_data.json")
 STATE_PATH = os.path.join(DIR, "cb_monitor_state.json")
 
-# Known CEX hot wallets
-KNOWN_CEX = {
-    "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43": "Coinbase",
-    "0x503828976d22510aad0201ac7ec88293211d23da": "Coinbase",
-    "0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740": "Coinbase",
-    "0x3cd751e6b0078be393132286c442345e68ff0afc": "Coinbase",
-    "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511": "Coinbase",
-    "0x28c6c06298d514db089934071355e5743bf21d60": "Binance",
-    "0x21a31ee1afc51d94c2efccaa2092ad1028285549": "Binance",
-    "0xdfd5293d8e347dfe59e90efd55b2956a1343963d": "Binance",
-    "0x56eddb7aa87536c09ccc2793473599fd21a8b17f": "Binance",
-    "0xb5bc3e38b5b683ce357ffd04d70354dcbbf813b2": "Binance",
-    "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe": "OKX",
-    "0x841ed663f2636863d40be4ee76243377dff13a34": "Robinhood",
-    "0x6cc5f688a315f3dc28a7781717a9a798a59fda7b": "OKX",
-    "0x236f9f97e0e62388479bf9e5ba4889e46b0273c3": "OKX",
-    "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d": "OKX",
-    "0xf89d7b9c864f589bbf53a82105107622b35eaa40": "Bybit",
-    "0x1db92e2eebc8e0c075a02bea49a2935bcd2dfcf4": "Bybit",
-    "0xeb2629a2734e272bcc07bda959863f316f4bd4cf": "Coinbase",
-    "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b": "Coinbase",
-    "0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d": "Coinbase",
-    "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc": "Coinbase",
-    "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4": "Coinbase",
-    "0x63be42b40816eb08f6ea480e5875e6f4668da379": "Upbit",
-}
+KNOWN_CEX = KNOWN_CEX_ADDRESSES
 
 MIN_ALERT_AMOUNT = 50_000  # Only alert for transfers >= 50K ZRO
 

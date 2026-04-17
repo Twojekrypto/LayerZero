@@ -5,8 +5,8 @@ Preserves: labels, types, fresh_wallets metadata, flows, chains config, etc.
 Updates: balances, total counts, timestamp.
 """
 import json, os, time
+from cex_addresses import KNOWN_CEX_ADDRESSES
 from utils import atomic_json_dump
-from auto_label import KNOWN_CEX_ADDRESSES
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -16,6 +16,56 @@ def load_json(path):
 
 def save_json(path, data):
     atomic_json_dump(data, path)
+
+
+def is_locked_fresh(holder):
+    return holder.get("type") == "FRESH" or holder.get("label") == "Fresh Wallet" or holder.get("fresh") is True
+
+
+def apply_preserved_metadata(entry, preserved):
+    for key in (
+        "label",
+        "type",
+        "funded_by",
+        "fresh",
+        "label_manual",
+        "fresh_profile",
+        "fresh_profile_label",
+        "fresh_profile_reason",
+        "fresh_signal",
+        "fresh_signal_label",
+        "fresh_signal_score",
+        "fresh_retention_ratio",
+        "fresh_net_accumulation",
+        "fresh_total_in_value",
+        "fresh_total_out_value",
+        "fresh_total_in_count",
+        "fresh_total_out_count",
+        "fresh_outbound_counterparties",
+        "fresh_outbound_ratio",
+        "fresh_cex_outbound_ratio",
+        "fresh_cex_score",
+        "fresh_cex_in_count",
+        "fresh_cex_out_count",
+        "fresh_cex_touch_count",
+        "fresh_cex_in_value",
+        "fresh_cex_out_value",
+        "wallet_created",
+        "last_flow",
+        "last_flow_amount",
+        "cb_first_funded",
+        "cb_last_funded",
+        "cb_total_received",
+        "cb_last_flow_amount",
+    ):
+        if preserved.get(key) is not None:
+            entry[key] = preserved[key]
+
+    if is_locked_fresh(entry):
+        entry["label"] = "Fresh Wallet"
+        entry["type"] = "FRESH"
+        entry["fresh"] = True
+        entry["label_manual"] = True
 
 def main():
     holders_path = os.path.join(DIR, "holders_multichain.json")
@@ -32,11 +82,34 @@ def main():
     label_map = {}
     for h in existing.get("top_holders", []):
         addr = h["address"].lower()
-        if h.get("label") or h.get("type"):
+        if h.get("label") or h.get("type") or h.get("label_manual") or h.get("fresh"):
             label_map[addr] = {
                 "label": h.get("label", ""),
                 "type": h.get("type", ""),
                 "funded_by": h.get("funded_by"),
+                "fresh": h.get("fresh"),
+                "label_manual": h.get("label_manual"),
+                "fresh_profile": h.get("fresh_profile"),
+                "fresh_profile_label": h.get("fresh_profile_label"),
+                "fresh_profile_reason": h.get("fresh_profile_reason"),
+                "fresh_signal": h.get("fresh_signal"),
+                "fresh_signal_label": h.get("fresh_signal_label"),
+                "fresh_signal_score": h.get("fresh_signal_score"),
+                "fresh_retention_ratio": h.get("fresh_retention_ratio"),
+                "fresh_net_accumulation": h.get("fresh_net_accumulation"),
+                "fresh_total_in_value": h.get("fresh_total_in_value"),
+                "fresh_total_out_value": h.get("fresh_total_out_value"),
+                "fresh_total_in_count": h.get("fresh_total_in_count"),
+                "fresh_total_out_count": h.get("fresh_total_out_count"),
+                "fresh_outbound_counterparties": h.get("fresh_outbound_counterparties"),
+                "fresh_outbound_ratio": h.get("fresh_outbound_ratio"),
+                "fresh_cex_outbound_ratio": h.get("fresh_cex_outbound_ratio"),
+                "fresh_cex_score": h.get("fresh_cex_score"),
+                "fresh_cex_in_count": h.get("fresh_cex_in_count"),
+                "fresh_cex_out_count": h.get("fresh_cex_out_count"),
+                "fresh_cex_touch_count": h.get("fresh_cex_touch_count"),
+                "fresh_cex_in_value": h.get("fresh_cex_in_value"),
+                "fresh_cex_out_value": h.get("fresh_cex_out_value"),
                 "wallet_created": h.get("wallet_created"),
                 "last_flow": h.get("last_flow"),
                 "last_flow_amount": h.get("last_flow_amount"),
@@ -58,12 +131,7 @@ def main():
         }
         # Preserve existing labels and metadata
         if addr in label_map:
-            entry["label"] = label_map[addr]["label"]
-            entry["type"] = label_map[addr]["type"]
-            # Preserve CB Prime metadata, funded_by, wallet_created, and last_flow
-            for key in ("funded_by", "wallet_created", "last_flow", "last_flow_amount", "cb_first_funded", "cb_last_funded", "cb_total_received", "cb_last_flow_amount"):
-                if label_map[addr].get(key) is not None:
-                    entry[key] = label_map[addr][key]
+            apply_preserved_metadata(entry, label_map[addr])
 
         new_holders.append(entry)
 
@@ -78,18 +146,26 @@ def main():
     for addr, lbl in label_map.items():
         if addr not in fresh_addrs:
             # Keep labeled address with ORIGINAL balances (not empty)
-            new_holders.append({
+            entry = {
                 "address": addr,
                 "balances": balance_map.get(addr, {}),
-                "label": lbl["label"],
-                "type": lbl["type"]
-            })
+                "label": "",
+                "type": ""
+            }
+            apply_preserved_metadata(entry, lbl)
+            new_holders.append(entry)
 
     # Apply Whale labels: >5M ZRO, no existing label
     # Apply KNOWN_CEX labels directly
     for h in new_holders:
         addr = h["address"].lower()
-        
+        if is_locked_fresh(h):
+            h["label"] = "Fresh Wallet"
+            h["type"] = "FRESH"
+            h["fresh"] = True
+            h["label_manual"] = True
+            continue
+
         # Enforce known CEX
         if addr in KNOWN_CEX_ADDRESSES:
             h["label"] = KNOWN_CEX_ADDRESSES[addr]

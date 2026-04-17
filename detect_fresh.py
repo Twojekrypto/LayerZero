@@ -14,6 +14,13 @@ Detection logic:
 """
 import json, os, time
 from urllib.request import urlopen, Request
+from cex_addresses import KNOWN_CEX_ADDRESSES, KNOWN_COINBASE_ADDRESSES
+from fresh_wallet_utils import (
+    analyze_cex_interactions,
+    apply_fresh_profile,
+    get_first_activity_timestamp_multichain,
+    get_latest_zro_transfer_context_multichain,
+)
 from utils import atomic_json_dump, fetch_json, get_api_key
 
 API_KEY = get_api_key()
@@ -48,18 +55,7 @@ COINBASE_INTERNAL_EXCLUDE = {
 }
 
 # Known Coinbase exchange hot wallets — used to detect internal shuttle wallets
-KNOWN_COINBASE_WALLETS = {
-    "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-    "0x503828976d22510aad0201ac7ec88293211d23da",
-    "0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740",
-    "0x3cd751e6b0078be393132286c442345e68ff0afc",
-    "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511",
-    "0xeb2629a2734e272bcc07bda959863f316f4bd4cf",
-    "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
-    "0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d",
-    "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc",
-    "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4",
-} | COINBASE_PRIME_HUBS  # Include the hub itself
+KNOWN_COINBASE_WALLETS = KNOWN_COINBASE_ADDRESSES | COINBASE_PRIME_HUBS
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(DIR, "zro_data.json")
@@ -79,43 +75,32 @@ def save_cache(cache):
     atomic_json_dump(cache, CACHE_PATH)
 
 
+def is_fresh_wallet(holder):
+    return holder.get("type") == "FRESH" or holder.get("label") == "Fresh Wallet" or holder.get("fresh") is True
+
+
+def apply_fresh_wallet_label(holder, created_ts=None):
+    holder["label"] = "Fresh Wallet"
+    holder["type"] = "FRESH"
+    holder["fresh"] = True
+    holder["label_manual"] = True
+    holder.setdefault("fresh_profile", "independent")
+    holder.setdefault("fresh_profile_label", "Independent")
+    holder.setdefault("fresh_profile_reason", "independent")
+    if created_ts and not holder.get("wallet_created"):
+        holder["wallet_created"] = created_ts
+
+
 def get_funding_source(address, label_map):
     """Check who sent ZRO to this address. Returns (label, last_flow_ts, last_flow_amount).
-    last_flow_amount is positive for inflows, negative for outflows.
-    Uses 1 API call — fetches last 20 ZRO transfers."""
-    url = (
-        f"https://api.etherscan.io/v2/api?chainid=1"
-        f"&module=account&action=tokentx"
-        f"&address={address}"
-        f"&contractaddress={ZRO_CONTRACT}"
-        f"&startblock=0&endblock=99999999"
-        f"&page=1&offset=20&sort=desc"
-        f"&apikey={API_KEY}"
+    last_flow_amount is positive for inflows, negative for outflows."""
+    best, last_flow_ts, last_flow_amount, _chain_id, _chain_name = get_latest_zro_transfer_context_multichain(
+        address,
+        ZRO_CONTRACT,
+        API_KEY,
+        label_map=label_map,
+        max_per_chain=20,
     )
-    data = fetch_json(url)
-    if not data or data.get("status") != "1" or not data.get("result"):
-        return None, 0, 0
-
-    # Find biggest labeled sender + latest flow (in or out)
-    senders = {}  # label -> total ZRO
-    last_flow_ts = 0
-    last_flow_amount = 0
-    for tx in data["result"]:
-        val = int(tx.get("value", "0")) / 1e18
-        ts = int(tx.get("timeStamp", "0"))
-        to_addr = tx.get("to", "").lower()
-        from_addr = tx.get("from", "").lower()
-        # Track latest flow regardless of direction
-        if ts > last_flow_ts and val > 0:
-            last_flow_ts = ts
-            last_flow_amount = val if to_addr == address else -val
-        # Track labeled senders (inflows only)
-        if to_addr == address:
-            label = label_map.get(from_addr)
-            if label:
-                senders[label] = senders.get(label, 0) + val
-
-    best = max(senders, key=senders.get) if senders else None
     return best, last_flow_ts, last_flow_amount
 
 
@@ -148,10 +133,6 @@ def get_contract_creation_timestamp(address):
         result = data["result"][0]
         deployer = result.get("contractCreator", "").lower()
         tx_hash = result.get("txHash", "")
-
-        # Check if deployer is known institutional deployer
-        if deployer in KNOWN_DEPLOYERS:
-            return None, deployer  # Skip — institutional contract
 
         # Get the TX timestamp
         if tx_hash:
@@ -187,130 +168,17 @@ def get_contract_creation_timestamp(address):
     return None, None
 
 
-KNOWN_CEX_HOT_WALLETS = {
-    "0x28c6c06298d514db089934071355e5743bf21d60",
-    "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
-    "0xdfd5293d8e347dfe59e90efd55b2956a1343963d",
-    "0x56eddb7aa87536c09ccc2793473599fd21a8b17f",
-    "0xb5bc3e38b5b683ce357ffd04d70354dcbbf813b2",
-    "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe",
-    "0x841ed663f2636863d40be4ee76243377dff13a34",
-    "0xf977814e90da44bfa03b6295a0616a897441acec",
-    "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-    "0x503828976d22510aad0201ac7ec88293211d23da",
-    "0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740",
-    "0x3cd751e6b0078be393132286c442345e68ff0afc",
-    "0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511",
-    "0xeb2629a2734e272bcc07bda959863f316f4bd4cf",
-    "0xcd531ae9efcce479654c4926dec5f6209531ca7b",
-    "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
-    "0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d",
-    "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc",
-    "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4",
-    "0x6cc5f688a315f3dc28a7781717a9a798a59fda7b",
-    "0x98ec059dc3adfbdd63429227115d9f17bebe7455",
-    "0x6cC5F688a315f3dC28A7781717a9A798a59fDA7b",
-    "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
-    "0x75e89d5979e4f6fba9f97c104c2f0afb3f1dcb88",
-    "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
-    "0x1ab4973a48dc892cd9971ece8e01dcc7688f8f23",
-    "0xd9d93951896b4ef97d251334ef2a0e39f6f6d7d7",
-    "0x2faf487a4414fe77e2327f0bf4ae2a264a776ad2",
-    "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
-    "0xd793281b45cebbdc1e30e3e3e47d7c5e7713e23d",
-    "0x46340b20830761efd32832a74d7169b29feb9758",
-    "0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23",
-    "0x63be42b40816eb08f6ea480e5875e6f4668da379",
-    "0xfdd710fa25cf1e08775cb91a2bf65f1329ccbd09",
-    "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
-}
+KNOWN_CEX_HOT_WALLETS = set(KNOWN_CEX_ADDRESSES)
 
 
 def get_first_tx_timestamp_multichain(address):
-    """Get the EARLIEST first transaction across ALL supported chains.
-    Returns the oldest first-tx timestamp found on any chain."""
-    # Chains to check: chainid values
-    chains_to_check = [
-        (1, "Ethereum"),
-        (42161, "Arbitrum"),
-        (8453, "Base"),
-        (56, "BSC"),
-        (10, "Optimism"),
-        (137, "Polygon"),
-        (43114, "Avalanche"),
-    ]
-
-    earliest_ts = None
-
-    for chain_id, chain_name in chains_to_check:
-        # Check normal transactions first
-        url = (
-            f"https://api.etherscan.io/v2/api?chainid={chain_id}"
-            f"&module=account&action=txlist"
-            f"&address={address}"
-            f"&startblock=0&endblock=99999999"
-            f"&page=1&offset=1&sort=asc"
-            f"&apikey={API_KEY}"
-        )
-        data = fetch_json(url)
-        if data and data.get("status") == "1" and data.get("result"):
-            ts = int(data["result"][0].get("timeStamp", 0))
-            if ts and (earliest_ts is None or ts < earliest_ts):
-                earliest_ts = ts
-            time.sleep(0.22)
-            continue
-
-        time.sleep(0.22)
-
-        # Fallback: check token transactions
-        url2 = (
-            f"https://api.etherscan.io/v2/api?chainid={chain_id}"
-            f"&module=account&action=tokentx"
-            f"&address={address}"
-            f"&startblock=0&endblock=99999999"
-            f"&page=1&offset=1&sort=asc"
-            f"&apikey={API_KEY}"
-        )
-        data2 = fetch_json(url2)
-        if data2 and data2.get("status") == "1" and data2.get("result"):
-            ts = int(data2["result"][0].get("timeStamp", 0))
-            if ts and (earliest_ts is None or ts < earliest_ts):
-                earliest_ts = ts
-
-        time.sleep(0.22)
-
-    return earliest_ts
+    """Get the EARLIEST first transaction across ALL supported chains."""
+    return get_first_activity_timestamp_multichain(address, API_KEY)
 
 
 def has_cex_interaction(address):
-    """Check if a wallet has direct ZRO transfers to/from known CEX hot wallets.
-    If so, this is likely a CEX deposit wallet, not an independent fresh buyer."""
-    url = (
-        f"https://api.etherscan.io/v2/api?chainid=1"
-        f"&module=account&action=tokentx"
-        f"&address={address}"
-        f"&contractaddress=0x6985884c4392d348587b19cb9eaaf157f13271cd"
-        f"&startblock=0&endblock=99999999"
-        f"&page=1&offset=50&sort=desc"
-        f"&apikey={API_KEY}"
-    )
-    data = fetch_json(url)
-    if not data or data.get("status") != "1" or not data.get("result"):
-        return False
-
-    cex_interactions = 0
-    has_deposit = False
-    for tx in data["result"]:
-        from_addr = tx.get("from", "").lower()
-        to_addr = tx.get("to", "").lower()
-        if from_addr in KNOWN_CEX_HOT_WALLETS or to_addr in KNOWN_CEX_HOT_WALLETS:
-            cex_interactions += 1
-        # If the wallet sends ZRO TO a CEX, it is likely an arbitrageur or cashing out, NOT a fresh accumulator
-        if to_addr in KNOWN_CEX_HOT_WALLETS:
-            has_deposit = True
-
-    # Reject if it transferred TO a CEX (deposit) OR if it has multiple interactions (CEX hot wallet proxy)
-    return has_deposit or cex_interactions >= 2
+    """Return a structured anti-CEX decision for Fresh Wallet screening."""
+    return analyze_cex_interactions(address, KNOWN_CEX_HOT_WALLETS, ZRO_CONTRACT, API_KEY, max_per_chain=80)
 
 
 def has_coinbase_roundtrip(address, cache=None):
@@ -449,6 +317,7 @@ def detect_coinbase_prime(data, cache=None):
 
     new_labeled = 0
     relabeled = 0
+    preserved_fresh = 0
     new_cb_wallets = []  # For Discord alerts
     for h in data["top_holders"]:
         addr = h["address"].lower()
@@ -463,6 +332,15 @@ def detect_coinbase_prime(data, cache=None):
         # Skip manually excluded internal Coinbase wallets
         if addr in COINBASE_INTERNAL_EXCLUDE:
             print(f"  ⛔ Excluded (internal): {addr[:14]}...")
+            continue
+        if is_fresh_wallet(h):
+            apply_fresh_wallet_label(h, h.get("wallet_created"))
+            h["cb_first_funded"] = info["first_ts"]
+            h["cb_last_funded"] = info["last_ts"]
+            h["cb_total_received"] = round(info["total"])
+            h["cb_last_flow_amount"] = round(info.get("last_amount", 0))
+            preserved_fresh += 1
+            print(f"  🔒 Preserve Fresh: {addr[:14]}... ({balance:,.0f} ZRO)")
             continue
         # Skip wallets with non-Fresh manual labels (BitGo, CEX, etc.)
         existing_label = h.get("label", "")
@@ -499,7 +377,7 @@ def detect_coinbase_prime(data, cache=None):
         print(f"   Pruned cb_prime_transfers: {len(transfers)} → 1000")
 
     print()
-    return new_cb_wallets, cb_updated
+    return new_cb_wallets, cb_updated, preserved_fresh
 
 
 def main():
@@ -517,14 +395,14 @@ def main():
         if lbl:
             label_map[h["address"].lower()] = lbl
 
-    # ── Phase 0: Age out expired FRESH/NEW_INST labels ──
+    # ── Phase 0: Age out expired NEW_INST labels (Fresh Wallet stays sticky) ──
     cache = load_cache()
     now = int(time.time())
     cutoff = now - (FRESH_AGE_DAYS * 86400)
     aged_out = 0
     for h in data["top_holders"]:
         addr = h["address"].lower()
-        if h.get("type") in ("FRESH", "NEW_INST"):
+        if h.get("type") == "NEW_INST":
             cached = cache.get(addr, {})
             first_ts = cached.get("first_ts", 0)
             if first_ts and (now - first_ts) > (FRESH_AGE_DAYS * 86400):
@@ -535,11 +413,11 @@ def main():
                 aged_out += 1
                 print(f"  ⏰ Aged out: {addr[:14]}... (was: {old_label})")
     if aged_out:
-        print(f"   Expired {aged_out} fresh/institutional labels")
+        print(f"   Expired {aged_out} institutional labels")
     print()
 
     # Phase 1: Coinbase Prime detection (before fresh wallet scan)
-    cb_wallets, cb_updated = detect_coinbase_prime(data, cache)
+    cb_wallets, cb_updated, preserved_fresh = detect_coinbase_prime(data, cache)
 
     # Get existing labeled addresses (skip these)
     already_labeled = set()
@@ -567,7 +445,7 @@ def main():
     if not candidates:
         print("✅ No new candidates to check")
         # Still save data if aging or CB detection changed something
-        if aged_out > 0 or len(cb_wallets) > 0:
+        if aged_out > 0 or len(cb_wallets) > 0 or cb_updated > 0 or preserved_fresh > 0:
             save_cache(cache)
             atomic_json_dump(data, DATA_PATH)
             print(f"💾 Saved changes")
@@ -596,22 +474,40 @@ def main():
             if result == "OLD":
                 cache_hits += 1
                 continue
-            # FRESH/NEW_INST: re-check if they've aged out (>30 days since first_ts)
+            if result == "FRESH":
+                first_ts = cached.get("first_ts", 0)
+                apply_fresh_wallet_label(h, first_ts)
+                profile = has_cex_interaction(addr)
+                apply_fresh_profile(h, profile)
+                # Check funding source + last inflow if label was lost during merge
+                if not h.get("funded_by") or not h.get("last_flow"):
+                    funder, li_ts, li_amt = get_funding_source(addr, label_map)
+                    if funder and not h.get("funded_by"):
+                        h["funded_by"] = funder
+                        print(f"     💰 Funded by: {funder}")
+                    if li_ts and not h.get("last_flow"):
+                        h["last_flow"] = li_ts
+                        h["last_flow_amount"] = li_amt
+                    time.sleep(0.25)
+                cache[addr]["checked"] = now_ts
+                cache_hits += 1
+                continue
+            # NEW_INST: re-check if they've aged out (>30 days since first_ts)
             first_ts = cached.get("first_ts", 0)
-            if first_ts and (now_ts - first_ts) > (FRESH_AGE_DAYS * 86400):
+            if result == "NEW_INST" and first_ts and (now_ts - first_ts) > (FRESH_AGE_DAYS * 86400):
                 # Aged out — remove label and mark as OLD
                 cache[addr] = {"result": "OLD", "checked": now_ts}
-                if h.get("type") in ("FRESH", "NEW_INST") and not h.get("label_manual"):
+                if h.get("type") == "NEW_INST" and not h.get("label_manual"):
                     h.pop("label", None)
                     h.pop("type", None)
                 cache_hits += 1
                 continue
-            elif result in ("FRESH", "NEW_INST"):
+            elif result == "NEW_INST":
                 # Still fresh — ensure label is applied (may have been lost during merge)
                 first_ts = cached.get("first_ts", 0)
-                if not h.get("type") or h.get("type") not in ("FRESH", "NEW_INST"):
-                    h["label"] = "Fresh Wallet" if result == "FRESH" else "New Institutional"
-                    h["type"] = result
+                if h.get("type") != "NEW_INST":
+                    h["label"] = "New Institutional"
+                    h["type"] = "NEW_INST"
                     # Check funding source + last inflow
                     funder, li_ts, li_amt = get_funding_source(addr, label_map)
                     if funder:
@@ -622,7 +518,7 @@ def main():
                         h["last_flow_amount"] = li_amt
                     time.sleep(0.25)
                     relabeled += 1
-                    print(f"  🔄 Re-labeled {addr[:14]}... as {result} (label was missing)")
+                    print(f"  🔄 Re-labeled {addr[:14]}... as NEW_INST (label was missing)")
                 # Always ensure wallet_created is set from cache
                 if first_ts and not h.get("wallet_created"):
                     h["wallet_created"] = first_ts
@@ -653,9 +549,18 @@ def main():
                         new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "NEW_INST", "wallet_type": "Contract"})
                         print(f"  🏛️ NEW INST: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old, deployer: {deployer[:10]}...)")
                     else:
-                        h["label"] = "Fresh Wallet"
-                        h["type"] = "FRESH"
-                        h["wallet_created"] = creation_ts
+                        apply_fresh_wallet_label(h, creation_ts)
+                        apply_fresh_profile(h, {
+                            "profile": "new_contract",
+                            "profile_label": "New contract",
+                            "reason": "fresh_contract",
+                            "score": 0,
+                            "incoming_from_cex_count": 0,
+                            "outgoing_to_cex_count": 0,
+                            "total_cex_touch_count": 0,
+                            "incoming_from_cex_value": 0,
+                            "outgoing_to_cex_value": 0,
+                        })
                         funder, li_ts, li_amt = get_funding_source(addr, label_map)
                         if funder:
                             h["funded_by"] = funder
@@ -665,7 +570,16 @@ def main():
                         time.sleep(0.25)
                         new_fresh += 1
                         cache[addr] = {"result": "FRESH", "first_ts": creation_ts, "checked": now_ts}
-                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "FRESH", "wallet_type": "Contract", "funded_by": funder or ""})
+                        new_wallets.append({
+                            "address": addr,
+                            "balance": total,
+                            "age_days": wallet_age,
+                            "type": "FRESH",
+                            "wallet_type": "Contract",
+                            "funded_by": funder or "",
+                            "fresh_profile": h.get("fresh_profile_label", ""),
+                            "fresh_signal": h.get("fresh_signal_label", ""),
+                        })
                         print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, contract {wallet_age}d old{', via '+funder if funder else ''})")
                 elif deployer and deployer in KNOWN_DEPLOYERS:
                     wallet_age = (now - creation_ts) // 86400 if creation_ts else 0
@@ -687,13 +601,21 @@ def main():
                     wallet_age = (now - first_ts) // 86400
                     # Check for CEX deposit pattern before labeling
                     time.sleep(0.25)
-                    if has_cex_interaction(addr):
-                        cache[addr] = {"result": "OLD", "first_ts": first_ts, "checked": now_ts, "reason": "CEX_DEPOSIT"}
-                        print(f"  🏦 CEX:   {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old, CEX interactions)")
+                    cex_filter = has_cex_interaction(addr)
+                    if cex_filter["profile"] == "cex_recycler":
+                        cache[addr] = {
+                            "result": "OLD",
+                            "first_ts": first_ts,
+                            "checked": now_ts,
+                            "reason": cex_filter["reason"],
+                        }
+                        print(
+                            f"  🏦 CEX:   {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old, "
+                            f"profile={cex_filter['profile']}, out_to_cex={cex_filter['outgoing_to_cex_count']})"
+                        )
                     else:
-                        h["label"] = "Fresh Wallet"
-                        h["type"] = "FRESH"
-                        h["wallet_created"] = first_ts
+                        apply_fresh_wallet_label(h, first_ts)
+                        apply_fresh_profile(h, cex_filter)
                         funder, li_ts, li_amt = get_funding_source(addr, label_map)
                         if funder:
                             h["funded_by"] = funder
@@ -703,8 +625,20 @@ def main():
                         time.sleep(0.25)
                         new_fresh += 1
                         cache[addr] = {"result": "FRESH", "first_ts": first_ts, "checked": now_ts}
-                        new_wallets.append({"address": addr, "balance": total, "age_days": wallet_age, "type": "FRESH", "wallet_type": "EOA", "funded_by": funder or ""})
-                        print(f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old{', via '+funder if funder else ''})")
+                        new_wallets.append({
+                            "address": addr,
+                            "balance": total,
+                            "age_days": wallet_age,
+                            "type": "FRESH",
+                            "wallet_type": "EOA",
+                            "funded_by": funder or "",
+                            "fresh_profile": h.get("fresh_profile_label", ""),
+                            "fresh_signal": h.get("fresh_signal_label", ""),
+                        })
+                        print(
+                            f"  🟢 FRESH: {addr[:14]}... ({total:,.0f} ZRO, EOA {wallet_age}d old"
+                            f"{', via '+funder if funder else ''}, profile={h.get('fresh_profile', 'independent')})"
+                        )
                 elif first_ts:
                     wallet_age = (now - first_ts) // 86400
                     cache[addr] = {"result": "OLD", "first_ts": first_ts, "checked": now_ts}
@@ -732,7 +666,15 @@ def main():
     save_cache(cache)
     print(f"💾 Cache saved ({len(cache)} entries)")
 
-    has_changes = new_fresh > 0 or new_inst > 0 or len(cb_wallets) > 0 or cb_updated > 0 or aged_out > 0 or relabeled > 0
+    has_changes = (
+        new_fresh > 0
+        or new_inst > 0
+        or len(cb_wallets) > 0
+        or cb_updated > 0
+        or preserved_fresh > 0
+        or aged_out > 0
+        or relabeled > 0
+    )
     if has_changes:
         atomic_json_dump(data, DATA_PATH)
         print(f"💾 Saved to {DATA_PATH}")
@@ -785,6 +727,10 @@ def send_discord_alerts(wallets):
                 {"name": "Age", "value": f"{w['age_days']} days", "inline": True},
                 {"name": "Type", "value": w["wallet_type"], "inline": True},
             ]
+        if w.get("fresh_profile"):
+            fields.append({"name": "Profile", "value": w["fresh_profile"], "inline": True})
+        if w.get("fresh_signal") and w["fresh_signal"] != "Fresh wallet":
+            fields.append({"name": "Signal", "value": w["fresh_signal"], "inline": True})
         if w.get("funded_by"):
             fields.append({"name": "💰 Funded by", "value": f"**{w['funded_by']}**", "inline": True})
         fields.append({"name": "Links", "value": f"[Etherscan]({etherscan_url}) · [DeBank]({debank_url})", "inline": False})

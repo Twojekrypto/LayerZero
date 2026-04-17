@@ -27,7 +27,7 @@
 - **EOA bez ETH (tylko ZRO):** `detect_fresh.py` ma fallback z `txlist` na `tokentx` — złapie także wallety zasilone wyłącznie tokenami.
 - **"Fresh" = pierwsza transakcja <30 dni, nie "kiedy dostał ZRO".** Stary wallet z 2022 który dopiero teraz kupił ZRO NIE jest fresh.
 - **Multichain Consistency:** Skrypty takie jak `monitor_whale_transfers.py` MUszą weryfikować wiek portfela przez pobieranie historii ze wszystkich chainów, tak jak robi to główny skan `detect_fresh.py`. Weryfikacja tylko `chainid=1` doprowadzi do fałszywych alarmów, z tytułu starych wielorybów na warstwie L2 przerzucających swoje pierwsze środki na ETH.
-- **Zero tolerancji dla CEX Deposits w heurystyce spamu:** Portfele odnotowujące chociażby 1 transfer wyjściowy TO a CEX dyskwalifikują się jako 'Fresh Wallets' – nowi inwestorzy hodlują, a nie od razu zrzucają tokeny na CEX (pomaga usunąć arbitrage proxy accounts).
+- **Nie mieszaj freshness z zachowaniem na CEX.** Wiek walleta odpowiada na pytanie „czy jest nowy”, a profil CEX odpowiada na pytanie „jak się zachowuje”. `CEX -> wallet` nie powinno samo z siebie dyskwalifikować `Fresh Wallet`, a `wallet -> CEX` powinno raczej budować profil ryzyka niż od razu usuwać label.
 
 ## Data Integrity
 
@@ -38,6 +38,7 @@
 - **`FORCE_SAVE=1`** pomija walidację (emergency override)
 - **Flow data była FAKE** (do 2026-03-20) — `random.uniform()` generował losowe wartości. Naprawione: `generate_flows.py` pobiera prawidłowe transfery z Etherscan.
 - **Reorg risk przy incremental scan:** Praktycznie zerowe dla naszego use case. Hourly `refresh_balances.py` sprawdza live `tokenbalance` → naprawia błędy balansów w <1h. Niedzielny full rescan resetuje historię.
+- **Manual Data Overrides vs Pipelines:**  ❌ Nigdy nie wprowadzaj ręcznych zmian (np. labeli) bezpośrednio `zro_data.json`, jeśli ten plik jest regularnie przepisywany przez GitHub Actions. Pipeline podczas `git pull --rebase -X theirs` nadpisze i zniszczy manualne poprawki. Zamiast tego zaimplementuj systemowe obejścia wewnątrz samych skryptów (np. wymuszanie labeli poprzez słowniki sprawdzające pod koniec procesu pipeline'owego).
 
 ## Multi-Chain
 
@@ -67,3 +68,48 @@
 - **Check `!important` overrides PRZED zmianą CSS.** `getComputedStyle()` w browser console > ufanie inline styles.
 - **Po zmianie kolumn tabeli → audyt WSZYSTKICH `nth-child` selektorów.** CSS selektory cicho nadpisują inline styles.
 - **Wait 30-60s na GH Pages deploy.** Nie zakładaj że zmiany są live od razu po push.
+
+## Dashboard Consistency & Data Quality (2026-04-16)
+
+- **Po każdej większej aktualizacji dopisz krótki wpis do `lessons.md`.** Minimum: co zmieniono, co się wysypało, co trzeba pamiętać przy następnym runie.
+- **Historyczny snapshot NIE może używać `Date.now()` do filtrów typu last 7d / 30d / 90d.** Wszystkie relative ages i okresy muszą być liczone względem `meta.generated`, inaczej UI pokazuje fałszywe wyniki dla starego `zro_data.json`.
+- **`top_holders` trzeba normalizować po pipeline.** Deduplikacja po adresie, zachowanie bogatszych metadanych i cleanup zero-balance holderów powinny być osobnym krokiem końcowym, a nie tylko efektem ubocznym pojedynczych skryptów.
+- **Nie zakładaj, że `chains.*.supply` zawsze zgadza się z indeksowanymi balance holderów.** Jeśli tracked balances > configured supply na chainie, dashboard ma to pokazać jako ostrzeżenie zamiast udawać precyzyjny supply breakdown.
+- **Sekcja `Fresh Wallets` potrzebuje backfillu metadanych po samym detection.** Sam label `FRESH` nie wystarczy — bez `wallet_created` i `last_flow` sortowanie i age labels robią się mylące albo puste.
+- **Smoke testy powinny pilnować integralności danych, nie tylko istnienia kluczy.** Minimum: brak duplikatów adresów w `top_holders`, obecność `meta.integrity`, i sprawdzenie, że frontend kotwiczy czas do snapshotu.
+- **Jeśli nie jesteśmy pewni poprawnej wartości źródłowej, nie „naprawiaj” danych ręcznie na chybił-trafił.** Lepiej zapisać anomalię w `meta.integrity`, pokazać ją w UI i poprawić generator źródła przy następnym refreshu.
+
+## Fresh Wallet Sticky Labels (2026-04-17)
+
+- **Po każdej większej zmianie dopisuj wnioski do `lessons.md`.** To ma być stały log decyzji pipeline + UI, nie jednorazowa notatka.
+- **`Fresh Wallet` musi być sticky label, nie chwilową heurystyką.** Jeśli portfel dostał status `Fresh Wallet`, pipeline ma już zawsze zachować `label = "Fresh Wallet"` i `type = "FRESH"`, zamiast później agingować go albo relabelować do Coinbase Prime.
+- **Sticky Fresh trzeba wymusić w kilku miejscach naraz:** `update_data.py` przy merge holderów, `detect_fresh.py` przy cache/aging i Coinbase pass, `monitor_whale_transfers.py` przy auto-dodawaniu nowych portfeli, oraz `sanitize_zro_data.py` przy końcowej normalizacji snapshotu.
+- **`label_manual = true` jest naszym lockiem na Fresh Wallet.** Jeśli wallet jest `FRESH`, to podczas merge i cleanupu trzeba zachować też `fresh = true` oraz `label_manual = true`, inaczej kolejny refresh może ten status zgubić.
+- **Normalizacja końcowa ma naprawiać także bieżący snapshot, nie tylko przyszłe runy.** Po zmianie logiki zawsze odpal `sanitize_zro_data.py`, żeby istniejące rekordy dostały nowy, spójny stan bez czekania na następny full refresh.
+- **Heurystyki `Fresh Wallet` i backfill muszą używać tej samej współdzielonej logiki multi-chain.** Jeśli `detect_fresh.py`, `backfill_fresh.py` i `monitor_whale_transfers.py` mają własne kopie funkcji, bardzo szybko rozjadą się między sobą.
+- **Anty-CEX ma sens jako filtr jakości, ale tylko jeśli działa multi-chain.** Ethereum-only check przepuszcza L2-only proxy/deposit wallety i daje fałszywe `Fresh Wallet`.
+- **Bug z `NEW_INST` może ukryć nowe instytucjonalne kontrakty.** Jeśli helper zwraca deployera bez timestampu deployu, późniejsza logika nie potrafi już odróżnić „new institutional” od „old institutional”.
+- **Samo `>= 2 interakcje z CEX` jest zbyt toporne jako filtr fresh.** Dwa inboundy z giełdy mogą oznaczać zwykłe kupowanie. Lepiej ważyć dużo mocniej `wallet -> CEX` niż `CEX -> wallet`, i rozróżniać „mały testowy ruch” od „realnego depozytu na giełdę”.
+- **Lista adresów CEX powinna mieć jeden backend source of truth.** Jeśli `auto_label.py`, `detect_fresh.py`, `monitor_whale_transfers.py` i `monitor_cb_prime.py` trzymają własne kopie mapy, to po kilku zmianach zaczynają filtrować różne rzeczy.
+- **Nowy model anty-CEX dla fresh:** `CEX -> wallet` buduje profil `cex_funded` / `cex_accumulator`, pojedyncze lub lekkie `wallet -> CEX` daje tylko `mixed_cex_activity`, a twarde odrzucenie zostaje dopiero dla `cex_recycler` przy ciężkim recyclingu (`>=20` outboundów do CEX na ETH+Arbitrum).
+- **Badge w UI powinien pokazywać ludzki profil, nie surowy reason key.** Jeśli frontend pokaże `cex_funded` albo `heavy_cex_recycling`, to szybko robi się nieczytelny; użytkownik powinien widzieć `CEX funded`, `Active CEX user` itp. z prostym tooltipem.
+- **Jeśli celem są duże nowe portfele akumulujące ZRO, sama etykieta `Fresh Wallet` to za mało.** Potrzebny jest drugi wymiar sygnału oparty o `current balance + retention ratio + net accumulation`, żeby odróżnić zwykły nowy wallet od realnego akumulatora.
+- **Najbardziej użyteczny scoring dla fresh to nie liczba tx, tylko jakość zatrzymania kapitału.** `retention_ratio = current_balance / total_inbound_zro` oraz `net_accumulation = inbound - outbound` lepiej łapią conviction niż same liczniki transferów.
+- **Warto mieć trzy poziomy priorytetu dla świeżych portfeli:** `Accumulator watchlist`, `Accumulator`, `Whale accumulator`. Dzięki temu dashboard może pokazywać nie tylko „kto jest nowy”, ale też „kto wygląda na duży, świeży portfel, który realnie buduje pozycję”.
+- **Jeśli celem dashboardu jest discovery, domyślne sortowanie `Fresh Wallets` nie powinno być po samym balance.** Lepszy default to `fresh_signal_score`, a dopiero potem tie-break na `net accumulation`, `retention` i `balance`, bo wtedy najwyżej lądują portfele najbardziej warte uwagi, a nie po prostu największe.
+- **Po backfillu fresh walletów zawsze odpal `sanitize_zro_data.py`.** Sam `backfill_fresh.py` może naprawić rekordy w `top_holders`, ale frontend bazuje też na `meta.integrity`; bez ponownej normalizacji dashboard może dalej pokazywać stare liczby braków.
+- **Tabela `Fresh Wallets` powinna mieć miękki fallback dla `Created`.** Jeśli z jakiegoś powodu `wallet_created` znów zniknie, lepiej pokazać `First seen` albo `Tracked on snapshot` jako estimate niż pustą kolumnę, która wygląda jak awaria.
+- **Po dodaniu nowych badge'y do `Fresh Wallets` trzeba pozwolić adresowej komórce się zawijać.** Sztywne `white-space: nowrap` szybko robi chaos przy `FRESH + Signal + Profile + funded_by`, zwłaszcza na mniejszych szerokościach.
+- **Sekcja `Fresh Wallets` zasługuje na własny `colgroup`.** Gdy dokładamy kolumnę `Signal`, trzeba od razu poprawić szerokości kolumn, inaczej fixed-layout ściska najważniejsze treści i tabela wygląda na przypadkową.
+- **Sam ranking nie wystarczy do discovery; potrzebny jest też szybki filtr.** Dla `Fresh Wallets` najlepiej działa prosty przełącznik `All / Accumulators / Whale only`, spięty z URL state, żeby dało się jednym kliknięciem przejść od szerokiego skanu do portfeli najwyższej jakości.
+- **Jeśli chcesz widzieć `Whale accumulator` bez przełączania widoku, dodaj osobny stat nad tabelą.** To powinien być licznik z całego fresh universe, a nie tylko z aktualnie przefiltrowanej listy, bo inaczej przestaje pełnić rolę szybkiego discovery cue.
+- **Dobry discovery stat powinien umieć zrobić drill-down jednym kliknięciem.** Jeśli licznik `Whale Accumulators` jest widoczny nad tabelą, warto dać mu `click-through` do filtra `Whale only`, razem z `aria-pressed`, focus ringiem i aktywnym stanem, żeby działał jak prawdziwa kontrolka, a nie martwa metryka.
+- **Premium dashboard nie potrzebuje większej liczby widgetów, tylko lepszego shellu i spokojniejszej hierarchii.** Największy skok jakości daje zwykle: mocniejszy header z utility KPI, bardziej szlachetne surface’y kart oraz tabele z wyraźnym sticky headerem, równym spacingiem i subtelnym hoverem zamiast dokładania kolejnych boxów.
+- **Jeśli tabela ma wyglądać premium, musi mieć własny charakter sekcyjny.** Sam globalny hover nie wystarczy; najlepiej działają delikatne akcenty per tabela lub per row type, np. inne left-rail highlighty dla `Fresh`, `Coinbase`, `Accumulators`, `Sellers` i `Whale Transfers`, plus scroll-edge fades i spokojniejsza paginacja.
+- **Premium mobile tables nie powinny kończyć się na poziomym scrollu.** Dla najważniejszych discovery tabel lepiej działa tryb `card rows` z `data-label`, gdzie każdy wiersz zamienia się na małą kartę z nazwami pól, a desktop zachowuje klasyczną tabelę.
+- **Po dopracowaniu UX tabel warto zrobić realny browser pass, nie tylko smoke test.** Screenshoty mobile szybko wyłapują rzeczy, których testy logiczne nie zobaczą, np. nachodzące na siebie KPI, zbyt ciasne filtry albo puste miejsca w gridzie statów.
+- **`ZRO Hodlers` na mobile potrzebuje innego modelu czytania niż desktop.** Przy dużej liczbie chain columns lepiej pokazywać tylko niezerowe balance jako pola karty, zamiast próbować zmieścić pełną desktopową tabelę na wąskim ekranie.
+- **Drawer sprawdza się jako drugi poziom gęstości informacji.** Jeśli wiersz ma być szybki do skanowania, ale nadal potrzebujemy więcej kontekstu dla touch UX, lepiej otworzyć lekki detail drawer niż dokładać kolejne badge’e i mikroteksty do samej tabeli.
+- **Tokenomics tabele też trzeba traktować jak first-class mobile UI.** Nawet jeśli desktopowo wyglądają dobrze, gęste tabele typu `Funding Rounds` bardzo szybko zaczynają się nakładać na mobile; najlepszym fixem jest ten sam card-row pattern z `data-label`, zamiast ściskania kolumn do granic czytelności.
+- **Premium polish najlepiej działa tam, gdzie uspokajamy powierzchnie zamiast dokładania ozdobników.** W `Tokenomics` mocniejszy efekt dały spokojniejsze gradienty, czystsza typografia i lepszy rytm kart niż dokładanie nowych ramek czy dodatkowych wskaźników.
+- **Premium motion w drawerze powinien być prawie niewidoczny.** Subtelne `opacity + scale + rise` daje wrażenie jakości i lekkości; cięższe animacje szybko robią się męczące przy częstym otwieraniu szczegółów z tabel.
