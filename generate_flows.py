@@ -44,11 +44,14 @@ PERIODS = {
 
 # How far back to scan on a FULL (first) run
 FULL_SCAN_DAYS = 365
+FLOW_INFRA_TYPES = {"CEX", "DEX", "PROTOCOL", "TEAM", "MULTISIG", "CUSTODY", "MM", "UNLOCK"}
+FLOW_MIN_RETENTION = 0.25
+FLOW_MIN_BALANCE = 1_000
 
 
 
 
-def get_zro_transfers(address, chain_id, start_block=0):
+def get_zro_transfers(address, chain_name, chain_id, start_block=0):
     """Fetch ZRO token transfers for an address on a specific chain."""
     transfers = []
     page = 1
@@ -76,6 +79,7 @@ def get_zro_transfers(address, chain_id, start_block=0):
                 "to": tx.get("to", "").lower(),
                 "value": int(tx.get("value", "0")) / (10 ** DECIMALS),
                 "timestamp": int(tx.get("timeStamp", "0")),
+                "chain": chain_name,
             })
 
         if len(results) < 1000:
@@ -133,6 +137,48 @@ def prune_old_transfers(cache, cutoff_ts):
         else:
             del cache["transfers"][addr]
     return pruned
+
+
+def build_flow_item(addr, holder_meta, inbound, outbound, chain_volume):
+    """Build a normalized flow item for the dashboard."""
+    balance = round(holder_meta.get("balance", 0))
+    net_flow = round(inbound - outbound)
+    if net_flow == 0:
+        return None
+
+    flow_chains = [chain for chain, volume in sorted(chain_volume.items(), key=lambda item: item[1], reverse=True) if volume > 0]
+    retention_ratio = round(balance / inbound, 4) if inbound > 0 else None
+    item = {
+        "address": addr,
+        "label": holder_meta.get("label", ""),
+        "type": holder_meta.get("type", ""),
+        "net_flow": net_flow,
+        "balance": balance,
+        "total_in": round(inbound),
+        "total_out": round(outbound),
+        "flow_chains": flow_chains,
+    }
+    if retention_ratio is not None:
+        item["retention_ratio"] = retention_ratio
+    if flow_chains:
+        item["primary_flow_chain"] = flow_chains[0]
+    return item
+
+
+def is_meaningful_accumulator(item):
+    """Positive net-flow holder who still retains a meaningful amount of ZRO."""
+    if item["type"] in FLOW_INFRA_TYPES or item["net_flow"] <= 0 or item["balance"] <= 0:
+        return False
+    retention_ratio = item.get("retention_ratio", 0)
+    min_balance = max(FLOW_MIN_BALANCE, abs(item["net_flow"]) * FLOW_MIN_RETENTION)
+    return retention_ratio >= FLOW_MIN_RETENTION or item["balance"] >= min_balance
+
+
+def is_meaningful_seller(item):
+    """Negative net-flow holder that still belongs to the tracked holder universe."""
+    if item["type"] in FLOW_INFRA_TYPES:
+        return False
+    return item["net_flow"] < 0 and item["balance"] > 0
 
 
 def main():
@@ -208,11 +254,11 @@ def main():
             if is_incremental and addr not in cache["transfers"]:
                 blocks_back = int(FULL_SCAN_DAYS * 86400 / block_time)
                 full_start = max(0, current_block - blocks_back)
-                transfers = get_zro_transfers(addr, chain_id, full_start)
+                transfers = get_zro_transfers(addr, chain_name, chain_id, full_start)
                 if transfers:
                     print(f"   🆕 Full scan for new wallet {addr[:10]}…: {len(transfers)} transfers")
             else:
-                transfers = get_zro_transfers(addr, chain_id, start_block)
+                transfers = get_zro_transfers(addr, chain_name, chain_id, start_block)
             total_requests += 1
             time.sleep(0.22)
 
@@ -224,7 +270,7 @@ def main():
                 )
                 # Fallback dedup for old cache entries without hash
                 existing_tuples = set(
-                    (t["from"], t["to"], int(t["value"]*100), t["timestamp"])
+                    (t["from"], t["to"], int(t["value"]*100), t["timestamp"], t.get("chain", ""))
                     for t in existing if not t.get("hash")
                 )
                 new_count = 0
@@ -232,7 +278,7 @@ def main():
                     if t.get("hash") and t["hash"] in existing_hashes:
                         continue
                     if not t.get("hash"):
-                        key = (t["from"], t["to"], int(t["value"]*100), t["timestamp"])
+                        key = (t["from"], t["to"], int(t["value"]*100), t["timestamp"], t.get("chain", ""))
                         if key in existing_tuples:
                             continue
                     existing.append(t)
@@ -268,47 +314,53 @@ def main():
     print(f"   Total wallets with transfers: {len(cache['transfers'])}")
 
     # Build label/type lookup
-    label_map = {}
-    balance_map = {}
+    holder_meta_map = {}
     for h in holders:
         addr = h["address"].lower()
-        label_map[addr] = {"label": h.get("label", ""), "type": h.get("type", "")}
-        balance_map[addr] = round(sum(h.get("balances", {}).values()))
+        holder_meta_map[addr] = {
+            "label": h.get("label", ""),
+            "type": h.get("type", ""),
+            "balance": round(sum(h.get("balances", {}).values())),
+        }
 
     # Compute flows per period from cached transfers
     new_flows = {}
 
     for period_key, period_secs in PERIODS.items():
         cutoff = now - period_secs
-        period_data = defaultdict(float)
+        period_data = defaultdict(lambda: {"in": 0.0, "out": 0.0, "chain_volume": defaultdict(float)})
 
         for addr, transfers in cache["transfers"].items():
-            net = 0.0
             for tx in transfers:
                 if tx["timestamp"] < cutoff:
                     continue
+                chain_name = tx.get("chain")
                 if tx["to"] == addr:
-                    net += tx["value"]
+                    period_data[addr]["in"] += tx["value"]
+                    if chain_name:
+                        period_data[addr]["chain_volume"][chain_name] += tx["value"]
                 if tx["from"] == addr:
-                    net -= tx["value"]
-            if abs(net) > 0.01:
-                period_data[addr] = round(net)
+                    period_data[addr]["out"] += tx["value"]
+                    if chain_name:
+                        period_data[addr]["chain_volume"][chain_name] += tx["value"]
 
         # Build sorted lists
-        all_items = []
-        for addr, net_flow in period_data.items():
-            if net_flow == 0:
+        acc = []
+        sell = []
+        for addr, stats in period_data.items():
+            holder_meta = holder_meta_map.get(addr)
+            if not holder_meta or holder_meta.get("balance", 0) <= 0:
                 continue
-            all_items.append({
-                "address": addr,
-                "label": label_map.get(addr, {}).get("label", ""),
-                "type": label_map.get(addr, {}).get("type", ""),
-                "net_flow": round(net_flow),
-                "balance": balance_map.get(addr, 0)
-            })
+            item = build_flow_item(addr, holder_meta, stats["in"], stats["out"], stats["chain_volume"])
+            if not item:
+                continue
+            if is_meaningful_accumulator(item):
+                acc.append(item)
+            elif is_meaningful_seller(item):
+                sell.append(item)
 
-        acc = sorted([f for f in all_items if f["net_flow"] > 0], key=lambda x: x["net_flow"], reverse=True)
-        sell = sorted([f for f in all_items if f["net_flow"] < 0], key=lambda x: x["net_flow"])
+        acc = sorted(acc, key=lambda x: (x["net_flow"], x.get("retention_ratio", 0), x["balance"]), reverse=True)
+        sell = sorted(sell, key=lambda x: (x["net_flow"], -x["balance"]))
 
         new_flows[period_key] = {"accumulators": acc, "sellers": sell}
         print(f"   {period_key}: {len(acc)} accumulators, {len(sell)} sellers")

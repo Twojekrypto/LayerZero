@@ -59,6 +59,9 @@ METADATA_KEYS = (
     "cb_total_received",
     "cb_last_flow_amount",
 )
+FLOW_INFRA_TYPES = {"CEX", "DEX", "PROTOCOL", "TEAM", "MULTISIG", "CUSTODY", "MM", "UNLOCK"}
+FLOW_MIN_RETENTION = 0.25
+FLOW_MIN_BALANCE = 1_000
 
 
 def load_json(path):
@@ -216,7 +219,125 @@ def normalize_holders(data, fresh_cache):
     return deduped, removed
 
 
-def build_integrity_report(data, duplicate_records_removed):
+def is_flow_infrastructure(flow_type):
+    return flow_type in FLOW_INFRA_TYPES
+
+
+def normalize_flow_item(raw_item, holder_map):
+    address = raw_item.get("address", "").lower()
+    if not address:
+        return None, "invalid"
+
+    holder = holder_map.get(address)
+    if not holder:
+        return None, "untracked"
+
+    label = raw_item.get("label") or holder.get("label", "")
+    flow_type = raw_item.get("type") or holder.get("type", "")
+    balance = round(float(raw_item.get("balance") or holder_total(holder) or 0))
+    net_flow = round(float(raw_item.get("net_flow") or 0))
+
+    if net_flow == 0 or balance <= 0:
+        return None, "stale"
+    if is_flow_infrastructure(flow_type):
+        return None, "infrastructure"
+
+    total_in = float(raw_item.get("total_in") or 0)
+    total_out = float(raw_item.get("total_out") or 0)
+    retention_ratio = raw_item.get("retention_ratio")
+    if retention_ratio in (None, "") and net_flow > 0:
+        base = total_in if total_in > 0 else abs(net_flow)
+        if base > 0:
+            retention_ratio = round(balance / base, 4)
+
+    normalized = {
+        "address": address,
+        "label": label,
+        "type": flow_type,
+        "net_flow": net_flow,
+        "balance": balance,
+    }
+    if total_in > 0:
+        normalized["total_in"] = round(total_in)
+    if total_out > 0:
+        normalized["total_out"] = round(total_out)
+    if retention_ratio not in (None, ""):
+        normalized["retention_ratio"] = round(float(retention_ratio), 4)
+
+    flow_chains = raw_item.get("flow_chains")
+    if isinstance(flow_chains, list) and flow_chains:
+        normalized["flow_chains"] = sorted({chain for chain in flow_chains if chain})
+    primary_chain = raw_item.get("primary_flow_chain")
+    if primary_chain:
+        normalized["primary_flow_chain"] = primary_chain
+
+    return normalized, "ok"
+
+
+def normalize_flows(data):
+    holder_map = {holder["address"].lower(): holder for holder in data.get("top_holders", [])}
+    flow_summary = {}
+
+    for period_key, flow_bucket in (data.get("flows") or {}).items():
+        summary = {
+            "raw_accumulators": len(flow_bucket.get("accumulators", [])),
+            "raw_sellers": len(flow_bucket.get("sellers", [])),
+            "excluded_untracked": 0,
+            "excluded_infrastructure": 0,
+            "excluded_zero_balance": 0,
+            "excluded_low_retention": 0,
+        }
+        accumulators = []
+        sellers = []
+
+        for raw_item in flow_bucket.get("accumulators", []):
+            item, reason = normalize_flow_item(raw_item, holder_map)
+            if reason == "untracked":
+                summary["excluded_untracked"] += 1
+                continue
+            if reason == "infrastructure":
+                summary["excluded_infrastructure"] += 1
+                continue
+            if reason != "ok":
+                summary["excluded_zero_balance"] += 1
+                continue
+
+            retention_ratio = float(item.get("retention_ratio") or 0)
+            min_balance = max(FLOW_MIN_BALANCE, abs(item["net_flow"]) * FLOW_MIN_RETENTION)
+            if item["net_flow"] <= 0 or (retention_ratio < FLOW_MIN_RETENTION and item["balance"] < min_balance):
+                summary["excluded_low_retention"] += 1
+                continue
+            accumulators.append(item)
+
+        for raw_item in flow_bucket.get("sellers", []):
+            item, reason = normalize_flow_item(raw_item, holder_map)
+            if reason == "untracked":
+                summary["excluded_untracked"] += 1
+                continue
+            if reason == "infrastructure":
+                summary["excluded_infrastructure"] += 1
+                continue
+            if reason != "ok":
+                summary["excluded_zero_balance"] += 1
+                continue
+            if item["net_flow"] >= 0:
+                continue
+            sellers.append(item)
+
+        accumulators.sort(key=lambda item: (item["net_flow"], item.get("retention_ratio", 0), item["balance"]), reverse=True)
+        sellers.sort(key=lambda item: (item["net_flow"], -item["balance"]))
+
+        flow_bucket["accumulators"] = accumulators
+        flow_bucket["sellers"] = sellers
+        summary["normalized_accumulators"] = len(accumulators)
+        summary["normalized_sellers"] = len(sellers)
+        flow_bucket["meta"] = summary
+        flow_summary[period_key] = summary
+
+    return flow_summary
+
+
+def build_integrity_report(data, duplicate_records_removed, flow_summary):
     holders = data.get("top_holders", [])
     chain_totals = {chain: 0 for chain in data.get("chains", {})}
     for holder in holders:
@@ -244,6 +365,7 @@ def build_integrity_report(data, duplicate_records_removed):
         "fresh_wallets_missing_last_flow": sum(1 for holder in fresh_wallets if not holder.get("last_flow")),
         "tracked_chain_balances": {chain: round(total, 8) for chain, total in chain_totals.items()},
         "chain_balance_anomalies": chain_balance_anomalies,
+        "flow_diagnostics": flow_summary,
     }
     return integrity
 
@@ -266,8 +388,9 @@ def main():
 
     deduped_holders, duplicate_records_removed = normalize_holders(data, fresh_cache)
     data["top_holders"] = deduped_holders
+    flow_summary = normalize_flows(data)
     data.setdefault("meta", {})
-    data["meta"]["integrity"] = build_integrity_report(data, duplicate_records_removed)
+    data["meta"]["integrity"] = build_integrity_report(data, duplicate_records_removed, flow_summary)
 
     integrity = data["meta"]["integrity"]
     anomaly_count = len(integrity["chain_balance_anomalies"])

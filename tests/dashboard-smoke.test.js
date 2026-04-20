@@ -11,6 +11,7 @@ const dashboardData = JSON.parse(fs.readFileSync(path.join(rootDir, 'zro_data.js
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
 const refreshEntrypoint = fs.readFileSync(path.join(rootDir, 'refresh_dashboard_data.py'), 'utf8');
 const sanitizeEntrypoint = fs.readFileSync(path.join(rootDir, 'sanitize_zro_data.py'), 'utf8');
+const generateFlowsEntrypoint = fs.readFileSync(path.join(rootDir, 'generate_flows.py'), 'utf8');
 const updateDataEntrypoint = fs.readFileSync(path.join(rootDir, 'update_data.py'), 'utf8');
 const detectFreshEntrypoint = fs.readFileSync(path.join(rootDir, 'detect_fresh.py'), 'utf8');
 const backfillFreshEntrypoint = fs.readFileSync(path.join(rootDir, 'backfill_fresh.py'), 'utf8');
@@ -71,6 +72,22 @@ test('repo exposes one-command local refresh entrypoints', () => {
   assert.match(refreshEntrypoint, /--dry-run/);
   assert.match(sanitizeEntrypoint, /duplicate_holder_records_removed/);
   assert.match(sanitizeEntrypoint, /chain_balance_anomalies/);
+});
+
+test('flow generation keeps chain context and focuses rankings on tracked holders', () => {
+  assert.match(generateFlowsEntrypoint, /"chain": chain_name/);
+  assert.match(generateFlowsEntrypoint, /FLOW_INFRA_TYPES/);
+  assert.match(generateFlowsEntrypoint, /retention_ratio/);
+  assert.match(generateFlowsEntrypoint, /primary_flow_chain/);
+  assert.match(generateFlowsEntrypoint, /is_meaningful_accumulator/);
+  assert.match(generateFlowsEntrypoint, /is_meaningful_seller/);
+  assert.match(sanitizeEntrypoint, /def normalize_flows\(/);
+  assert.match(sanitizeEntrypoint, /excluded_low_retention/);
+  assert.match(appJs, /function hydrateFlowChainFallbacks\(/);
+  assert.match(appJs, /function getHolderFlowChainFallbacks\(/);
+  assert.match(appJs, /function flowMatchesChain\(/);
+  assert.match(appJs, /function isMeaningfulFlowItem\(/);
+  assert.match(indexHtml, /Tracked holders only/);
 });
 
 test('fresh wallet labels stay sticky across the pipeline', () => {
@@ -172,6 +189,14 @@ test('snapshot data remains internally consistent', () => {
     assert.ok(dashboardData.flows[period], `missing flow period ${period}`);
     assert.ok(Array.isArray(dashboardData.flows[period].accumulators), `missing accumulators for ${period}`);
     assert.ok(Array.isArray(dashboardData.flows[period].sellers), `missing sellers for ${period}`);
+    for (const item of dashboardData.flows[period].accumulators) {
+      assert.ok(item.balance > 0, `accumulator should keep positive balance in ${period}`);
+      assert.ok(!['CEX', 'DEX', 'PROTOCOL', 'TEAM', 'MULTISIG', 'CUSTODY', 'MM', 'UNLOCK'].includes(item.type), `accumulator should not be infrastructure in ${period}`);
+    }
+    for (const item of dashboardData.flows[period].sellers) {
+      assert.ok(item.balance > 0, `seller should keep positive balance in ${period}`);
+      assert.ok(!['CEX', 'DEX', 'PROTOCOL', 'TEAM', 'MULTISIG', 'CUSTODY', 'MM', 'UNLOCK'].includes(item.type), `seller should not be infrastructure in ${period}`);
+    }
   }
 });
 
@@ -192,6 +217,15 @@ test('premium mobile tables expose drawer and loading primitives', () => {
   assert.match(styleCss, /page-loading/);
   assert.match(styleCss, /detail-drawer/);
   assert.match(styleCss, /table-mobile-holders/);
+});
+
+test('coinbase transfer toolbar keeps a CSS-driven search width and selectable dropdown', () => {
+  assert.match(indexHtml, /class="flow-toolbar cbt-toolbar"/);
+  assert.match(indexHtml, /id="cbt-type-dropdown"/);
+  assert.match(appJs, /function closeFloatingMenus\(/);
+  assert.match(appJs, /document\.addEventListener\('pointerdown', handleDocumentPointerDown\)/);
+  assert.match(styleCss, /\.cbt-toolbar \.search-wrap/);
+  assert.match(styleCss, /\.cbt-type-menu \{[^}]*z-index:140;/);
 });
 
 test('fresh wallets default to signal-ranked sorting for accumulator discovery', () => {

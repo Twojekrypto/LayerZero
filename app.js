@@ -10,6 +10,9 @@ const FRESH_FILTER_LABELS = {
     accumulators: 'accumulators',
     whales: 'whale accumulators',
 };
+const FLOW_INFRA_TYPES = new Set(['CEX', 'DEX', 'PROTOCOL', 'TEAM', 'MULTISIG', 'CUSTODY', 'MM', 'UNLOCK']);
+const FLOW_MIN_RETENTION = 0.25;
+const FLOW_MIN_BALANCE = 1000;
 
 function fmt(n, d=0) {
     if (n==null||isNaN(n)) return '—';
@@ -420,6 +423,7 @@ function mergeDuplicateHolders(records) {
 }
 function computeDataIntegrity(data, duplicateHolderRecordsRemoved=0) {
     const chainTotals = Object.fromEntries(Object.keys(data.chains || {}).map(chain => [chain, 0]));
+    const holderIndex = Object.fromEntries((data.top_holders || []).map(holder => [holder.address.toLowerCase(), holder]));
     (data.top_holders || []).forEach(holder => {
         Object.entries(holder.balances || {}).forEach(([chain, value]) => {
             if (chainTotals[chain] != null) chainTotals[chain] += Number(value) || 0;
@@ -437,16 +441,55 @@ function computeDataIntegrity(data, duplicateHolderRecordsRemoved=0) {
             overage: Number((trackedBalance - configuredSupply).toFixed(8)),
         }];
     });
+    const flowDiagnostics = Object.fromEntries(Object.entries(data.flows || {}).map(([period, flows]) => {
+        const items = [...(flows.accumulators || []), ...(flows.sellers || [])];
+        return [period, {
+            total_rows: items.length,
+            infrastructure_rows: items.filter(item => FLOW_INFRA_TYPES.has(item.type)).length,
+            untracked_rows: items.filter(item => !holderIndex[item.address?.toLowerCase?.()]).length,
+            zero_balance_rows: items.filter(item => !(Number(item.balance) || 0)).length,
+        }];
+    }));
     return {
         normalized_at: new Date().toISOString(),
         duplicate_holder_records_removed: duplicateHolderRecordsRemoved,
         fresh_wallets_missing_created: freshWallets.filter(holder => !holder.wallet_created).length,
         fresh_wallets_missing_last_flow: freshWallets.filter(holder => !holder.last_flow).length,
         tracked_chain_balances: Object.fromEntries(
-            Object.entries(chainTotals).map(([chain, total]) => [chain, Number(total.toFixed(8))])
+        Object.entries(chainTotals).map(([chain, total]) => [chain, Number(total.toFixed(8))])
         ),
         chain_balance_anomalies: chainBalanceAnomalies,
+        flow_diagnostics: flowDiagnostics,
     };
+}
+function getHolderFlowChainFallbacks(holder) {
+    if (!holder?.balances) return [];
+    return Object.entries(holder.balances)
+        .filter(([, value]) => Number(value || 0) > 0)
+        .sort(([, a], [, b]) => Number(b || 0) - Number(a || 0))
+        .map(([chain]) => chain);
+}
+function hydrateFlowChainFallbacks(data) {
+    Object.values(data.flows || {}).forEach(periodFlows => {
+        ['accumulators', 'sellers'].forEach(side => {
+            (periodFlows?.[side] || []).forEach(item => {
+                if (Array.isArray(item?.flow_chains) && item.flow_chains.length) {
+                    if (!item.primary_flow_chain) item.primary_flow_chain = item.flow_chains[0];
+                    return;
+                }
+                if (item?.chain) {
+                    item.flow_chains = [item.chain];
+                    item.primary_flow_chain = item.chain;
+                    return;
+                }
+                const holder = data.holder_index?.[item?.address?.toLowerCase?.()];
+                const fallbackChains = getHolderFlowChainFallbacks(holder);
+                if (!fallbackChains.length) return;
+                item.flow_chains = fallbackChains;
+                item.primary_flow_chain = fallbackChains[0];
+            });
+        });
+    });
 }
 function normalizeLoadedData(rawData) {
     const data = rawData || {};
@@ -463,6 +506,8 @@ function normalizeLoadedData(rawData) {
     data.top_holders = Array.from(grouped.values())
         .map(records => mergeDuplicateHolders(records))
         .sort((a, b) => getHolderTotalBalance(b) - getHolderTotalBalance(a));
+    data.holder_index = Object.fromEntries(data.top_holders.map(holder => [holder.address.toLowerCase(), holder]));
+    hydrateFlowChainFallbacks(data);
     data.meta = data.meta || {};
     data.meta.integrity = computeDataIntegrity(data, duplicateHolderRecordsRemoved);
     return data;
@@ -508,6 +553,50 @@ function getMainChain(addr) {
         if (bal > maxBal) { maxBal = bal; maxChain = chain; }
     }
     return maxChain;
+}
+
+function getTrackedHolder(address) {
+    return DATA?.holder_index?.[address.toLowerCase()] || null;
+}
+
+function getFlowItemBalance(item, holder=getTrackedHolder(item.address)) {
+    const explicitBalance = Number(item?.balance || 0);
+    if (explicitBalance > 0) return explicitBalance;
+    return holder ? getHolderTotalBalance(holder) : 0;
+}
+
+function getFlowRetentionRatio(item, balance=getFlowItemBalance(item)) {
+    const explicitRatio = Number(item?.retention_ratio);
+    if (Number.isFinite(explicitRatio) && explicitRatio > 0) return explicitRatio;
+    const totalIn = Number(item?.total_in || 0);
+    if (totalIn > 0 && balance > 0) return balance / totalIn;
+    const netFlow = Number(item?.net_flow || 0);
+    return netFlow > 0 && balance > 0 ? balance / netFlow : 0;
+}
+
+function flowMatchesChain(item, chain) {
+    if (chain === 'all') return true;
+    if (item?.chain) return item.chain === chain;
+    if (Array.isArray(item?.flow_chains) && item.flow_chains.length) return item.flow_chains.includes(chain);
+    if (item?.primary_flow_chain) return item.primary_flow_chain === chain;
+    const holder = getTrackedHolder(item.address);
+    return Boolean(holder && Number(holder.balances?.[chain] || 0) > 0);
+}
+
+function isMeaningfulFlowItem(item, type) {
+    const holder = getTrackedHolder(item.address);
+    const balance = getFlowItemBalance(item, holder);
+    const resolvedType = item.type || holder?.type || '';
+    if (!holder || balance <= 0 || FLOW_INFRA_TYPES.has(resolvedType)) return false;
+
+    const netFlow = Number(item?.net_flow || 0);
+    if (type === 'accumulators') {
+        if (netFlow <= 0) return false;
+        const retentionRatio = getFlowRetentionRatio(item, balance);
+        const minBalance = Math.max(FLOW_MIN_BALANCE, Math.abs(netFlow) * FLOW_MIN_RETENTION);
+        return retentionRatio >= FLOW_MIN_RETENTION || balance >= minBalance;
+    }
+    return netFlow < 0;
 }
 
 function addrCell(item) {
@@ -577,7 +666,7 @@ function applyStateFromUrl() {
 
     flowSearchQuery = params.get('flowSearch')?.trim() || '';
     flowChain = pickAllowedValue(params.get('flowChain'), ['all', ...Object.keys(DATA.chains || {})], 'all');
-    hideCex = parseBooleanParam(params.get('hideCex'));
+    hideCex = params.get('hideCex') == null ? true : parseBooleanParam(params.get('hideCex'));
     flowPageAcc = parsePositiveInt(params.get('flowAccPage'), 1);
     flowPageSell = parsePositiveInt(params.get('flowSellPage'), 1);
 
@@ -616,7 +705,7 @@ function updateUrlState(modeOverride) {
 
     if (flowSearchQuery) params.set('flowSearch', flowSearchQuery);
     if (flowChain !== 'all') params.set('flowChain', flowChain);
-    if (hideCex) params.set('hideCex', '1');
+    if (!hideCex) params.set('hideCex', '0');
     if (flowPageAcc !== 1) params.set('flowAccPage', String(flowPageAcc));
     if (flowPageSell !== 1) params.set('flowSellPage', String(flowPageSell));
 
@@ -820,10 +909,37 @@ function handleDelegatedAssetError(event) {
     const parentLink = event.target.closest('.h-debank-icon');
     if (parentLink) parentLink.style.display = 'none';
 }
+function closeCbtTypeDropdown() {
+    const menu = document.getElementById('cbt-type-menu');
+    const trigger = document.getElementById('cbt-type-trigger');
+    if (!menu || !trigger) return;
+    menu.classList.remove('open');
+    trigger.classList.remove('active');
+    trigger.setAttribute('aria-expanded', 'false');
+}
+function closeFlowChainDropdown() {
+    const menu = document.getElementById('chain-dd-menu');
+    const trigger = document.getElementById('chain-dd-trigger');
+    if (!menu || !trigger) return;
+    menu.classList.remove('open');
+    trigger.classList.toggle('active', flowChain !== 'all');
+    trigger.setAttribute('aria-expanded', 'false');
+}
+function closeFloatingMenus(except = null) {
+    if (except !== 'cbt') closeCbtTypeDropdown();
+    if (except !== 'flow-chain') closeFlowChainDropdown();
+}
+function handleDocumentPointerDown(event) {
+    const cbtDropdown = document.getElementById('cbt-type-dropdown');
+    if (cbtDropdown && !cbtDropdown.contains(event.target)) closeCbtTypeDropdown();
+    const flowDropdown = document.getElementById('chain-dropdown');
+    if (flowDropdown && !flowDropdown.contains(event.target)) closeFlowChainDropdown();
+}
 function initEventDelegation() {
     document.addEventListener('input', handleDelegatedInput);
     document.addEventListener('change', handleDelegatedChange);
     document.addEventListener('click', handleDelegatedClick);
+    document.addEventListener('pointerdown', handleDocumentPointerDown);
     document.addEventListener('keydown', handleDelegatedKeydown);
     document.addEventListener('error', handleDelegatedAssetError, true);
     window.addEventListener('popstate', handlePopState);
@@ -1559,29 +1675,17 @@ function setCbtTypeTriggerLabel() {
 function toggleCbtTypeDropdown() {
     const menu = document.getElementById('cbt-type-menu');
     const trigger = document.getElementById('cbt-type-trigger');
-    if(!menu) return;
-    const isOpen = menu.classList.toggle('open');
+    if(!menu || !trigger) return;
+    const isOpen = !menu.classList.contains('open');
+    closeFloatingMenus(isOpen ? 'cbt' : null);
+    menu.classList.toggle('open', isOpen);
     trigger.classList.toggle('active', isOpen);
     trigger.setAttribute('aria-expanded', String(isOpen));
-    if(isOpen) {
-        const close = e => {
-            if(!menu.contains(e.target) && e.target !== trigger) {
-                menu.classList.remove('open');
-                trigger.classList.remove('active');
-                trigger.setAttribute('aria-expanded', 'false');
-                document.removeEventListener('click', close);
-            }
-        };
-        setTimeout(() => document.addEventListener('click', close), 0);
-    }
 }
 function setCbtType(type) {
     cbtTypeFilter = type;
-    const trigger = document.getElementById('cbt-type-trigger');
     setCbtTypeTriggerLabel();
-    document.getElementById('cbt-type-menu').classList.remove('open');
-    trigger.classList.remove('active');
-    trigger.setAttribute('aria-expanded', 'false');
+    closeCbtTypeDropdown();
     cbtPage = 1;
     requestHistoryMode('push');
     renderCbTransfers();
@@ -1757,7 +1861,7 @@ function renderNewInstitutional() {
     if(card) card.style.display = total ? '' : 'none';
 }
 
-let flowPageAcc=1, flowPageSell=1, flowChain='all', hideCex=false, flowSearchQuery='';
+let flowPageAcc=1, flowPageSell=1, flowChain='all', hideCex=true, flowSearchQuery='';
 const CHAIN_ICONS_MAP={ethereum:'https://icons.llamao.fi/icons/chains/rsz_ethereum.jpg',arbitrum:'https://icons.llamao.fi/icons/chains/rsz_arbitrum.jpg',base:'https://icons.llamao.fi/icons/chains/rsz_base.jpg',bsc:'https://icons.llamao.fi/icons/chains/rsz_binance.jpg',optimism:'https://icons.llamao.fi/icons/chains/rsz_optimism.jpg',polygon:'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg',avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'};
 
 function getFlowItems(type){
@@ -1765,16 +1869,9 @@ function getFlowItems(type){
     let items=flows[type]||[];
     const q=flowSearchQuery.trim().toLowerCase();
     if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
-    if(flowChain!=='all'){
-        const holders=DATA.top_holders;
-        const addrSet=new Set(holders.filter(h=>(h.balances[flowChain]||0)>0).map(h=>h.address.toLowerCase()));
-        items=items.filter(f=>addrSet.has(f.address.toLowerCase()));
-    }
-    if(hideCex){
-        // Filter only type=CEX wallets (exchanges), NOT INST (investors like Coinbase Prime)
-        const cexAddrs=new Set(DATA.top_holders.filter(h=>h.type==='CEX').map(h=>h.address.toLowerCase()));
-        items=items.filter(f=>!cexAddrs.has(f.address.toLowerCase()));
-    }
+    if(flowChain!=='all') items=items.filter(item=>flowMatchesChain(item, flowChain));
+    if(hideCex) items=items.filter(item=>isMeaningfulFlowItem(item, type));
+    else items=items.filter(item=>type==='accumulators' ? Number(item.net_flow||0) > 0 : Number(item.net_flow||0) < 0);
     return items;
 }
 function toggleHideCex(){
@@ -1829,17 +1926,17 @@ function filterFlows() { flowSearchQuery=document.getElementById('flow-search').
 function setFlowChain(chain, label) {
     flowChain=chain; flowPageAcc=1; flowPageSell=1;
     document.getElementById('chain-dd-label').textContent = label || 'All Chains';
-    document.getElementById('chain-dd-menu').classList.remove('open');
-    const trigger = document.getElementById('chain-dd-trigger');
-    trigger.classList.toggle('active', chain !== 'all');
-    trigger.setAttribute('aria-expanded', 'false');
+    closeFlowChainDropdown();
     requestHistoryMode('push');
     renderFlows();
 }
 function toggleChainDropdown() {
     const menu = document.getElementById('chain-dd-menu');
     const trigger = document.getElementById('chain-dd-trigger');
-    const isOpen = menu.classList.toggle('open');
+    if (!menu || !trigger) return;
+    const isOpen = !menu.classList.contains('open');
+    closeFloatingMenus(isOpen ? 'flow-chain' : null);
+    menu.classList.toggle('open', isOpen);
     trigger.classList.toggle('active', isOpen || flowChain !== 'all');
     trigger.setAttribute('aria-expanded', String(isOpen));
 }
@@ -1851,16 +1948,6 @@ function initChainFilter() {
         html+=`<button type="button" class="chain-dd-item" data-flow-chain="${k}" data-flow-label="${c.short}">${icon?`<img src="${icon}" width="16" height="16" alt="" aria-hidden="true" style="border-radius:50%">`:`<span class="chain-dd-dot" style="background:${c.color}"></span>`}${c.short}</button>`;
     });
     menu.innerHTML=html;
-    // Click outside to close
-    document.addEventListener('click', (e) => {
-        const dd = document.getElementById('chain-dropdown');
-        if (dd && !dd.contains(e.target)) {
-            document.getElementById('chain-dd-menu').classList.remove('open');
-            const trigger = document.getElementById('chain-dd-trigger');
-            if (flowChain === 'all') trigger.classList.remove('active');
-            trigger.setAttribute('aria-expanded', 'false');
-        }
-    });
 }
 function initPeriodPills() {
     document.getElementById('flow-period-pills').querySelectorAll('button').forEach(b=>{
