@@ -349,6 +349,18 @@ test('coinbase transfer toolbar keeps a CSS-driven search width and selectable d
   assert.match(styleCss, /\.cbt-type-menu \{[^}]*z-index:140;/);
 });
 
+test('coinbase transfer table exposes a dedicated date column with URL-aware sorting', () => {
+  assert.match(appJs, /let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0, cbtSearchQuery='', cbtSortKey='date', cbtSortDir='desc';/);
+  assert.match(appJs, /const CBT_COLUMNS = \[\s*\{ id:'date', header:'Date'/);
+  assert.match(appJs, /function renderCbtDateCell\(timestamp\)/);
+  assert.match(appJs, /function toggleCbtSort\(key\)/);
+  assert.match(appJs, /cbtSortKey = pickAllowedValue\(rawCbtSort, \['date', 'amount'\], 'date'\)/);
+  assert.match(appJs, /if \(cbtSortKey !== 'date'\) params\.set\('cbtSort', cbtSortKey\)/);
+  assert.match(appJs, /if \(cbtSortDir !== 'desc'\) params\.set\('cbtDir', cbtSortDir\)/);
+  assert.match(styleCss, /\.cbt-date-cell/);
+  assert.match(styleCss, /#cbt-card \.cbt-col-date/);
+});
+
 test('fresh wallets default to signal-ranked sorting for accumulator discovery', () => {
   assert.match(appJs, /let freshPage=1, freshSearchQuery='', freshSortKey='signal', freshSortDir='desc', freshFilterMode='all';/);
   assert.match(appJs, /freshFilterMode = pickAllowedValue\(params\.get\('freshFilter'\), \['all', 'accumulators', 'whales'\], 'all'\)/);

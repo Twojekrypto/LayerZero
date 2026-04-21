@@ -948,7 +948,14 @@ function applyStateFromUrl() {
     cbtSearchQuery = params.get('cbtSearch')?.trim() || '';
     cbtTypeFilter = pickAllowedValue(params.get('cbtType'), ['ALL', 'BUY', 'SELL', 'TRANSFER', 'OUTFLOW', 'INFLOW'], 'ALL');
     cbtPeriodDays = Number.parseInt(pickAllowedValue(params.get('cbtPeriod'), ['0', '1', '7', '30', '90', '180'], '0'), 10);
-    cbtSortDir = Number.parseInt(pickAllowedValue(params.get('cbtSort'), ['0', '1', '2'], '0'), 10);
+    const rawCbtSort = params.get('cbtSort');
+    if (['0', '1', '2'].includes(rawCbtSort)) {
+        cbtSortKey = rawCbtSort === '0' ? 'date' : 'amount';
+        cbtSortDir = rawCbtSort === '2' ? 'asc' : 'desc';
+    } else {
+        cbtSortKey = pickAllowedValue(rawCbtSort, ['date', 'amount'], 'date');
+        cbtSortDir = pickAllowedValue(params.get('cbtDir'), ['asc', 'desc'], 'desc');
+    }
     cbtPage = parsePositiveInt(params.get('cbtPage'), 1);
 
     flowSearchQuery = params.get('flowSearch')?.trim() || '';
@@ -989,7 +996,8 @@ function updateUrlState(modeOverride) {
     if (cbtSearchQuery) params.set('cbtSearch', cbtSearchQuery);
     if (cbtTypeFilter !== 'ALL') params.set('cbtType', cbtTypeFilter);
     if (cbtPeriodDays !== 0) params.set('cbtPeriod', String(cbtPeriodDays));
-    if (cbtSortDir !== 0) params.set('cbtSort', String(cbtSortDir));
+    if (cbtSortKey !== 'date') params.set('cbtSort', cbtSortKey);
+    if (cbtSortDir !== 'desc') params.set('cbtDir', cbtSortDir);
     if (cbtPage !== 1) params.set('cbtPage', String(cbtPage));
 
     if (flowSearchQuery) params.set('flowSearch', flowSearchQuery);
@@ -1928,7 +1936,7 @@ function initCbPeriodPills() {
 }
 
 // ── Coinbase Prime Transfers ──
-let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0, cbtSearchQuery='';
+let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0, cbtSearchQuery='', cbtSortKey='date', cbtSortDir='desc';
 const CBT_PER_PAGE=20;
 const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395'};
 const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢'};
@@ -1947,27 +1955,43 @@ function cbtAddrCell(addr, label) {
     </div>`;
 }
 
+function renderCbtDateCell(timestamp) {
+    const date = new Date(timestamp * 1000);
+    const dayLabel = date.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+    const timeLabel = date.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', hour12:false });
+    const ageLabel = formatDaysAgoFromSnapshot(timestamp);
+    return `<div class="cbt-date-cell">
+        <div class="cbt-date-main">${dayLabel}</div>
+        <div class="cbt-date-sub">${timeLabel}${ageLabel ? ` · ${ageLabel}` : ''}</div>
+    </div>`;
+}
+
 // ─── Fixed column config (user-set widths, locked) ───
 const CBT_COLUMNS = [
-    { id:'from', header:'From', mobileLabel:'From / Tx', width:300, align:'left', render: (t) => {
-        const d = new Date(t.timestamp*1000);
-        const ds = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-        const ts = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+    { id:'date', header:'Date', mobileLabel:'Date', width:126, align:'left', sortable:'date', render: (t) => renderCbtDateCell(t.timestamp) },
+    { id:'from', header:'From', mobileLabel:'From', width:264, align:'left', render: (t) => {
         const txShort = t.hash ? t.hash.slice(0,10)+'…' : '';
         return `<div class="cbt-from-cell">
             ${cbtAddrCell(t.from, t.from_label)}
             <div class="cbt-tx-meta">
-                <a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" class="cbt-tx-link" title="${t.hash}">${txShort}</a>
-                <span class="cbt-tx-date">${ds} ${ts}</span>
+                <a href="https://etherscan.io/tx/${t.hash}" target="_blank" rel="noopener" class="cbt-tx-link" title="${t.hash}">Tx ${txShort}</a>
             </div>
         </div>`;
     }},
-    { id:'to', header:'To', mobileLabel:'To', width:300, align:'left', render: (t) => cbtAddrCell(t.to, t.to_label) },
-    { id:'type', header:'Type', mobileLabel:'Flow Type', width:148, align:'left', render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
-    { id:'amount', header:'Amount ⇅', mobileLabel:'Amount', width:180, align:'right', sortable:true, render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
+    { id:'to', header:'To', mobileLabel:'To', width:264, align:'left', render: (t) => cbtAddrCell(t.to, t.to_label) },
+    { id:'type', header:'Type', mobileLabel:'Flow Type', width:132, align:'left', render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
+    { id:'amount', header:'Amount', mobileLabel:'Amount', width:164, align:'right', sortable:'amount', render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
 ];
-let cbtSortDir = 0; // 0=date desc, 1=amount desc, 2=amount asc
-function toggleCbtSort() { cbtSortDir = (cbtSortDir + 1) % 3; cbtPage = 1; requestHistoryMode('push'); renderCbTransfers(); }
+function toggleCbtSort(key) {
+    if (cbtSortKey === key) cbtSortDir = cbtSortDir === 'desc' ? 'asc' : 'desc';
+    else {
+        cbtSortKey = key;
+        cbtSortDir = 'desc';
+    }
+    cbtPage = 1;
+    requestHistoryMode('push');
+    renderCbTransfers();
+}
 function setCbtTypeTriggerLabel() {
     const trigger = document.getElementById('cbt-type-trigger');
     if (!trigger) return;
@@ -2011,8 +2035,14 @@ function getFilteredCbtTransfers() {
             (t.to_label||'').toLowerCase().includes(q)
         );
     }
-    if(cbtSortDir === 1) filtered.sort((a,b) => b.value - a.value);
-    else if(cbtSortDir === 2) filtered.sort((a,b) => a.value - b.value);
+    filtered.sort((a, b) => {
+        let diff = 0;
+        if (cbtSortKey === 'amount') diff = Number(a.value || 0) - Number(b.value || 0);
+        else diff = Number(a.timestamp || 0) - Number(b.timestamp || 0);
+        if (diff !== 0) return cbtSortDir === 'asc' ? diff : -diff;
+        if (cbtSortKey === 'amount') return Number(b.timestamp || 0) - Number(a.timestamp || 0);
+        return Number(b.value || 0) - Number(a.value || 0);
+    });
     return filtered;
 }
 
@@ -2060,11 +2090,15 @@ function renderCbTransfers() {
         th.classList.add(`cbt-col-${c.id}`);
         if(c.align === 'right') th.classList.add('right');
         if(c.sortable) {
-            const arrow = cbtSortDir === 0 ? '⇅' : cbtSortDir === 1 ? '↓' : '↑';
-            const cls = cbtSortDir > 0 ? ' active' : '';
-            th.innerHTML = `Amount <span class="sort-arrow${cls}">${arrow}</span>`;
-            th.style.cursor = 'pointer';
-            th.addEventListener('click', toggleCbtSort);
+            th.classList.add('sortable');
+            const active = cbtSortKey === c.sortable;
+            th.setAttribute('aria-sort', active ? (cbtSortDir === 'desc' ? 'descending' : 'ascending') : 'none');
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `table-sort-btn${active ? ' active' : ''}`;
+            button.innerHTML = `${c.header}<span class="sort-arrow${active ? ' active' : ''}">${active ? (cbtSortDir === 'desc' ? '▼' : '▲') : '⇅'}</span>`;
+            button.addEventListener('click', () => toggleCbtSort(c.sortable));
+            th.appendChild(button);
         } else {
             th.textContent = c.header;
         }

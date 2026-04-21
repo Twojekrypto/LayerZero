@@ -437,10 +437,12 @@ body::after {
 .cbt-addr-hex { font-family:'JetBrains Mono',monospace; font-size:10px; color:rgba(255,255,255,0.3); margin-top:1px; }
 .addr-icon-btn { display:inline-flex; align-items:center; justify-content:center; background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; padding:2px; border-radius:3px; transition:background-color 0.15s ease, color 0.15s ease; }
 .addr-icon-btn:hover { color:var(--accent-cyan); background:rgba(34,211,238,0.08); }
-/* TX meta row (hash + date) */
+/* TX meta row (hash only) */
 .cbt-from-cell { display:flex; flex-direction:column; gap:4px; }
-.cbt-tx-meta { display:flex; align-items:center; gap:8px; margin-top:2px; }
-.cbt-tx-date { font-size:11px; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+.cbt-tx-meta { display:flex; align-items:center; gap:8px; margin-top:3px; }
+.cbt-date-cell { display:flex; flex-direction:column; gap:3px; }
+.cbt-date-main { font-size:12px; font-weight:700; color:var(--text-primary); letter-spacing:-0.1px; font-variant-numeric:tabular-nums; }
+.cbt-date-sub { font-size:10px; color:var(--text-muted); white-space:nowrap; font-variant-numeric:tabular-nums; }
 /* Inline stats in toolbar */
 .cbt-inline-stats { display:flex; align-items:center; gap:6px; }
 .cbt-stat-pill { font-size:11px; font-weight:600; font-variant-numeric:tabular-nums; padding:3px 8px; background:rgba(255,255,255,0.04); border-radius:6px; border:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
@@ -1125,6 +1127,9 @@ body::after {
 .fresh-signal-meta { color:var(--text-muted); font-size:11px; white-space:normal; line-height:1.35; }
 th.sortable { cursor:pointer; user-select:none; transition:color 0.15s; }
 th.sortable:hover { color:#60a5fa; }
+.table-sort-btn { display:inline-flex; align-items:center; gap:4px; padding:0; margin:0; background:none; border:none; color:inherit; font:inherit; cursor:pointer; }
+.table-sort-btn:hover { color:#60a5fa; }
+.table-sort-btn:focus-visible { outline:2px solid var(--accent-cyan); outline-offset:3px; border-radius:6px; }
 #fresh-table, #cb-table { table-layout:fixed; }
 
 .h-badge-unlock { background:rgba(251,146,60,0.15); color:#fb923c; border:1px solid rgba(251,146,60,0.25); }
@@ -2309,28 +2314,34 @@ body.drawer-open { overflow:hidden; }
     margin-top:3px;
     font-size:10px;
 }
+#cbt-card .cbt-col-date {
+    width:126px;
+    white-space:nowrap;
+}
 #cbt-card .cbt-col-from,
 #cbt-card .cbt-col-to {
-    width:300px;
+    width:264px;
 }
 #cbt-card .cbt-col-type {
-    width:148px;
+    width:132px;
 }
 #cbt-card .cbt-col-amount {
-    width:180px;
+    width:164px;
 }
+#cbt-card .cbt-col-date,
 #cbt-card .cbt-col-type,
 #cbt-card .cbt-col-amount {
     white-space:nowrap;
+}
+#cbt-card .cbt-col-date .table-sort-btn {
+    justify-content:flex-start;
 }
 #cbt-card .cbt-col-from .cbt-addr-main,
 #cbt-card .cbt-col-to .cbt-addr-main {
     gap:7px;
 }
 #cbt-card .cbt-col-from .cbt-tx-meta {
-    margin-top:7px;
-    gap:8px;
-    flex-wrap:wrap;
+    margin-top:6px;
 }
 #cbt-card .cbt-col-amount .h-usd-sub {
     text-align:right;
