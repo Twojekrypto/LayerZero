@@ -798,6 +798,42 @@ function flowSignalBadgeHTML(signalMeta, title='') {
 function flowIntensityBarHTML(pct, tone='neutral') {
     return `<div class="flow-intensity-bar"><div class="flow-intensity-fill tone-${escapeAttr(tone)}" style="width:${pct.toFixed(1)}%"></div></div>`;
 }
+function getEntityBadgeMeta(type) {
+    return {
+        CEX: { className: 'h-badge-cex', label: 'CEX' },
+        DEX: { className: 'h-badge-dex', label: 'DEX' },
+        PROTOCOL: { className: 'h-badge-protocol', label: 'Protocol' },
+        VC: { className: 'h-badge-vc', label: 'VC' },
+        INST: { className: 'h-badge-inst', label: 'Institutional' },
+        WALLET: { className: 'h-badge-wallet', label: 'Wallet' },
+        TEAM: { className: 'h-badge-team', label: 'Team' },
+        WHALE: { className: 'h-badge-whale', label: 'Whale' },
+        CUSTODY: { className: 'h-badge-custody', label: 'Custody' },
+        MULTISIG: { className: 'h-badge-multisig', label: 'Multisig' },
+        MM: { className: 'h-badge-mm', label: 'MM' },
+        FRESH: { className: 'h-badge-fresh', label: 'Fresh' },
+        UNLOCK: { className: 'h-badge-unlock', label: 'Unlock' },
+        NEW_INST: { className: 'h-badge-inst', label: 'Institutional' },
+    }[type] || { className: 'h-badge-whale', label: type || 'Wallet' };
+}
+function compactFlowPrimaryBadgeHTML(item, holder=getTrackedHolder(item.address)) {
+    const freshSignal = getFreshFlowSignal(item, holder);
+    if (freshSignal) {
+        return `<span class="h-badge h-badge-flow-fresh h-badge-flow-fresh-${escapeAttr(freshSignal)}">${escapeHtml(getFreshFlowLabel(item, holder))}</span>`;
+    }
+    if (item?.type && item.type !== 'WALLET') {
+        const meta = getEntityBadgeMeta(item.type);
+        return `<span class="h-badge ${meta.className}">${escapeHtml(meta.label)}</span>`;
+    }
+    return '';
+}
+function compactFlowSecondaryBadgeHTML(item, holder=getTrackedHolder(item.address)) {
+    const cohort = getFlowCohort(item, holder);
+    if (cohort === 'strategic' || cohort === 'coinbase') {
+        return `<span class="h-badge h-badge-flow-cohort h-badge-flow-${escapeAttr(cohort)} h-badge-flow-secondary">${escapeHtml(getFlowCohortLabel(item, holder))}</span>`;
+    }
+    return '';
+}
 function buildFlowWalletCell(item, holder, balance, balanceUsd) {
     return `<div class="flow-wallet-stack">${flowAddrCell(item)}<div class="flow-wallet-meta"><span class="flow-wallet-balance">${fmt(balance)} ZRO</span></div></div>`;
 }
@@ -882,23 +918,18 @@ function addrCell(item) {
 }
 function flowAddrCell(item) {
     const addr = item.address;
+    const holder = getTrackedHolder(addr);
     const shortA = shortAddr(addr);
     const explorerUrl = getAddressExplorerUrl(addr);
     const copyButton = copyButtonHTML(addr);
     const dbIcon = debankIconHTML(`https://debank.com/profile/${addr}`);
     const explorerIcon = explorerIconHTML(explorerUrl, `View ${shortA} on explorer`);
-    const cohort = getFlowCohort(item);
-    const cohortBadge = `<span class="h-badge h-badge-flow-cohort h-badge-flow-${cohort}">${escapeHtml(getFlowCohortLabel(item))}</span>`;
-    const freshSignal = getFreshFlowSignal(item);
-    const freshBadge = freshSignal
-        ? `<span class="h-badge h-badge-flow-fresh h-badge-flow-fresh-${escapeAttr(freshSignal)}">${escapeHtml(getFreshFlowLabel(item))}</span>`
-        : '';
-    const bCls = {'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','WALLET':'h-badge-wallet','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[item.type] || 'h-badge-whale';
-    const typeBadge = item.label ? `<span class="h-badge ${bCls}">${escapeHtml(item.type || 'Wallet')}</span>` : '';
+    const primaryBadge = compactFlowPrimaryBadgeHTML(item, holder);
+    const secondaryBadge = compactFlowSecondaryBadgeHTML(item, holder);
     if (item.label) {
-        return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a>${typeBadge}${freshBadge}</div><div class="h-addr-line2">${cohortBadge}<span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+        return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a>${primaryBadge}</div><div class="h-addr-line2">${secondaryBadge}<span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
     }
-    return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${freshBadge}</div><div class="h-addr-line2">${cohortBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+    return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${primaryBadge}</div><div class="h-addr-line2">${secondaryBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
 }
 
 // ── Tabs ──
@@ -2598,30 +2629,28 @@ function whaleScoreBadgeHTML(scoreMeta, compact=false) {
 function whaleContextBadgeHTML(contextMeta) {
     return `<span class="h-badge ${escapeAttr(contextMeta.className)} whale-context-badge">${escapeHtml(contextMeta.label)}</span>`;
 }
-function whaleTypeBadgeHTML(holder) {
+function whaleTypeBadgeHTML(holder, extraClass='') {
     if (!holder?.type || holder.type === 'WALLET') return '';
-    const badgeClass = {'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','UNLOCK':'h-badge-unlock','FRESH':'h-badge-fresh'}[holder.type] || 'h-badge-whale';
-    const badgeLabel = {
-        CEX: 'CEX',
-        DEX: 'DEX',
-        PROTOCOL: 'Protocol',
-        VC: 'VC',
-        INST: 'Institutional',
-        TEAM: 'Team',
-        WHALE: 'Whale',
-        CUSTODY: 'Custody',
-        MULTISIG: 'Multisig',
-        MM: 'MM',
-        UNLOCK: 'Unlock',
-        FRESH: 'Fresh',
-    }[holder.type] || holder.type;
-    return `<span class="h-badge ${badgeClass} whale-context-badge">${escapeHtml(badgeLabel)}</span>`;
+    const meta = getEntityBadgeMeta(holder.type);
+    return `<span class="h-badge ${meta.className} whale-context-badge ${extraClass}">${escapeHtml(meta.label)}</span>`;
 }
 function whaleCohortBadgeHTML(address, holder) {
     if (!holder) return '';
     const cohort = getFlowCohort({ address, label: holder.label, type: holder.type }, holder);
     if (cohort === 'all' || cohort === 'organic') return '';
-    return `<span class="h-badge h-badge-flow-cohort h-badge-flow-${escapeAttr(cohort)} whale-context-badge">${escapeHtml(FLOW_COHORT_LABELS[cohort] || cohort)}</span>`;
+    return `<span class="h-badge h-badge-flow-cohort h-badge-flow-${escapeAttr(cohort)} whale-context-badge whale-context-secondary">${escapeHtml(FLOW_COHORT_LABELS[cohort] || cohort)}</span>`;
+}
+function whalePrimaryContextBadgeHTML(address, holder) {
+    if (!holder) return '';
+    const freshSignal = getFreshFlowSignal({ address, label: holder.label, type: holder.type }, holder);
+    if (freshSignal) {
+        return `<span class="h-badge h-badge-flow-fresh h-badge-flow-fresh-${escapeAttr(freshSignal)} whale-context-badge">${escapeHtml(getFreshFlowLabel({ address, label: holder.label, type: holder.type }, holder))}</span>`;
+    }
+    const cohort = getFlowCohort({ address, label: holder.label, type: holder.type }, holder);
+    if (cohort === 'coinbase' || cohort === 'strategic') {
+        return `<span class="h-badge h-badge-flow-cohort h-badge-flow-${escapeAttr(cohort)} whale-context-badge">${escapeHtml(FLOW_COHORT_LABELS[cohort] || cohort)}</span>`;
+    }
+    return whaleTypeBadgeHTML(holder);
 }
 function isGenericWhaleEntityLabel(label) {
     const normalized = String(label || '').trim().toLowerCase();
@@ -2633,7 +2662,7 @@ function buildWhaleCounterpartyCell(address, resolvedLabel, holder, options={}) 
     const linkLabel = hasGenericLabel ? short : (resolvedLabel || short);
     const explorerUrl = `https://etherscan.io/address/${address}`;
     const debankUrl = `https://debank.com/profile/${address}`;
-    const typeBadge = options.showTypeBadge ? whaleTypeBadgeHTML(holder) : '';
+    const typeBadge = options.showTypeBadge ? whalePrimaryContextBadgeHTML(address, holder) : '';
     const cohortBadge = options.showCohortBadge ? whaleCohortBadgeHTML(address, holder) : '';
     const subAddress = resolvedLabel && !hasGenericLabel ? `<span class="whale-entity-address">${short}</span>` : '';
     const balance = holder ? getHolderTotalBalance(holder) : 0;

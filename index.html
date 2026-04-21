@@ -86,7 +86,7 @@
         <!-- FRESH WALLETS -->
         <div class="card anim" id="fresh-card" style="margin-top:24px">
             <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Fresh Wallets <span class="card-sub" id="fresh-sub">Receiving ZRO from Token Unlocks</span></h3></div>
-            <div class="fresh-stats" id="fresh-stats"></div>
+            <div class="fresh-stats summary-rail summary-rail-grid" id="fresh-stats"></div>
             <div class="flow-toolbar">
                 <div class="search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -125,7 +125,7 @@
         <!-- COINBASE PRIME INVESTORS -->
         <div class="card anim" id="cb-card" style="margin-top:24px">
             <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Coinbase Prime Investors <span class="card-sub" id="cb-sub">Institutional custody wallets</span></h3></div>
-            <div class="fresh-stats" id="cb-stats"></div>
+            <div class="fresh-stats summary-rail summary-rail-grid" id="cb-stats"></div>
             <div class="flow-toolbar">
                 <div class="search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -156,7 +156,7 @@
         <!-- COINBASE PRIME TRANSFERS -->
         <div class="card anim" id="cbt-card" style="margin-top:24px">
             <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Coinbase Prime Transfers <span class="card-sub" id="cbt-sub">All ZRO flows</span></h3></div>
-            <div class="fresh-stats" id="cbt-stats"></div>
+            <div class="fresh-stats summary-rail summary-rail-grid" id="cbt-stats"></div>
             <div class="flow-toolbar cbt-toolbar">
                 <div class="search-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -208,7 +208,7 @@
         <div class="card anim" id="flow-card">
             <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> ZRO Flows — Accumulators vs Sellers <span class="card-sub">Tracked holder net-flow analysis</span></h3></div>
             <div class="flow-context-note" id="flow-context-note" aria-live="polite"></div>
-            <div class="flow-signal-strip" id="flow-signal-strip" aria-live="polite"></div>
+            <div class="flow-signal-strip summary-rail summary-rail-strip" id="flow-signal-strip" aria-live="polite"></div>
             <div class="flow-toolbar flow-toolbar-flow">
                 <div class="flow-toolbar-cluster flow-toolbar-cluster-primary">
                     <div class="search-wrap flow-search-wrap">
@@ -276,7 +276,7 @@
         <!-- Whale Transfers -->
         <div class="card anim anim-d1" id="whale-card" style="display:none">
             <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Whale Transfers <span class="card-sub" id="whale-sub">Large Ethereum ZRO movements (≥100K)</span></h3></div>
-            <div class="whale-signal-strip" id="whale-signal-strip" aria-live="polite"></div>
+            <div class="whale-signal-strip summary-rail summary-rail-strip" id="whale-signal-strip" aria-live="polite"></div>
             <div class="flow-toolbar whale-toolbar-secondary">
                 <div class="flow-toolbar-cluster flow-toolbar-cluster-primary whale-toolbar-cluster-primary">
                     <span class="toolbar-count flow-toolbar-control whale-toolbar-count" id="whale-count" aria-live="polite"></span>
@@ -311,22 +311,22 @@
     <div id="view-tokenomics" class="tab-view">
         <!-- ALLOCATION -->
         <div class="card anim">
-            <div class="card-header"><h3>📊 Supply Allocation <span class="card-sub">1B ZRO Total</span></h3></div>
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Supply Allocation <span class="card-sub">1B ZRO Total</span></h3></div>
             <div id="alloc-section" class="alloc-grid"></div>
         </div>
         <!-- VESTING -->
         <div class="card anim anim-d1">
-            <div class="card-header"><h3>🔓 Vesting Schedule <span class="card-sub">CEO correction: real pressure ~2x lower</span></h3></div>
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Vesting Schedule <span class="card-sub">CEO correction: real pressure ~2x lower</span></h3></div>
             <div id="vesting-section" class="card-body-pad"></div>
         </div>
         <!-- BUYBACKS -->
         <div class="card anim anim-d2">
-            <div class="card-header"><h3>🔄 Stargate Buybacks <span class="card-sub">100% revenue → ZRO</span></h3></div>
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Stargate Buybacks <span class="card-sub">100% revenue → ZRO</span></h3></div>
             <div id="buyback-section" class="card-body-pad"></div>
         </div>
         <!-- INVESTORS -->
         <div class="card anim anim-d3">
-            <div class="card-header"><h3>💰 Funding Rounds <span class="card-sub">$318M+ raised</span></h3></div>
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Funding Rounds <span class="card-sub">$318M+ raised</span></h3></div>
             <div style="overflow-x:auto"><table class="data-table table-mobile-cards table-mobile-investors" id="investor-table">
                 <colgroup><col style="width:12%"><col style="width:10%"><col style="width:12%"><col style="width:10%"><col style="width:10%"><col style="width:8%"><col style="width:38%"></colgroup>
                 <thead><tr><th>Round</th><th>Date</th><th>Raised</th><th>Est. Price</th><th>ROI Today</th><th>Sell Risk</th><th>Investors</th></tr></thead>
@@ -335,12 +335,12 @@
         </div>
         <!-- VALUE STREAMS -->
         <div class="card anim anim-d4">
-            <div class="card-header"><h3>⚡ Value Accrual — 8 Streams <span class="card-sub">CEO: "All value goes to ZRO"</span></h3></div>
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Value Accrual — 8 Streams <span class="card-sub">CEO: "All value goes to ZRO"</span></h3></div>
             <div id="value-section" class="card-body-pad"></div>
         </div>
         <!-- KEY DATES -->
         <div class="card anim anim-d4">
-            <div class="card-header"><h3>📅 Key Dates Timeline</h3></div>
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Key Dates Timeline</h3></div>
             <div id="dates-section" class="card-body-pad"></div>
         </div>
     </div>
