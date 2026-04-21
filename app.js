@@ -1325,7 +1325,6 @@ function renderFreshWallets() {
     if(balTh) balTh.textContent = sortLabel('Balance', freshSortKey, 'balance', freshSortDir);
     const freshUniverse = getFreshWalletUniverse();
     const allFresh = getFreshWallets(false);
-    const totalSupply = DATA.total_supply || 1000000000;
     const price = DATA.meta?.price_usd || 0;
     const total = freshHolders.length;
     const totalPages = Math.max(1, Math.ceil(total / FRESH_PER_PAGE));
@@ -1333,12 +1332,8 @@ function renderFreshWallets() {
     const start = (freshPage - 1) * FRESH_PER_PAGE;
     const pageItems = freshHolders.slice(start, start + FRESH_PER_PAGE);
     let html = '';
-    const maxPct = pageItems.length ? Math.max(...pageItems.map(h => getHolderTotalBalance(h) / totalSupply * 100)) : 0.01;
     pageItems.forEach((h, i) => {
         const bal = getHolderTotalBalance(h);
-        const pct = (bal / totalSupply * 100).toFixed(4);
-        const pctNum = bal / totalSupply * 100;
-        const barW = Math.max(4, (pctNum / maxPct) * 100);
         const usdVal = price ? fmtUSD(bal * price) : '';
         const shortA = h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dbUrl = `https://debank.com/profile/${h.address}`;
@@ -1405,14 +1400,13 @@ function renderFreshWallets() {
             <td class="right"${dataLabelAttr('Created')}><div class="fresh-date${createdDisplay.estimated ? ' fresh-date-estimated' : ''}">${createdDate}</div><div class="val-muted">${createdAge}</div></td>
             <td class="right"${dataLabelAttr('Last Flow')}><div class="fresh-date">${lastFlowLine1}</div><div class="val-muted">${lastFlowAge}</div></td>
             <td class="right"${dataLabelAttr('Balance')}><div class="bal-main">${fmt(bal)}<span class="bal-unit">ZRO</span></div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
-            <td class="right"${dataLabelAttr('% of Supply')}><div class="supply-bar-wrap"><span class="val-muted">${pct}%</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${barW}%"></div></div></div></td>
         </tr>`;
     });
     // Pad empty rows to keep constant height
     const emptyRows = FRESH_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="7"></td></tr>';
-    if(!total && !freshSearchQuery) html = '<tr><td colspan="7"><div class="table-empty-state"><div class="empty-icon">🌱</div><div class="empty-text">No fresh wallets tracked</div></div></td></tr>';
-    if(!total && freshSearchQuery) html = '<tr><td colspan="7"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+freshSearchQuery+'"</div></div></td></tr>';
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="6"></td></tr>';
+    if(!total && !freshSearchQuery) html = '<tr><td colspan="6"><div class="table-empty-state"><div class="empty-icon">🌱</div><div class="empty-text">No fresh wallets tracked</div></div></td></tr>';
+    if(!total && freshSearchQuery) html = '<tr><td colspan="6"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+freshSearchQuery+'"</div></div></td></tr>';
     document.getElementById('fresh-tbody').innerHTML = html;
     const totalBal = allFresh.reduce((sum, holder) => sum + getHolderTotalBalance(holder), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';
