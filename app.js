@@ -2208,13 +2208,35 @@ function renderFlows() {
     if (signalStrip) {
         const accLeader = allAccItems[0];
         const sellLeader = allSellItems[0];
-        const accLeaderLabel = accLeader ? (accLeader.label || shortAddr(accLeader.address)) : 'None';
-        const sellLeaderLabel = sellLeader ? (sellLeader.label || shortAddr(sellLeader.address)) : 'None';
+        const compactLeader = (item) => {
+            if (!item) return 'None';
+            const raw = item.label || shortAddr(item.address);
+            return raw.length > 24 ? `${raw.slice(0, 22)}…` : raw;
+        };
+        const accLeaderLabel = compactLeader(accLeader);
+        const sellLeaderLabel = compactLeader(sellLeader);
+        const freshOverlapTotal = freshCounts.accumulators + freshCounts.sellers;
         signalStrip.innerHTML = `
-            <div class="flow-signal-stat"><div class="flow-signal-label">Accumulated</div><div class="flow-signal-value accent-green">${fmt(accVolume)} ZRO</div><div class="flow-signal-sub">${allAccItems.length} filtered wallets</div></div>
-            <div class="flow-signal-stat"><div class="flow-signal-label">Distributed</div><div class="flow-signal-value accent-rose">${fmt(sellVolume)} ZRO</div><div class="flow-signal-sub">${allSellItems.length} filtered wallets</div></div>
-            <div class="flow-signal-stat"><div class="flow-signal-label">Net tilt</div><div class="flow-signal-value ${netTilt >= 0 ? 'accent-green' : 'accent-rose'}">${netTilt >= 0 ? '+' : ''}${fmt(netTilt)} ZRO</div><div class="flow-signal-sub">${FLOW_COHORT_LABELS[flowCohort]} · ${currentPeriod.toUpperCase()}</div></div>
-            <div class="flow-signal-stat flow-signal-stat-wide"><div class="flow-signal-label">Signal leaders</div><div class="flow-signal-value">${accLeaderLabel} vs ${sellLeaderLabel}</div><div class="flow-signal-sub">${freshCounts.accumulators + freshCounts.sellers} fresh overlaps in scope</div></div>
+            <div class="flow-signal-stat flow-signal-stat-compact">
+                <div class="flow-signal-label">Accumulated</div>
+                <div class="flow-signal-value accent-green">${fmt(accVolume)} ZRO</div>
+                <div class="flow-signal-sub">${allAccItems.length} wallets</div>
+            </div>
+            <div class="flow-signal-stat flow-signal-stat-compact">
+                <div class="flow-signal-label">Distributed</div>
+                <div class="flow-signal-value accent-rose">${fmt(sellVolume)} ZRO</div>
+                <div class="flow-signal-sub">${allSellItems.length} wallets</div>
+            </div>
+            <div class="flow-signal-stat flow-signal-stat-compact">
+                <div class="flow-signal-label">Net tilt</div>
+                <div class="flow-signal-value ${netTilt >= 0 ? 'accent-green' : 'accent-rose'}">${netTilt >= 0 ? '+' : ''}${fmt(netTilt)} ZRO</div>
+                <div class="flow-signal-sub">${FLOW_COHORT_LABELS[flowCohort]} · ${currentPeriod.toUpperCase()}</div>
+            </div>
+            <div class="flow-signal-stat flow-signal-stat-compact flow-signal-stat-leader">
+                <div class="flow-signal-label">Leader pair</div>
+                <div class="flow-signal-value">${accLeaderLabel} / ${sellLeaderLabel}</div>
+                <div class="flow-signal-sub">${freshOverlapTotal} fresh overlaps</div>
+            </div>
         `;
     }
     ['accumulators','sellers'].forEach(type=>{

@@ -139,7 +139,7 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(styleCss, /flow-intensity-bar/);
   assert.match(styleCss, /flow-wallet-stack/);
   assert.match(styleCss, /flow-signal-stack/);
-  assert.match(styleCss, /@media\(max-width:1280px\)/);
+  assert.match(styleCss, /@media\(max-width:1180px\)/);
   assert.match(styleCss, /#whale-table\s*\{\s*min-width:960px;/);
   assert.doesNotMatch(styleCss, /#flow-card \.data-table\.table-mobile-flow,\s*#whale-table/);
   assert.match(styleCss, /h-badge-flow-cohort/);
