@@ -2671,11 +2671,31 @@ function renderWhaleTransfers() {
         const topSignal = filteredTransfers
             .map(t => ({ transfer: t, meta: getWhaleScoreMeta(t, getTrackedHolder(t.from), getTrackedHolder(t.to)) }))
             .sort((a, b) => b.meta.value - a.meta.value)[0];
+        const topSignalEntity = topSignal
+            ? (labelMap[topSignal.transfer.to.toLowerCase()] || topSignal.transfer.to_label || shortAddr(topSignal.transfer.to))
+            : 'None';
+        const compactEntity = topSignalEntity.length > 20 ? `${topSignalEntity.slice(0, 18)}…` : topSignalEntity;
         whaleSignalStrip.innerHTML = `
-            <div class="whale-signal-stat"><div class="whale-signal-label">Feed scope</div><div class="whale-signal-value">${filteredTotal}</div><div class="whale-signal-sub">${WHALE_FILTER_LABELS[whaleFilter]}</div></div>
-            <div class="whale-signal-stat"><div class="whale-signal-label">Buy-side</div><div class="whale-signal-value accent-green">${fmt(buyVolume)} ZRO</div><div class="whale-signal-sub">${buyRows.length} rows</div></div>
-            <div class="whale-signal-stat"><div class="whale-signal-label">Sell-side</div><div class="whale-signal-value accent-rose">${fmt(sellVolume)} ZRO</div><div class="whale-signal-sub">${sellRows.length} rows</div></div>
-            <div class="whale-signal-stat whale-signal-stat-wide"><div class="whale-signal-label">Signal leader</div><div class="whale-signal-value">${topSignal ? `${topSignal.meta.label} · ${(labelMap[topSignal.transfer.to.toLowerCase()] || topSignal.transfer.to_label || shortAddr(topSignal.transfer.to))}` : 'No standout row'}</div><div class="whale-signal-sub">${moveRows.length} wallet-to-wallet moves in scope</div></div>
+            <div class="whale-signal-stat whale-signal-stat-compact">
+                <div class="whale-signal-label">Scope</div>
+                <div class="whale-signal-value">${filteredTotal}</div>
+                <div class="whale-signal-sub">${WHALE_FILTER_LABELS[whaleFilter]}</div>
+            </div>
+            <div class="whale-signal-stat whale-signal-stat-compact">
+                <div class="whale-signal-label">Buys</div>
+                <div class="whale-signal-value accent-green">${fmt(buyVolume)} ZRO</div>
+                <div class="whale-signal-sub">${buyRows.length} rows</div>
+            </div>
+            <div class="whale-signal-stat whale-signal-stat-compact">
+                <div class="whale-signal-label">Sells</div>
+                <div class="whale-signal-value accent-rose">${fmt(sellVolume)} ZRO</div>
+                <div class="whale-signal-sub">${sellRows.length} rows</div>
+            </div>
+            <div class="whale-signal-stat whale-signal-stat-compact whale-signal-stat-leader">
+                <div class="whale-signal-label">Lead signal</div>
+                <div class="whale-signal-value">${topSignal ? `${topSignal.meta.label} / ${compactEntity}` : 'No standout row'}</div>
+                <div class="whale-signal-sub">${moveRows.length} moves</div>
+            </div>
         `;
     }
     let html = '';

@@ -529,6 +529,17 @@ body::after {
     overflow:hidden;
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.03);
 }
+#whale-card .whale-signal-strip {
+    grid-template-columns:minmax(0,0.88fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.16fr);
+    gap:0;
+    margin:0 24px;
+    padding:0;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:18px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.026) 0%, rgba(255,255,255,0.011) 100%);
+    overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.03);
+}
 .flow-signal-stat,
 .whale-signal-stat {
     min-width:0;
@@ -554,6 +565,18 @@ body::after {
 #flow-card .flow-signal-stat:last-child {
     border-right:none;
 }
+#whale-card .whale-signal-stat {
+    min-height:auto;
+    padding:11px 14px 10px;
+    border:none;
+    border-right:1px solid rgba(255,255,255,0.06);
+    border-radius:0;
+    background:none;
+    box-shadow:none;
+}
+#whale-card .whale-signal-stat:last-child {
+    border-right:none;
+}
 #flow-card .flow-signal-stat-wide {
     grid-column:auto;
 }
@@ -563,11 +586,27 @@ body::after {
     justify-content:center;
     gap:3px;
 }
+#whale-card .whale-signal-stat-compact {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:3px;
+}
 #flow-card .flow-signal-label {
     font-size:9px;
     letter-spacing:0.72px;
 }
+#whale-card .whale-signal-label {
+    font-size:9px;
+    letter-spacing:0.72px;
+}
 #flow-card .flow-signal-value {
+    margin-top:0;
+    font-size:22px;
+    line-height:1.04;
+    letter-spacing:-0.03em;
+}
+#whale-card .whale-signal-value {
     margin-top:0;
     font-size:22px;
     line-height:1.04;
@@ -579,11 +618,26 @@ body::after {
     line-height:1.35;
     color:rgba(255,255,255,0.42);
 }
+#whale-card .whale-signal-sub {
+    margin-top:0;
+    font-size:10px;
+    line-height:1.35;
+    color:rgba(255,255,255,0.42);
+}
 #flow-card .flow-signal-stat-leader .flow-signal-value {
     font-size:18px;
     line-height:1.12;
 }
+#whale-card .whale-signal-stat-leader .whale-signal-value {
+    font-size:18px;
+    line-height:1.12;
+}
 #flow-card .flow-signal-stat-leader .flow-signal-sub {
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+#whale-card .whale-signal-stat-leader .whale-signal-sub {
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -2348,6 +2402,18 @@ body.drawer-open { overflow:hidden; }
     #flow-card .flow-signal-stat:nth-last-child(-n+2){
         border-bottom:none;
     }
+    #whale-card .whale-signal-strip{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:1px;
+        margin:0 18px;
+    }
+    #whale-card .whale-signal-stat{
+        border-right:none;
+        border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    #whale-card .whale-signal-stat:nth-last-child(-n+2){
+        border-bottom:none;
+    }
     .flow-grid{padding:14px 18px 18px}
     .flow-toolbar-flow{margin:14px 18px 0}
 }
@@ -2551,10 +2617,28 @@ body.drawer-open { overflow:hidden; }
     #flow-card .flow-signal-stat:last-child{
         border-bottom:none;
     }
+    #whale-card .whale-signal-strip{
+        grid-template-columns:1fr;
+        gap:0;
+        margin:0 16px;
+        padding:0;
+    }
+    #whale-card .whale-signal-stat{
+        border-bottom:1px solid rgba(255,255,255,0.06);
+    }
+    #whale-card .whale-signal-stat:last-child{
+        border-bottom:none;
+    }
     #flow-card .flow-signal-value{
         font-size:20px;
     }
     #flow-card .flow-signal-stat-leader .flow-signal-value{
+        font-size:17px;
+    }
+    #whale-card .whale-signal-value{
+        font-size:20px;
+    }
+    #whale-card .whale-signal-stat-leader .whale-signal-value{
         font-size:17px;
     }
     .flow-grid{padding:12px 16px 16px}
