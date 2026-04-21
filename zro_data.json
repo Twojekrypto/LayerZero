@@ -17,7 +17,7 @@
     "cross_chain_stablecoin_share": 71,
     "oft_count": 750,
     "integrity": {
-      "normalized_at": "2026-04-21T10:39:11Z",
+      "normalized_at": "2026-04-21T11:29:59Z",
       "duplicate_holder_records_removed": 0,
       "fresh_wallets_missing_created": 0,
       "fresh_wallets_missing_last_flow": 0,
@@ -104,6 +104,14 @@
           "normalized_accumulators": 319,
           "normalized_sellers": 51
         }
+      },
+      "whale_transfer_diagnostics": {
+        "raw_rows": 102,
+        "deduplicated_rows": 0,
+        "removed_cex_to_cex": 14,
+        "reclassified_rows": 8,
+        "removed_below_threshold": 0,
+        "normalized_rows": 88
       }
     }
   },
@@ -35021,8 +35029,9 @@
       "value": 208333.38,
       "timestamp": 1774372259,
       "type": "TRANSFER",
-      "from_label": "0x15df\u20269e68",
-      "to_label": "0xb5e4\u2026c24e"
+      "from_label": "MultiSig/Contract",
+      "to_label": "0xb5e4\u2026c24e",
+      "event_id": "0xe509fdce0e90e375c079c043ba7cce73825d1c826915b844453ec02e8a5c7ebe:0x15dfe589b1cc12bbacadd01ed5d9e2d2fab59e68:0xb5e4d21240e9356cafc3a1261d10383f62dfc24e:1774372259:TRANSFER"
     },
     {
       "tx_hash": "0x956ec6932caf758bbf9d67107bb6c521ffc67218342b5ada02a9e3bf27d3b35a",
@@ -35032,7 +35041,8 @@
       "timestamp": 1774373963,
       "type": "TRANSFER",
       "from_label": "0xb5e4\u2026c24e",
-      "to_label": "0x71b8\u20267cdd"
+      "to_label": "0x71b8\u20267cdd",
+      "event_id": "0x956ec6932caf758bbf9d67107bb6c521ffc67218342b5ada02a9e3bf27d3b35a:0xb5e4d21240e9356cafc3a1261d10383f62dfc24e:0x71b83613743e42c800fc7b7648c53f16847c7cdd:1774373963:TRANSFER"
     },
     {
       "tx_hash": "0xaa8ac894b1e749107b9106d2f5c8be1024de7262bdfe88258b7eec104dfffbb2",
@@ -35042,7 +35052,8 @@
       "timestamp": 1774374179,
       "type": "CEX_DEPOSIT",
       "from_label": "0x71b8\u20267cdd",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0xaa8ac894b1e749107b9106d2f5c8be1024de7262bdfe88258b7eec104dfffbb2:0x71b83613743e42c800fc7b7648c53f16847c7cdd:0x28c6c06298d514db089934071355e5743bf21d60:1774374179:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x0cd98fd81fca20fd21c5b2d806f0ca30ac9ab6b46e5751764d0cce44b4837fc2",
@@ -35052,17 +35063,8 @@
       "timestamp": 1774385051,
       "type": "TRANSFER",
       "from_label": "Wintermute 4",
-      "to_label": "0x5626\u2026ee9d"
-    },
-    {
-      "tx_hash": "0x7a7df9ad92655f578e41ce186386099f72eb22d0727693c1b76da45b3dd68465",
-      "from": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "to": "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
-      "value": 133333.0,
-      "timestamp": 1774391675,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Coinbase",
-      "to_label": "0x6e1a\u2026129b"
+      "to_label": "Borderless Capital",
+      "event_id": "0x0cd98fd81fca20fd21c5b2d806f0ca30ac9ab6b46e5751764d0cce44b4837fc2:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:0x56264e5ec5215c3974cfb550d3aefa6720f5ee9d:1774385051:TRANSFER"
     },
     {
       "tx_hash": "0xbd6b155f0315bd9498b5098e39588732d441c003e57d2fcea730e985a87632f3",
@@ -35071,48 +35073,9 @@
       "value": 669810.65,
       "timestamp": 1774391831,
       "type": "CEX_DEPOSIT",
-      "from_label": "0x8fda\u20267f17",
-      "to_label": "Coinbase"
-    },
-    {
-      "tx_hash": "0xe1de8440d344522b4148fa06957c4799e56d37342bc9632e5aefb26d77ab2fde",
-      "from": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "to": "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
-      "value": 133329.0,
-      "timestamp": 1774391903,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Coinbase",
-      "to_label": "0x6e1a\u2026129b"
-    },
-    {
-      "tx_hash": "0xe1de8440d344522b4148fa06957c4799e56d37342bc9632e5aefb26d77ab2fde",
-      "from": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "to": "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
-      "value": 133330.0,
-      "timestamp": 1774391903,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Coinbase",
-      "to_label": "0x6e1a\u2026129b"
-    },
-    {
-      "tx_hash": "0xe1de8440d344522b4148fa06957c4799e56d37342bc9632e5aefb26d77ab2fde",
-      "from": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "to": "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
-      "value": 133331.0,
-      "timestamp": 1774391903,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Coinbase",
-      "to_label": "0x6e1a\u2026129b"
-    },
-    {
-      "tx_hash": "0xe1de8440d344522b4148fa06957c4799e56d37342bc9632e5aefb26d77ab2fde",
-      "from": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "to": "0x6e1abc08ad3a845726ac93c0715be2d7c9e7129b",
-      "value": 133332.0,
-      "timestamp": 1774391903,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Coinbase",
-      "to_label": "0x6e1a\u2026129b"
+      "from_label": "CEX Deposit Wallet",
+      "to_label": "Coinbase",
+      "event_id": "0xbd6b155f0315bd9498b5098e39588732d441c003e57d2fcea730e985a87632f3:0x8fda775a324a0970135b054a7df649342a9a7f17:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:1774391831:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x1ed0dc297afc80bf9ff6ae293e97f5da6f5c8cfce3c9bdc21c6d90aa572df65d",
@@ -35120,9 +35083,10 @@
       "to": "0xe8c15aad9d4cd3f59c9dfa18828b91a8b2c49596",
       "value": 190000.0,
       "timestamp": 1774393127,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0x58ed\u20266a51",
-      "to_label": "0xe8c1\u20269596"
+      "to_label": "KuCoin",
+      "event_id": "0x1ed0dc297afc80bf9ff6ae293e97f5da6f5c8cfce3c9bdc21c6d90aa572df65d:0x58edf78281334335effa23101bbe3371b6a36a51:0xe8c15aad9d4cd3f59c9dfa18828b91a8b2c49596:1774393127:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x78f05f051be5baebe5e2972daa0f0c454bbe961897ad69b545b92238f2b89efe",
@@ -35131,8 +35095,9 @@
       "value": 7041414.41,
       "timestamp": 1774403771,
       "type": "TRANSFER",
-      "from_label": "LayerZero: STG to ZRO Redemption",
-      "to_label": "0x60fa\u20261bb8"
+      "from_label": "LayerZero: STG ZRO Swapper",
+      "to_label": "0x60fa\u20261bb8",
+      "event_id": "0x78f05f051be5baebe5e2972daa0f0c454bbe961897ad69b545b92238f2b89efe:0x921949cc006a563d76abd111a3e4c2ace2c4273f:0x60fa3dffd4f54b80a9e7ba79acdce50aa2a31bb8:1774403771:TRANSFER"
     },
     {
       "tx_hash": "0x58a88dfdb63ae421f09c3abf7adee7e04472df69f389826dfd808c26fbd9a2b4",
@@ -35140,9 +35105,10 @@
       "to": "0x63be42b40816eb08f6ea480e5875e6f4668da379",
       "value": 7041414.41,
       "timestamp": 1774403831,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "Fresh Wallet",
-      "to_label": "Whale"
+      "to_label": "Upbit",
+      "event_id": "0x58a88dfdb63ae421f09c3abf7adee7e04472df69f389826dfd808c26fbd9a2b4:0x60fa3dffd4f54b80a9e7ba79acdce50aa2a31bb8:0x63be42b40816eb08f6ea480e5875e6f4668da379:1774403831:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x2620625dcd768d894ea4a559e63683d5e68f92356c0f2ef03b4bfee9479e05ff",
@@ -35151,8 +35117,9 @@
       "value": 954843.82,
       "timestamp": 1774430939,
       "type": "TRANSFER",
-      "from_label": "LayerZero: STG to ZRO Redemption",
-      "to_label": "0xedeb\u20268da8"
+      "from_label": "LayerZero: STG ZRO Swapper",
+      "to_label": "0xedeb\u20268da8",
+      "event_id": "0x2620625dcd768d894ea4a559e63683d5e68f92356c0f2ef03b4bfee9479e05ff:0x921949cc006a563d76abd111a3e4c2ace2c4273f:0xedeb71636ce6e3c8f0c5ea7c1a51409a5a488da8:1774430939:TRANSFER"
     },
     {
       "tx_hash": "0x0b96f15c03fc72e9e0a5dc862ed93dc151855827848d6401b38080a0de6ef5c2",
@@ -35160,49 +35127,10 @@
       "to": "0x4680900fb91164ee22b9e8f7c66efc79d7c4e1f9",
       "value": 954844.68,
       "timestamp": 1774431107,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0xedeb\u20268da8",
-      "to_label": "0x4680\u2026e1f9"
-    },
-    {
-      "tx_hash": "0x5d26510f2c3d48dc31e1214b499441ca4ed87757492bbea908f709a14a124292",
-      "from": "0x28c6c06298d514db089934071355e5743bf21d60",
-      "to": "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
-      "value": 502982.31,
-      "timestamp": 1774442531,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Binance",
-      "to_label": "Binance"
-    },
-    {
-      "tx_hash": "0xa8394ab399ac562433d5c43cf0efa2d48e9e87d2f9b9cf94c03bbffea91a49ad",
-      "from": "0x94e19e5c29a75b1b1bdcf247bb55425ca7d319d4",
-      "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "value": 397111.87,
-      "timestamp": 1774455791,
-      "type": "CEX_DEPOSIT",
-      "from_label": "0x94e1\u202619d4",
-      "to_label": "Coinbase"
-    },
-    {
-      "tx_hash": "0x8f7d0ac195e7cad7a725b8520223a708c4396f274617f5f640c91b55e35c54a4",
-      "from": "0xaeee6e35eb33a464a82a51dbf52e85da137b6bcc",
-      "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "value": 986642.19,
-      "timestamp": 1774455791,
-      "type": "CEX_DEPOSIT",
-      "from_label": "0xaeee\u20266bcc",
-      "to_label": "Coinbase"
-    },
-    {
-      "tx_hash": "0xab303adec6c72b1e392b21120d51d3ba8670ae9a624e3d89e18da0b52a7df8ff",
-      "from": "0x137f79a70fc9c6d5c80f94a5fc44bd95a567652d",
-      "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "value": 755095.77,
-      "timestamp": 1774455791,
-      "type": "CEX_DEPOSIT",
-      "from_label": "0x137f\u2026652d",
-      "to_label": "Coinbase"
+      "to_label": "Bithumb",
+      "event_id": "0x0b96f15c03fc72e9e0a5dc862ed93dc151855827848d6401b38080a0de6ef5c2:0xedeb71636ce6e3c8f0c5ea7c1a51409a5a488da8:0x4680900fb91164ee22b9e8f7c66efc79d7c4e1f9:1774431107:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0xfd586a1fc1b740fdb1e25e2011bac8b66cabc8f1353adca6de426b487d37cc8c",
@@ -35211,8 +35139,9 @@
       "value": 187500.0,
       "timestamp": 1774479731,
       "type": "TRANSFER",
-      "from_label": "0x7886\u20267b82",
-      "to_label": "0x3152\u20264b67"
+      "from_label": "Whale",
+      "to_label": "0x3152\u20264b67",
+      "event_id": "0xfd586a1fc1b740fdb1e25e2011bac8b66cabc8f1353adca6de426b487d37cc8c:0x78860476a1c99bfd37aca73def0e62d1f8f57b82:0x3152948aebf9a6f4e842a0a9d4cce3948aa14b67:1774479731:TRANSFER"
     },
     {
       "tx_hash": "0x8bcce26a0c4d335a77397a4129af22609975f212e02cfcb6c7ec058c13eebf35",
@@ -35222,7 +35151,8 @@
       "timestamp": 1774490735,
       "type": "TRANSFER",
       "from_label": "LayerZero: Token Unlocks",
-      "to_label": "0xf82a\u202637f7"
+      "to_label": "0xf82a\u202637f7",
+      "event_id": "0x8bcce26a0c4d335a77397a4129af22609975f212e02cfcb6c7ec058c13eebf35:0x637ca60dfb4d3acbd2ba65aaed9c6ca564bbf7bf:0xf82a10332d5c3975f1a6acf8362fa73e077337f7:1774490735:TRANSFER"
     },
     {
       "tx_hash": "0x0a8d4bb495e21e0d6c722c92a096926438707a29dfe5b74e127a2425e4af9c57",
@@ -35232,17 +35162,8 @@
       "timestamp": 1774490747,
       "type": "TRANSFER",
       "from_label": "LayerZero: Token Unlocks",
-      "to_label": "Fresh Wallet"
-    },
-    {
-      "tx_hash": "0x5a0504c740280fe306f0b0b73ca4ca572e5a043f15ffd2ab2ff5b7bf679d343c",
-      "from": "0x63be42b40816eb08f6ea480e5875e6f4668da379",
-      "to": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
-      "value": 450000.0,
-      "timestamp": 1774508483,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Upbit",
-      "to_label": "0x6540\u202620d0"
+      "to_label": "Fresh Wallet",
+      "event_id": "0x0a8d4bb495e21e0d6c722c92a096926438707a29dfe5b74e127a2425e4af9c57:0x637ca60dfb4d3acbd2ba65aaed9c6ca564bbf7bf:0x5da54e8fe08e77c252971a198ae93fd1ae0eaa9a:1774490747:TRANSFER"
     },
     {
       "tx_hash": "0xa91825549a9df43aaf236873622631e492c26aef75b2d2ba7950350653f5bfab",
@@ -35250,9 +35171,10 @@
       "to": "0xc456e33ddf99c48e26e31120f32eae470e040ebd",
       "value": 150000.0,
       "timestamp": 1774508555,
-      "type": "TRANSFER",
-      "from_label": "0x6540\u202620d0",
-      "to_label": "0xc456\u20260ebd"
+      "type": "CEX_WITHDRAWAL",
+      "from_label": "Upbit",
+      "to_label": "0xc456\u20260ebd",
+      "event_id": "0xa91825549a9df43aaf236873622631e492c26aef75b2d2ba7950350653f5bfab:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xc456e33ddf99c48e26e31120f32eae470e040ebd:1774508555:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x9c91b4d5c66e79c0999abbc7728306f02afbf0bfeb0de9004e9919b804390356",
@@ -35260,9 +35182,10 @@
       "to": "0xf37594875f33a004df690bcbb65ee432b0959d59",
       "value": 150000.0,
       "timestamp": 1774508567,
-      "type": "TRANSFER",
-      "from_label": "0x6540\u202620d0",
-      "to_label": "0xf375\u20269d59"
+      "type": "CEX_WITHDRAWAL",
+      "from_label": "Upbit",
+      "to_label": "0xf375\u20269d59",
+      "event_id": "0x9c91b4d5c66e79c0999abbc7728306f02afbf0bfeb0de9004e9919b804390356:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xf37594875f33a004df690bcbb65ee432b0959d59:1774508567:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x101d118d7008049772a09b998ba7650c26a33ef86c3320bfc25b196520469571",
@@ -35272,7 +35195,8 @@
       "timestamp": 1774511207,
       "type": "TRANSFER",
       "from_label": "0x5dc9\u202630c3",
-      "to_label": "0x1166\u2026ea0d"
+      "to_label": "0x1166\u2026ea0d",
+      "event_id": "0x101d118d7008049772a09b998ba7650c26a33ef86c3320bfc25b196520469571:0x5dc96a992cc2314361a56e2c6e378bb76a0430c3:0x116611c49540883503e113337dd0f78333caea0d:1774511207:TRANSFER"
     },
     {
       "tx_hash": "0x5fddb56655fba5fe738edb05a73777cb4a78f3d6a0ca668aca20eaf7eebfab59",
@@ -35282,7 +35206,8 @@
       "timestamp": 1774511579,
       "type": "CEX_DEPOSIT",
       "from_label": "0x1166\u2026ea0d",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0x5fddb56655fba5fe738edb05a73777cb4a78f3d6a0ca668aca20eaf7eebfab59:0x116611c49540883503e113337dd0f78333caea0d:0x28c6c06298d514db089934071355e5743bf21d60:1774511579:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x922fae68f65e2cabcefc940af21ac33f9a65b9f3ccc64f66a6b840fc63b4611d",
@@ -35292,27 +35217,8 @@
       "timestamp": 1774544615,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Binance",
-      "to_label": "0x807a\u2026aca1"
-    },
-    {
-      "tx_hash": "0x6f590da7d822de992c440da5d23c4dfd9898cd2bb14bc244a60fb15707536089",
-      "from": "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe",
-      "to": "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
-      "value": 101570.87,
-      "timestamp": 1774582295,
-      "type": "TRANSFER",
-      "from_label": "0x91d4\u2026debe",
-      "to_label": "0x4a4a\u2026068d"
-    },
-    {
-      "tx_hash": "0x72743b36476bb591771ac34d8087778f7e94f26ffdd93b650070fac3b56707a8",
-      "from": "0x63be42b40816eb08f6ea480e5875e6f4668da379",
-      "to": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
-      "value": 280000.0,
-      "timestamp": 1774658843,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Upbit",
-      "to_label": "0x6540\u202620d0"
+      "to_label": "0x807a\u2026aca1",
+      "event_id": "0x922fae68f65e2cabcefc940af21ac33f9a65b9f3ccc64f66a6b840fc63b4611d:0x28c6c06298d514db089934071355e5743bf21d60:0x807a2e2e469df84b299da5f90f15dda4380daca1:1774544615:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x115fdc0e2b64b53c9cede12420fe893b8da518cd25ceffe5133807c3e242f2e4",
@@ -35320,19 +35226,10 @@
       "to": "0xfdd710fa25cf1e08775cb91a2bf65f1329ccbd09",
       "value": 339341.56,
       "timestamp": 1774846967,
-      "type": "TRANSFER",
-      "from_label": "0x83e1\u20260ede",
-      "to_label": "0xfdd7\u2026bd09"
-    },
-    {
-      "tx_hash": "0x2c10e8922a06ccc6833c933d312139dc3158066f5576459f6d1328548f43d82e",
-      "from": "0xfdd710fa25cf1e08775cb91a2bf65f1329ccbd09",
-      "to": "0x28c6c06298d514db089934071355e5743bf21d60",
-      "value": 339393.56,
-      "timestamp": 1774848611,
       "type": "CEX_DEPOSIT",
-      "from_label": "Fresh Wallet",
-      "to_label": "Binance"
+      "from_label": "0x83e1\u20260ede",
+      "to_label": "Binance",
+      "event_id": "0x115fdc0e2b64b53c9cede12420fe893b8da518cd25ceffe5133807c3e242f2e4:0x83e1845c31e0ab3b132eaa5fc6f571d9acd60ede:0xfdd710fa25cf1e08775cb91a2bf65f1329ccbd09:1774846967:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x1c75e35fe15eb14e2d71cdcf854f22d665347a68699b249abb9854976b083f56",
@@ -35342,7 +35239,8 @@
       "timestamp": 1774892615,
       "type": "TRANSFER",
       "from_label": "WalletSimple (BitGo)",
-      "to_label": "Whale"
+      "to_label": "Whale",
+      "event_id": "0x1c75e35fe15eb14e2d71cdcf854f22d665347a68699b249abb9854976b083f56:0xc2f31575b97df563a3bba2a94e3a0b317ba2d412:0x4355951b4f1a5bab81a3bebcbf9f263302cc742d:1774892615:TRANSFER"
     },
     {
       "tx_hash": "0x83f470e7438e713ef2bf5befc4f26c7547efa21c0c24f46b240f463a2e4eef36",
@@ -35352,7 +35250,8 @@
       "timestamp": 1774896911,
       "type": "TRANSFER",
       "from_label": "0x4355\u2026742d",
-      "to_label": "Wintermute 4"
+      "to_label": "Wintermute 4",
+      "event_id": "0x83f470e7438e713ef2bf5befc4f26c7547efa21c0c24f46b240f463a2e4eef36:0x4355951b4f1a5bab81a3bebcbf9f263302cc742d:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:1774896911:TRANSFER"
     },
     {
       "tx_hash": "0xe39737e1e773c58e903d039e71f25bb0248d5f52c6fa32b820876eccb6794543",
@@ -35362,7 +35261,8 @@
       "timestamp": 1774902407,
       "type": "TRANSFER",
       "from_label": "Fresh Wallet",
-      "to_label": "0x4355\u2026742d"
+      "to_label": "0x4355\u2026742d",
+      "event_id": "0xe39737e1e773c58e903d039e71f25bb0248d5f52c6fa32b820876eccb6794543:0x66521dc2f23695356f8aae767899a3e02ad5e124:0x4355951b4f1a5bab81a3bebcbf9f263302cc742d:1774902407:TRANSFER"
     },
     {
       "tx_hash": "0x8d3cd58a019bfb2eea47213852e46bdf10457ace37a443efcc06e04493e42850",
@@ -35372,7 +35272,8 @@
       "timestamp": 1774903475,
       "type": "TRANSFER",
       "from_label": "Wintermute 4",
-      "to_label": "0x84b3\u2026da15"
+      "to_label": "0x84b3\u2026da15",
+      "event_id": "0x8d3cd58a019bfb2eea47213852e46bdf10457ace37a443efcc06e04493e42850:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:0x84b38bc60f3bd82640ecefa320dab2be62e2da15:1774903475:TRANSFER"
     },
     {
       "tx_hash": "0x5c111696b687f52c45da12677f91bba63fa3775388879bc92ddba5ead1b24655",
@@ -35382,7 +35283,8 @@
       "timestamp": 1774903931,
       "type": "TRANSFER",
       "from_label": "0x84b3\u2026da15",
-      "to_label": "Exchange/Bot"
+      "to_label": "Exchange/Bot",
+      "event_id": "0x5c111696b687f52c45da12677f91bba63fa3775388879bc92ddba5ead1b24655:0x84b38bc60f3bd82640ecefa320dab2be62e2da15:0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2:1774903931:TRANSFER"
     },
     {
       "tx_hash": "0x35ae66c920b20a93ffb127b862913c9e07678ff8a6041de309cf741e7b1df59a",
@@ -35392,7 +35294,8 @@
       "timestamp": 1774905887,
       "type": "TRANSFER",
       "from_label": "0x4355\u2026742d",
-      "to_label": "Wintermute 4"
+      "to_label": "Wintermute 4",
+      "event_id": "0x35ae66c920b20a93ffb127b862913c9e07678ff8a6041de309cf741e7b1df59a:0x4355951b4f1a5bab81a3bebcbf9f263302cc742d:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:1774905887:TRANSFER"
     },
     {
       "tx_hash": "0xffb1b24b25f8b5987d3ffac403e68b4846846e7ffa28945557c3a61b14bbfb74",
@@ -35402,7 +35305,8 @@
       "timestamp": 1774952543,
       "type": "TRANSFER",
       "from_label": "0x0383\u2026f6a7",
-      "to_label": "0x3d4f\u20262e02"
+      "to_label": "0x3d4f\u20262e02",
+      "event_id": "0xffb1b24b25f8b5987d3ffac403e68b4846846e7ffa28945557c3a61b14bbfb74:0x0383a640eb6cb9f09472e8e1e9c707df7380f6a7:0x3d4fe8b0a8941a4c7bfc88d9006a16fe95cb2e02:1774952543:TRANSFER"
     },
     {
       "tx_hash": "0x50048a676057d5d69e41a9b6447992e40d01ff59619e9f583c26554493c707c0",
@@ -35412,7 +35316,8 @@
       "timestamp": 1774953071,
       "type": "CEX_DEPOSIT",
       "from_label": "Fresh Wallet",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0x50048a676057d5d69e41a9b6447992e40d01ff59619e9f583c26554493c707c0:0x3d4fe8b0a8941a4c7bfc88d9006a16fe95cb2e02:0x28c6c06298d514db089934071355e5743bf21d60:1774953071:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0xc73de885f4f09a4394ea3a601d30a7b16a6c9bf008e5124d80614fc8263d6405",
@@ -35422,7 +35327,8 @@
       "timestamp": 1774953911,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Binance",
-      "to_label": "0x6274\u20263738"
+      "to_label": "0x6274\u20263738",
+      "event_id": "0xc73de885f4f09a4394ea3a601d30a7b16a6c9bf008e5124d80614fc8263d6405:0x21a31ee1afc51d94c2efccaa2092ad1028285549:0x6274282808edd4421e6344c69272d1e970093738:1774953911:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x84d37635b5bbb7cf9b291b4cddfec83cc26ef9463cf289024ad92a6ebf35e7e4",
@@ -35430,9 +35336,10 @@
       "to": "0xa31231e727ca53ff95f0d00a06c645110c4ab647",
       "value": 167388.81,
       "timestamp": 1774956143,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0x6274\u20263738",
-      "to_label": "ByBit Hot Wallet"
+      "to_label": "Bybit",
+      "event_id": "0x84d37635b5bbb7cf9b291b4cddfec83cc26ef9463cf289024ad92a6ebf35e7e4:0x6274282808edd4421e6344c69272d1e970093738:0xa31231e727ca53ff95f0d00a06c645110c4ab647:1774956143:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x6d47956fd486b2eda02889a9f050bcbb474c455757f9eacac56fb34a73ec5bdb",
@@ -35442,7 +35349,8 @@
       "timestamp": 1775060243,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Binance",
-      "to_label": "0x807a\u2026aca1"
+      "to_label": "0x807a\u2026aca1",
+      "event_id": "0x6d47956fd486b2eda02889a9f050bcbb474c455757f9eacac56fb34a73ec5bdb:0xdfd5293d8e347dfe59e90efd55b2956a1343963d:0x807a2e2e469df84b299da5f90f15dda4380daca1:1775060243:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0xfbe1ac5a974ca6644bb22b805f4203fbab7d4e08dde929d355d8e751c2a56941",
@@ -35452,7 +35360,8 @@
       "timestamp": 1775287463,
       "type": "TRANSFER",
       "from_label": "0x56f5\u20265b58",
-      "to_label": "0xccb8\u2026885c"
+      "to_label": "0xccb8\u2026885c",
+      "event_id": "0xfbe1ac5a974ca6644bb22b805f4203fbab7d4e08dde929d355d8e751c2a56941:0x56f5e09df98b49513df980d84b76bd3ec5a95b58:0xccb884e81f80b0c466050496f229b7d77331885c:1775287463:TRANSFER"
     },
     {
       "tx_hash": "0xc382b70e6ea9a38f3198b4ae52ad03e564d63705d74ba5e5c742443d23feeb61",
@@ -35462,7 +35371,8 @@
       "timestamp": 1775287859,
       "type": "CEX_DEPOSIT",
       "from_label": "Fresh Wallet",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0xc382b70e6ea9a38f3198b4ae52ad03e564d63705d74ba5e5c742443d23feeb61:0xccb884e81f80b0c466050496f229b7d77331885c:0x28c6c06298d514db089934071355e5743bf21d60:1775287859:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0xb6a6de537ad012c58a03a30b92268cefafea851b72017e047674773e2b92fa39",
@@ -35470,19 +35380,10 @@
       "to": "0xb5bc3e38b5b683ce357ffd04d70354dcbbf813b2",
       "value": 297581.06,
       "timestamp": 1775321735,
-      "type": "TRANSFER",
-      "from_label": "0x11f4\u2026178f",
-      "to_label": "0xb5bc\u202613b2"
-    },
-    {
-      "tx_hash": "0xaf3bea1fc9d9918cdcdfb29551ff5e55372711c0db923ce15257387206b247d4",
-      "from": "0xb5bc3e38b5b683ce357ffd04d70354dcbbf813b2",
-      "to": "0x28c6c06298d514db089934071355e5743bf21d60",
-      "value": 297581.06,
-      "timestamp": 1775322191,
       "type": "CEX_DEPOSIT",
-      "from_label": "Fresh Wallet",
-      "to_label": "Binance"
+      "from_label": "0x11f4\u2026178f",
+      "to_label": "Binance",
+      "event_id": "0xb6a6de537ad012c58a03a30b92268cefafea851b72017e047674773e2b92fa39:0x11f46aaf91b83475c672f835802ba8224b98178f:0xb5bc3e38b5b683ce357ffd04d70354dcbbf813b2:1775321735:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x40f4d25320d5ddfd938d0b8f700b98dd4d0f3794b5b600815aa510728735633a",
@@ -35492,7 +35393,8 @@
       "timestamp": 1775325887,
       "type": "TRANSFER",
       "from_label": "LayerZero: Token Unlocks",
-      "to_label": "Fresh Wallet"
+      "to_label": "Fresh Wallet",
+      "event_id": "0x40f4d25320d5ddfd938d0b8f700b98dd4d0f3794b5b600815aa510728735633a:0x637ca60dfb4d3acbd2ba65aaed9c6ca564bbf7bf:0x5da54e8fe08e77c252971a198ae93fd1ae0eaa9a:1775325887:TRANSFER"
     },
     {
       "tx_hash": "0x5004083cb88d5b946d2045826591edfde1280289b4caefcd944cb03de98414a5",
@@ -35502,7 +35404,8 @@
       "timestamp": 1775399591,
       "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
-      "to_label": "Coinbase"
+      "to_label": "Coinbase",
+      "event_id": "0x5004083cb88d5b946d2045826591edfde1280289b4caefcd944cb03de98414a5:0x8fda775a324a0970135b054a7df649342a9a7f17:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:1775399591:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x55e73aa1c7868f2d5548eb072d319b8b77a437b2b7d7d6e18502386ecec85f9b",
@@ -35512,7 +35415,8 @@
       "timestamp": 1776454091,
       "type": "TRANSFER",
       "from_label": "0x30bf\u2026531e",
-      "to_label": "0x64f2\u20267eba"
+      "to_label": "0x64f2\u20267eba",
+      "event_id": "0x55e73aa1c7868f2d5548eb072d319b8b77a437b2b7d7d6e18502386ecec85f9b:0x30bfcffa71d08f3b3c15400c71f0e13fa197531e:0x64f221b7646450d3482512346b052c6bab027eba:1776454091:TRANSFER"
     },
     {
       "tx_hash": "0x1fe7d0405ffc53aab9b16df0ef392e5315f9c737693ec0fa1332dd9fef2c19c6",
@@ -35522,7 +35426,8 @@
       "timestamp": 1776455231,
       "type": "TRANSFER",
       "from_label": "0x64f2\u20267eba",
-      "to_label": "0xfd15\u202645f0"
+      "to_label": "0xfd15\u202645f0",
+      "event_id": "0x1fe7d0405ffc53aab9b16df0ef392e5315f9c737693ec0fa1332dd9fef2c19c6:0x64f221b7646450d3482512346b052c6bab027eba:0xfd15ea1dc37ce299ff38033d98475b44c15045f0:1776455231:TRANSFER"
     },
     {
       "tx_hash": "0xb7b16c474af178335c57e160d4fd3abe551e5a6bc62d9224c4a93469f1a76498",
@@ -35532,7 +35437,8 @@
       "timestamp": 1776458663,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Revolut",
-      "to_label": "0x15da\u2026b0d7"
+      "to_label": "Whale",
+      "event_id": "0xb7b16c474af178335c57e160d4fd3abe551e5a6bc62d9224c4a93469f1a76498:0x9b0c45d46d386cedd98873168c36efd0dcba8d46:0x15da7556d5ed888306839bed06f868aeaedcb0d7:1776458663:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0xf9ec5915b845739c4c066fb2f2babe35f567b3c661826f83918f8856d6e16b11",
@@ -35542,7 +35448,8 @@
       "timestamp": 1776467999,
       "type": "TRANSFER",
       "from_label": "0xfd15\u202645f0",
-      "to_label": "0xebbb\u20261beb"
+      "to_label": "0xebbb\u20261beb",
+      "event_id": "0xf9ec5915b845739c4c066fb2f2babe35f567b3c661826f83918f8856d6e16b11:0xfd15ea1dc37ce299ff38033d98475b44c15045f0:0xebbbbf359f354389c1743526b25b8eba7e991beb:1776467999:TRANSFER"
     },
     {
       "tx_hash": "0xcb155a037d020cdc8a1d433223891044d8f5e05159e6dc079531c56ed9d76bef",
@@ -35552,7 +35459,8 @@
       "timestamp": 1776470267,
       "type": "TRANSFER",
       "from_label": "0xebbb\u20261beb",
-      "to_label": "0x1157\u20264101"
+      "to_label": "0x1157\u20264101",
+      "event_id": "0xcb155a037d020cdc8a1d433223891044d8f5e05159e6dc079531c56ed9d76bef:0xebbbbf359f354389c1743526b25b8eba7e991beb:0x1157a2076b9bb22a85cc2c162f20fab3898f4101:1776470267:TRANSFER"
     },
     {
       "tx_hash": "0xe41dd44105028143a0c2b189bbeacf1fa2960faa0a31b1aedda3b49b27f098ab",
@@ -35562,7 +35470,8 @@
       "timestamp": 1776474779,
       "type": "TRANSFER",
       "from_label": "0x2664\u202607fe",
-      "to_label": "0xa25c\u20261c69"
+      "to_label": "0xa25c\u20261c69",
+      "event_id": "0xe41dd44105028143a0c2b189bbeacf1fa2960faa0a31b1aedda3b49b27f098ab:0x2664aea52c2149d54ef380bd5ded71fa181707fe:0xa25c582874f984dd58f729ef970922a3691a1c69:1776474779:TRANSFER"
     },
     {
       "tx_hash": "0x1b0ddc599245995c2dc923eafd4bf0551d871421630e6f4b64f761f62409ef42",
@@ -35572,7 +35481,8 @@
       "timestamp": 1776476147,
       "type": "TRANSFER",
       "from_label": "0xa25c\u20261c69",
-      "to_label": "0xba63\u20262b85"
+      "to_label": "0xba63\u20262b85",
+      "event_id": "0x1b0ddc599245995c2dc923eafd4bf0551d871421630e6f4b64f761f62409ef42:0xa25c582874f984dd58f729ef970922a3691a1c69:0xba63e297de0e58866bbd20b4ce92e8d38e5a2b85:1776476147:TRANSFER"
     },
     {
       "tx_hash": "0x6b906fd347ed5c4782fbba99acbbf9f7709ea7959fe5268dd4d0b91ec7bb7de5",
@@ -35582,7 +35492,8 @@
       "timestamp": 1776516431,
       "type": "TRANSFER",
       "from_label": "Wintermute 4",
-      "to_label": "0x5c4c\u2026534d"
+      "to_label": "0x5c4c\u2026534d",
+      "event_id": "0x6b906fd347ed5c4782fbba99acbbf9f7709ea7959fe5268dd4d0b91ec7bb7de5:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:0x5c4c6c6d0358baf2ade28ffb1723e70139cd534d:1776516431:TRANSFER"
     },
     {
       "tx_hash": "0xa57ff88d93be1fb865d83ccab1e6f2165ca6ef983b7e08134e6aa2406a49b1fe",
@@ -35592,7 +35503,8 @@
       "timestamp": 1776516719,
       "type": "TRANSFER",
       "from_label": "0x5c4c\u2026534d",
-      "to_label": "0x58ed\u20266a51"
+      "to_label": "0x58ed\u20266a51",
+      "event_id": "0xa57ff88d93be1fb865d83ccab1e6f2165ca6ef983b7e08134e6aa2406a49b1fe:0x5c4c6c6d0358baf2ade28ffb1723e70139cd534d:0x58edf78281334335effa23101bbe3371b6a36a51:1776516719:TRANSFER"
     },
     {
       "tx_hash": "0x5a90a05c506e19bd49a5ba1954fde08bd7ae258527e8bcaab2372475630d63b5",
@@ -35602,7 +35514,8 @@
       "timestamp": 1776556139,
       "type": "CEX_DEPOSIT",
       "from_label": "0x58ed\u20266a51",
-      "to_label": "KuCoin"
+      "to_label": "KuCoin",
+      "event_id": "0x5a90a05c506e19bd49a5ba1954fde08bd7ae258527e8bcaab2372475630d63b5:0x58edf78281334335effa23101bbe3371b6a36a51:0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23:1776556139:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x75ef9cba1df3c34d184496f1d1dd606e57e9788c72eb27ee01f1511ea88817c8",
@@ -35612,7 +35525,8 @@
       "timestamp": 1776569135,
       "type": "CEX_DEPOSIT",
       "from_label": "0xf375\u20269d59",
-      "to_label": "Upbit"
+      "to_label": "Upbit",
+      "event_id": "0x75ef9cba1df3c34d184496f1d1dd606e57e9788c72eb27ee01f1511ea88817c8:0xf37594875f33a004df690bcbb65ee432b0959d59:0x63be42b40816eb08f6ea480e5875e6f4668da379:1776569135:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0xa68214f6db5e1ead5485f3782c9e51e3e88b1c91e21ef7596a0174a2accaa17e",
@@ -35622,7 +35536,8 @@
       "timestamp": 1776569135,
       "type": "CEX_DEPOSIT",
       "from_label": "0xc456\u20260ebd",
-      "to_label": "Upbit"
+      "to_label": "Upbit",
+      "event_id": "0xa68214f6db5e1ead5485f3782c9e51e3e88b1c91e21ef7596a0174a2accaa17e:0xc456e33ddf99c48e26e31120f32eae470e040ebd:0x63be42b40816eb08f6ea480e5875e6f4668da379:1776569135:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x030ac1d4d5f5eb892ff3aed0664ebe7a36041dc841d00ad48cb8b1319a01527b",
@@ -35632,7 +35547,8 @@
       "timestamp": 1776584423,
       "type": "TRANSFER",
       "from_label": "Exchange/Bot",
-      "to_label": "0x5c4c\u2026534d"
+      "to_label": "0x5c4c\u2026534d",
+      "event_id": "0x030ac1d4d5f5eb892ff3aed0664ebe7a36041dc841d00ad48cb8b1319a01527b:0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2:0x5c4c6c6d0358baf2ade28ffb1723e70139cd534d:1776584423:TRANSFER"
     },
     {
       "tx_hash": "0x960f719fbd286166d2e2ac7d04f3d8eb64989fa7fe7d4e84ec0d677615bb444a",
@@ -35642,7 +35558,8 @@
       "timestamp": 1776584795,
       "type": "TRANSFER",
       "from_label": "0x5c4c\u2026534d",
-      "to_label": "0x58ed\u20266a51"
+      "to_label": "0x58ed\u20266a51",
+      "event_id": "0x960f719fbd286166d2e2ac7d04f3d8eb64989fa7fe7d4e84ec0d677615bb444a:0x5c4c6c6d0358baf2ade28ffb1723e70139cd534d:0x58edf78281334335effa23101bbe3371b6a36a51:1776584795:TRANSFER"
     },
     {
       "tx_hash": "0x8ed5d295bff6b330fb016c5b059fc80017131b1a896adb41eae2a4b11860d28c",
@@ -35652,7 +35569,8 @@
       "timestamp": 1776592223,
       "type": "TRANSFER",
       "from_label": "0x807a\u2026aca1",
-      "to_label": "0x4186\u2026621b"
+      "to_label": "0x4186\u2026621b",
+      "event_id": "0x8ed5d295bff6b330fb016c5b059fc80017131b1a896adb41eae2a4b11860d28c:0x807a2e2e469df84b299da5f90f15dda4380daca1:0x4186b115a33cd1dd34a909fd7eaaac2096c3621b:1776592223:TRANSFER"
     },
     {
       "tx_hash": "0x911e8102b4ded78ab90aeeaee1088bbe0419bd1301f0df0edea2f71d6146af23",
@@ -35662,7 +35580,8 @@
       "timestamp": 1776592391,
       "type": "CEX_DEPOSIT",
       "from_label": "0x4186\u2026621b",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0x911e8102b4ded78ab90aeeaee1088bbe0419bd1301f0df0edea2f71d6146af23:0x4186b115a33cd1dd34a909fd7eaaac2096c3621b:0x28c6c06298d514db089934071355e5743bf21d60:1776592391:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0xe8931507a7fdf1397296959bd5f6a126c6cccf5422664bf22323545f80997d75",
@@ -35672,7 +35591,8 @@
       "timestamp": 1776596903,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Upbit",
-      "to_label": "0xf375\u20269d59"
+      "to_label": "0xf375\u20269d59",
+      "event_id": "0xe8931507a7fdf1397296959bd5f6a126c6cccf5422664bf22323545f80997d75:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xf37594875f33a004df690bcbb65ee432b0959d59:1776596903:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x3bbb3ca22199336bd80c9c79f714e7474efd39ec968cce2a5abcc689ecad7952",
@@ -35682,7 +35602,8 @@
       "timestamp": 1776596903,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Upbit",
-      "to_label": "0xc456\u20260ebd"
+      "to_label": "0xc456\u20260ebd",
+      "event_id": "0x3bbb3ca22199336bd80c9c79f714e7474efd39ec968cce2a5abcc689ecad7952:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xc456e33ddf99c48e26e31120f32eae470e040ebd:1776596903:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x8da28d15a100784c52f0f709c9408f154f331e30e263223d3eba9489ee98869d",
@@ -35692,7 +35613,8 @@
       "timestamp": 1776598667,
       "type": "TRANSFER",
       "from_label": "Exchange/Bot",
-      "to_label": "0x1b1a\u202658f9"
+      "to_label": "0x1b1a\u202658f9",
+      "event_id": "0x8da28d15a100784c52f0f709c9408f154f331e30e263223d3eba9489ee98869d:0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2:0x1b1a4fb64b5bb26dbd5a4b8a291e4de1bd5d58f9:1776598667:TRANSFER"
     },
     {
       "tx_hash": "0x7aa695b4b82dc71f2a7051d5f81d60d901c959c5d4cc8454f7fcb191f27c963b",
@@ -35702,7 +35624,8 @@
       "timestamp": 1776599183,
       "type": "TRANSFER",
       "from_label": "0x9165\u20269707",
-      "to_label": "0xd391\u20262acb"
+      "to_label": "0xd391\u20262acb",
+      "event_id": "0x7aa695b4b82dc71f2a7051d5f81d60d901c959c5d4cc8454f7fcb191f27c963b:0x9165f8269bd0f9f2e299e7f03e0d110d487f9707:0xd391f4eddc6a6cc039f2cd8f8ae45338a2f52acb:1776599183:TRANSFER"
     },
     {
       "tx_hash": "0x5c911c5dd96cbafb66df91d7ed96d933a9cc54b1532bba77e48e39e97cdc3494",
@@ -35712,7 +35635,8 @@
       "timestamp": 1776605195,
       "type": "TRANSFER",
       "from_label": "0x1cdf\u2026b9fe",
-      "to_label": "0x8222\u202698e7"
+      "to_label": "0x8222\u202698e7",
+      "event_id": "0x5c911c5dd96cbafb66df91d7ed96d933a9cc54b1532bba77e48e39e97cdc3494:0x1cdf7efd3c408e19877535d3f1d7a4b8f29cb9fe:0x8222b7fd72a45b5636585e77f1dbde35fc4698e7:1776605195:TRANSFER"
     },
     {
       "tx_hash": "0x5ec5b7536f3b61e1f220809c0d1633f4d2d11195fafee89aea786bc7621b0429",
@@ -35722,7 +35646,8 @@
       "timestamp": 1776605411,
       "type": "CEX_DEPOSIT",
       "from_label": "0x8222\u202698e7",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0x5ec5b7536f3b61e1f220809c0d1633f4d2d11195fafee89aea786bc7621b0429:0x8222b7fd72a45b5636585e77f1dbde35fc4698e7:0x28c6c06298d514db089934071355e5743bf21d60:1776605411:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x5453172301fefd71c39863fcc55402142cc11dd731e285d3b6e7a228f45c48c5",
@@ -35732,7 +35657,8 @@
       "timestamp": 1776605411,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Binance",
-      "to_label": "Wintermute 4"
+      "to_label": "Wintermute 4",
+      "event_id": "0x5453172301fefd71c39863fcc55402142cc11dd731e285d3b6e7a228f45c48c5:0x21a31ee1afc51d94c2efccaa2092ad1028285549:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:1776605411:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x14c1ca7686a3a4ebf9c12168566f4a7b542e63d72e978c96c30311716509119d",
@@ -35742,7 +35668,8 @@
       "timestamp": 1776640415,
       "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
-      "to_label": "Coinbase"
+      "to_label": "Coinbase",
+      "event_id": "0x14c1ca7686a3a4ebf9c12168566f4a7b542e63d72e978c96c30311716509119d:0x8fda775a324a0970135b054a7df649342a9a7f17:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:1776640415:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x95557c54d885e1e18917b33a35ea6e41a377afb651e55007b3e7f8b1d80dbd7b",
@@ -35752,7 +35679,8 @@
       "timestamp": 1776640463,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Coinbase",
-      "to_label": "0x3ad1\u20266499"
+      "to_label": "0x3ad1\u20266499",
+      "event_id": "0x95557c54d885e1e18917b33a35ea6e41a377afb651e55007b3e7f8b1d80dbd7b:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:0x3ad1c09d4e97c7f4892d876cbe40a1c9f1166499:1776640463:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0xc970a04bcfde089635d023ea463857ae0e1236f2ca9c30eaa7b52ac03692c2b0",
@@ -35762,7 +35690,8 @@
       "timestamp": 1776640631,
       "type": "TRANSFER",
       "from_label": "Fresh Wallet",
-      "to_label": "0x7c87\u2026b102"
+      "to_label": "0x7c87\u2026b102",
+      "event_id": "0xc970a04bcfde089635d023ea463857ae0e1236f2ca9c30eaa7b52ac03692c2b0:0x3ad1c09d4e97c7f4892d876cbe40a1c9f1166499:0x7c876bdaa5c038e19f633714f622f6def949b102:1776640631:TRANSFER"
     },
     {
       "tx_hash": "0x922f3009e096f07da81916e162203dc37457188e4e6edcbfadc928f2c228e15a",
@@ -35772,7 +35701,8 @@
       "timestamp": 1776641675,
       "type": "TRANSFER",
       "from_label": "0x58ed\u20266a51",
-      "to_label": "0xdd27\u20263cb0"
+      "to_label": "0xdd27\u20263cb0",
+      "event_id": "0x922f3009e096f07da81916e162203dc37457188e4e6edcbfadc928f2c228e15a:0x58edf78281334335effa23101bbe3371b6a36a51:0xdd276dc5223d0120f9bf1776f38957cc8da23cb0:1776641675:TRANSFER"
     },
     {
       "tx_hash": "0xfaa5083989fad893179272eccb0b601e5de09bd11636761119cbcb62446bc37b",
@@ -35782,7 +35712,8 @@
       "timestamp": 1776641807,
       "type": "TRANSFER",
       "from_label": "0x7c87\u2026b102",
-      "to_label": "Coinbase Prime"
+      "to_label": "Coinbase Prime",
+      "event_id": "0xfaa5083989fad893179272eccb0b601e5de09bd11636761119cbcb62446bc37b:0x7c876bdaa5c038e19f633714f622f6def949b102:0x9e17093991868768613dae0e857437076eef0ee9:1776641807:TRANSFER"
     },
     {
       "tx_hash": "0x93856e53b1cc13721c7f029fa72428ec4c2a7f97975753e57dcf5973b385f585",
@@ -35792,7 +35723,8 @@
       "timestamp": 1776652331,
       "type": "TRANSFER",
       "from_label": "LayerZero: Token Unlocks",
-      "to_label": "0x8964\u2026b2b8"
+      "to_label": "0x8964\u2026b2b8",
+      "event_id": "0x93856e53b1cc13721c7f029fa72428ec4c2a7f97975753e57dcf5973b385f585:0x637ca60dfb4d3acbd2ba65aaed9c6ca564bbf7bf:0x8964d9301d217f0afc5efb1eac1b4f739119b2b8:1776652331:TRANSFER"
     },
     {
       "tx_hash": "0xa2e971175863e384d9146360941d1771a1f61b11604941beb098e400fa7b241a",
@@ -35802,7 +35734,8 @@
       "timestamp": 1776652355,
       "type": "TRANSFER",
       "from_label": "Whale",
-      "to_label": "0xd49d\u20264925"
+      "to_label": "0xd49d\u20264925",
+      "event_id": "0xa2e971175863e384d9146360941d1771a1f61b11604941beb098e400fa7b241a:0xd8a2d61b5bd2eae128fde27ad0fe0bb8050436bf:0xd49d52761747a8f6ad7bf0639a22e620876f4925:1776652355:TRANSFER"
     },
     {
       "tx_hash": "0x8ae4c6eba2cdfe3e2f7e8cde260a46abb47af728c2021992043423355acc2907",
@@ -35812,7 +35745,8 @@
       "timestamp": 1776652967,
       "type": "CEX_DEPOSIT",
       "from_label": "0x8964\u2026b2b8",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0x8ae4c6eba2cdfe3e2f7e8cde260a46abb47af728c2021992043423355acc2907:0x8964d9301d217f0afc5efb1eac1b4f739119b2b8:0x28c6c06298d514db089934071355e5743bf21d60:1776652967:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x31fc6f2a798e6e4416c7dc68570b6bce81272ab00217bd0613c09dbf1bfbd511",
@@ -35822,7 +35756,8 @@
       "timestamp": 1776656135,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Binance",
-      "to_label": "Wintermute 4"
+      "to_label": "Wintermute 4",
+      "event_id": "0x31fc6f2a798e6e4416c7dc68570b6bce81272ab00217bd0613c09dbf1bfbd511:0x21a31ee1afc51d94c2efccaa2092ad1028285549:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:1776656135:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x41db033b545b618e245f7bfc175fc6917573196b6e257e314f0d42357d72ace0",
@@ -35832,7 +35767,8 @@
       "timestamp": 1776664391,
       "type": "TRANSFER",
       "from_label": "Whale",
-      "to_label": "0x3152\u20264b67"
+      "to_label": "0x3152\u20264b67",
+      "event_id": "0x41db033b545b618e245f7bfc175fc6917573196b6e257e314f0d42357d72ace0:0x78860476a1c99bfd37aca73def0e62d1f8f57b82:0x3152948aebf9a6f4e842a0a9d4cce3948aa14b67:1776664391:TRANSFER"
     },
     {
       "tx_hash": "0x8899a7b9b56d048c7f25342740126b077f4632887c2eff4ccf6457ee9b9faccc",
@@ -35842,7 +35778,8 @@
       "timestamp": 1776673739,
       "type": "TRANSFER",
       "from_label": "0x720a\u202643e1",
-      "to_label": "0xe503\u20269a5a"
+      "to_label": "0xe503\u20269a5a",
+      "event_id": "0x8899a7b9b56d048c7f25342740126b077f4632887c2eff4ccf6457ee9b9faccc:0x720a68bf0813853cd3ed74d2fd0f54edfc7a43e1:0xe5038832f12f2b9c88bc0f5e1d7b539bf3f19a5a:1776673739:TRANSFER"
     },
     {
       "tx_hash": "0x08ec41f420b1be1967570e82eb4d48451920a4c932ee80f043d1c45abdc84190",
@@ -35852,7 +35789,8 @@
       "timestamp": 1776673751,
       "type": "TRANSFER",
       "from_label": "0x9ba0\u2026da31",
-      "to_label": "0xe91b\u202627c9"
+      "to_label": "0xe91b\u202627c9",
+      "event_id": "0x08ec41f420b1be1967570e82eb4d48451920a4c932ee80f043d1c45abdc84190:0x9ba0cf1588e1dfa905ec948f7fe5104dd40eda31:0xe91b373212f8ae32925cbcf39ab3a7b0763c27c9:1776673751:TRANSFER"
     },
     {
       "tx_hash": "0x8f6f9aaaecec9ee6ddb94cd52df05337bc8cf128ab609244a006317238bb08e1",
@@ -35862,7 +35800,8 @@
       "timestamp": 1776673811,
       "type": "CEX_DEPOSIT",
       "from_label": "0xe91b\u202627c9",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0x8f6f9aaaecec9ee6ddb94cd52df05337bc8cf128ab609244a006317238bb08e1:0xe91b373212f8ae32925cbcf39ab3a7b0763c27c9:0x28c6c06298d514db089934071355e5743bf21d60:1776673811:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x60582cfbf4c620c6e78d9e9b1d0d79589f908455c22a09a4f422d7bec187015a",
@@ -35872,7 +35811,8 @@
       "timestamp": 1776673811,
       "type": "CEX_DEPOSIT",
       "from_label": "0xe503\u20269a5a",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0x60582cfbf4c620c6e78d9e9b1d0d79589f908455c22a09a4f422d7bec187015a:0xe5038832f12f2b9c88bc0f5e1d7b539bf3f19a5a:0x28c6c06298d514db089934071355e5743bf21d60:1776673811:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x496e589090f8246b05dd3e740e585b1fe5c712c886fdb37857c7a16b40be2d01",
@@ -35882,7 +35822,8 @@
       "timestamp": 1776687227,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Binance",
-      "to_label": "Wintermute 4"
+      "to_label": "Wintermute 4",
+      "event_id": "0x496e589090f8246b05dd3e740e585b1fe5c712c886fdb37857c7a16b40be2d01:0x21a31ee1afc51d94c2efccaa2092ad1028285549:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:1776687227:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x68d05bc99225def13d0adea320aa4c1f1e908e0eaec77c621ab94c740de5b6bf",
@@ -35892,7 +35833,8 @@
       "timestamp": 1776688235,
       "type": "TRANSFER",
       "from_label": "0xdd95\u2026f698",
-      "to_label": "0xc456\u20260ebd"
+      "to_label": "0xc456\u20260ebd",
+      "event_id": "0x68d05bc99225def13d0adea320aa4c1f1e908e0eaec77c621ab94c740de5b6bf:0xdd95d5acc5225520f82023446669a214a422f698:0xc456e33ddf99c48e26e31120f32eae470e040ebd:1776688235:TRANSFER"
     },
     {
       "tx_hash": "0xfa6958bdc5303a885038c005be4017da53fab22ef3954b351bd3c120eeee5d2e",
@@ -35902,7 +35844,8 @@
       "timestamp": 1776689267,
       "type": "TRANSFER",
       "from_label": "Wintermute 4",
-      "to_label": "0x5c4c\u2026534d"
+      "to_label": "0x5c4c\u2026534d",
+      "event_id": "0xfa6958bdc5303a885038c005be4017da53fab22ef3954b351bd3c120eeee5d2e:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:0x5c4c6c6d0358baf2ade28ffb1723e70139cd534d:1776689267:TRANSFER"
     },
     {
       "tx_hash": "0xff8cefed4a32ccb1e6984f7603097e2280f3eea8d4af1f963ba5158c7fc91b54",
@@ -35912,7 +35855,8 @@
       "timestamp": 1776690275,
       "type": "TRANSFER",
       "from_label": "0x5c4c\u2026534d",
-      "to_label": "0x58ed\u20266a51"
+      "to_label": "0x58ed\u20266a51",
+      "event_id": "0xff8cefed4a32ccb1e6984f7603097e2280f3eea8d4af1f963ba5158c7fc91b54:0x5c4c6c6d0358baf2ade28ffb1723e70139cd534d:0x58edf78281334335effa23101bbe3371b6a36a51:1776690275:TRANSFER"
     },
     {
       "tx_hash": "0x89bd2328ead0cb9694dae52733d909ebf1d273ba94c404b8987137b130af8ec5",
@@ -35922,7 +35866,8 @@
       "timestamp": 1776694223,
       "type": "TRANSFER",
       "from_label": "Wintermute 4",
-      "to_label": "0xeae7\u2026a4f4"
+      "to_label": "0xeae7\u2026a4f4",
+      "event_id": "0x89bd2328ead0cb9694dae52733d909ebf1d273ba94c404b8987137b130af8ec5:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:0xeae7380dd4cef6fbd1144f49e4d1e6964258a4f4:1776694223:TRANSFER"
     },
     {
       "tx_hash": "0xbd548e4ecd4e5c63eb7a1999c2268cc705292db9bd87b50a32a9fb188659f83c",
@@ -35932,7 +35877,8 @@
       "timestamp": 1776694391,
       "type": "CEX_DEPOSIT",
       "from_label": "0xeae7\u2026a4f4",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0xbd548e4ecd4e5c63eb7a1999c2268cc705292db9bd87b50a32a9fb188659f83c:0xeae7380dd4cef6fbd1144f49e4d1e6964258a4f4:0x28c6c06298d514db089934071355e5743bf21d60:1776694391:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x81da8c9397501565c9b3865203da0bc1368c6eb962cfd2caaf70c9d48bd41de3",
@@ -35942,7 +35888,8 @@
       "timestamp": 1776697259,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Upbit",
-      "to_label": "0xf375\u20269d59"
+      "to_label": "0xf375\u20269d59",
+      "event_id": "0x81da8c9397501565c9b3865203da0bc1368c6eb962cfd2caaf70c9d48bd41de3:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xf37594875f33a004df690bcbb65ee432b0959d59:1776697259:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0xccbe740940b1fd7b61b77aa25e727a8710d1f46b7c577b79ae7c385c15b2e693",
@@ -35952,7 +35899,8 @@
       "timestamp": 1776697259,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Upbit",
-      "to_label": "0xc456\u20260ebd"
+      "to_label": "0xc456\u20260ebd",
+      "event_id": "0xccbe740940b1fd7b61b77aa25e727a8710d1f46b7c577b79ae7c385c15b2e693:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xc456e33ddf99c48e26e31120f32eae470e040ebd:1776697259:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x44dc7f5faf1772230deb09125fc700d93392f5be07c18294eb934bacc49e91c7",
@@ -35962,7 +35910,8 @@
       "timestamp": 1776718043,
       "type": "CEX_WITHDRAWAL",
       "from_label": "Coinbase",
-      "to_label": "Wintermute 4"
+      "to_label": "Wintermute 4",
+      "event_id": "0x44dc7f5faf1772230deb09125fc700d93392f5be07c18294eb934bacc49e91c7:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:1776718043:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0xdb3b7a9b4e9cc08d1e1b6719db254f3807003084fb485ff8e3e9619fe0ee80ae",
@@ -35972,7 +35921,8 @@
       "timestamp": 1776718115,
       "type": "CEX_WITHDRAWAL",
       "from_label": "OKX",
-      "to_label": "0xb0a2\u20263d64"
+      "to_label": "0xb0a2\u20263d64",
+      "event_id": "0xdb3b7a9b4e9cc08d1e1b6719db254f3807003084fb485ff8e3e9619fe0ee80ae:0x4a4aaa0155237881fbd5c34bfae16e985a7b068d:0xb0a27099582833c0cb8c7a0565759ff145113d64:1776718115:CEX_WITHDRAWAL"
     },
     {
       "tx_hash": "0x09ad16eb48ac63b3b5c81e9d9f0902a555b02c9724685e7f83e297740a7b3f4e",
@@ -35982,7 +35932,8 @@
       "timestamp": 1776718307,
       "type": "TRANSFER",
       "from_label": "Wintermute 4",
-      "to_label": "0xeae7\u2026a4f4"
+      "to_label": "0xeae7\u2026a4f4",
+      "event_id": "0x09ad16eb48ac63b3b5c81e9d9f0902a555b02c9724685e7f83e297740a7b3f4e:0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa:0xeae7380dd4cef6fbd1144f49e4d1e6964258a4f4:1776718307:TRANSFER"
     },
     {
       "tx_hash": "0x6b574919abfdb2c448a20a8af0cfedd2065e9813978d9b02f0af0e837996c499",
@@ -35991,8 +35942,9 @@
       "value": 166373.83,
       "timestamp": 1776718451,
       "type": "CEX_DEPOSIT",
-      "from_label": "0x8fda\u20267f17",
-      "to_label": "Coinbase"
+      "from_label": "CEX Deposit Wallet",
+      "to_label": "Coinbase",
+      "event_id": "0x6b574919abfdb2c448a20a8af0cfedd2065e9813978d9b02f0af0e837996c499:0x8fda775a324a0970135b054a7df649342a9a7f17:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:1776718451:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0xcfcd368c20410c40961ab74970bdec7f7ff22decae58cdebe4bf48125f6f740e",
@@ -36002,7 +35954,8 @@
       "timestamp": 1776719051,
       "type": "CEX_DEPOSIT",
       "from_label": "0xeae7\u2026a4f4",
-      "to_label": "Binance"
+      "to_label": "Binance",
+      "event_id": "0xcfcd368c20410c40961ab74970bdec7f7ff22decae58cdebe4bf48125f6f740e:0xeae7380dd4cef6fbd1144f49e4d1e6964258a4f4:0x28c6c06298d514db089934071355e5743bf21d60:1776719051:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0x1f96acb0d0312ac7fa23a8f3eb67a01134869c55b0fcbb5b34a44a8bbc041bc1",
@@ -36012,7 +35965,8 @@
       "timestamp": 1776728447,
       "type": "CEX_DEPOSIT",
       "from_label": "0x58ed\u20266a51",
-      "to_label": "KuCoin"
+      "to_label": "KuCoin",
+      "event_id": "0x1f96acb0d0312ac7fa23a8f3eb67a01134869c55b0fcbb5b34a44a8bbc041bc1:0x58edf78281334335effa23101bbe3371b6a36a51:0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23:1776728447:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0xaec65880f7a866e3d34875e5307e93e399e99847d28c4fe46bffa5ef23fe08f9",
@@ -36022,7 +35976,8 @@
       "timestamp": 1776735131,
       "type": "CEX_DEPOSIT",
       "from_label": "0xf440\u2026b9bc",
-      "to_label": "Bybit"
+      "to_label": "Bybit",
+      "event_id": "0xaec65880f7a866e3d34875e5307e93e399e99847d28c4fe46bffa5ef23fe08f9:0xf440139a62b2b939699c5b3e09f88e40464ab9bc:0xa31231e727ca53ff95f0d00a06c645110c4ab647:1776735131:CEX_DEPOSIT"
     },
     {
       "tx_hash": "0xf5a54b9251abd07afd6a1f3cf4fe21f91eab922d09bb7a25c3866bafd37ef9a7",
@@ -36032,7 +35987,8 @@
       "timestamp": 1776760991,
       "type": "CEX_DEPOSIT",
       "from_label": "0xbc8a\u20265ce0",
-      "to_label": "OKX"
+      "to_label": "OKX",
+      "event_id": "0xf5a54b9251abd07afd6a1f3cf4fe21f91eab922d09bb7a25c3866bafd37ef9a7:0xbc8a0f5e41857292d12ef620e2a5895ce65a5ce0:0x4a4aaa0155237881fbd5c34bfae16e985a7b068d:1776760991:CEX_DEPOSIT"
     }
   ]
 }

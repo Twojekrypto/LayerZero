@@ -156,6 +156,20 @@ test('fresh wallet heuristics use shared multi-chain helpers', () => {
   assert.doesNotMatch(detectFreshEntrypoint, /return None, deployer/);
 });
 
+test('whale transfer pipeline keeps canonical CEX labels and event identity', () => {
+  assert.match(whaleMonitorEntrypoint, /def get_transfer_event_id\(/);
+  assert.match(whaleMonitorEntrypoint, /def mark_seen\(/);
+  assert.match(whaleMonitorEntrypoint, /logIndex/);
+  assert.match(whaleMonitorEntrypoint, /event_id/);
+  assert.match(whaleMonitorEntrypoint, /Skip internal CEX-to-CEX transfers/);
+  assert.match(sanitizeEntrypoint, /def normalize_whale_transfers\(/);
+  assert.match(sanitizeEntrypoint, /removed_cex_to_cex/);
+  assert.match(sanitizeEntrypoint, /deduplicated_rows/);
+  assert.match(sanitizeEntrypoint, /whale_transfer_diagnostics/);
+  assert.match(appJs, /Known CEX addresses \(must remain canonical\)/);
+  assert.match(appJs, /large Ethereum transfers tracked/);
+});
+
 test('CEX registry and anti-CEX heuristics are centralized and refined', () => {
   assert.match(cexRegistry, /KNOWN_CEX_ADDRESSES =/);
   assert.match(cexRegistry, /KNOWN_COINBASE_ADDRESSES =/);
@@ -214,6 +228,7 @@ test('snapshot data remains internally consistent', () => {
   assert.ok(Array.isArray(dashboardData.top_holders) && dashboardData.top_holders.length > 100);
   assert.ok(Array.isArray(dashboardData.cb_prime_transfers) && dashboardData.cb_prime_transfers.length > 0);
   assert.ok(Array.isArray(dashboardData.whale_transfers) && dashboardData.whale_transfers.length > 0);
+  assert.ok(dashboardData.meta.integrity.whale_transfer_diagnostics, 'whale transfer diagnostics should be present');
 
   const uniqueAddresses = new Set(dashboardData.top_holders.map((holder) => holder.address.toLowerCase()));
   assert.ok(uniqueAddresses.size > 100, 'snapshot should keep a meaningful unique holder set');
@@ -247,6 +262,17 @@ test('snapshot data remains internally consistent', () => {
       assert.ok(typeof item.seller_profile === 'string', `seller should expose seller profile in ${period}`);
       assert.ok(typeof item.sell_pressure_score === 'number', `seller should expose sell pressure score in ${period}`);
       assert.ok(typeof item.flow_score === 'number', `seller should expose flow score in ${period}`);
+    }
+  }
+
+  const whaleEventIds = new Set();
+  for (const transfer of dashboardData.whale_transfers) {
+    assert.ok(Number(transfer.value) >= 100000, 'whale transfers should stay above the minimum threshold');
+    const eventId = transfer.event_id || `${transfer.tx_hash}:${transfer.from}:${transfer.to}:${transfer.timestamp}:${transfer.type}`;
+    assert.ok(!whaleEventIds.has(eventId), 'whale transfers should stay deduplicated by event identity');
+    whaleEventIds.add(eventId);
+    if (transfer.type === 'CEX_WITHDRAWAL') {
+      assert.notEqual(transfer.from_label, transfer.to_label, 'CEX withdrawal rows should not be pure CEX-to-CEX relabels');
     }
   }
 });

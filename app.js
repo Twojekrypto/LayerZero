@@ -2323,12 +2323,12 @@ const KNOWN_CEX_LABELS = {
 };
 function buildWhaleLabelMap() {
     const map = {};
-    // 1. Known CEX addresses (highest priority)
-    for (const [addr, name] of Object.entries(KNOWN_CEX_LABELS)) map[addr.toLowerCase()] = name;
-    // 2. Labels from top_holders
+    // 1. Labels from top_holders
     for (const h of DATA.top_holders) {
-        if (h.label) map[h.address.toLowerCase()] = h.label;
+        if (h.label && !KNOWN_CEX_LABELS[h.address.toLowerCase()]) map[h.address.toLowerCase()] = h.label;
     }
+    // 2. Known CEX addresses (must remain canonical)
+    for (const [addr, name] of Object.entries(KNOWN_CEX_LABELS)) map[addr.toLowerCase()] = name;
     return map;
 }
 function renderWhaleTransfers() {
@@ -2370,7 +2370,7 @@ function renderWhaleTransfers() {
         </tr>`;
     });
     document.getElementById('whale-tbody').innerHTML = html;
-    document.getElementById('whale-sub').textContent = `${total} large transfers tracked`;
+    document.getElementById('whale-sub').textContent = `${total} large Ethereum transfers tracked`;
     const pager = document.getElementById('whale-pager');
     pager.innerHTML = `
         ${pageButtonHTML('whale', -999, '&laquo;', whalePageNum<=1)}

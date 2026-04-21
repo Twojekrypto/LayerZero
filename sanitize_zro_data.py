@@ -560,7 +560,104 @@ def normalize_flows(data):
     return flow_summary
 
 
-def build_integrity_report(data, duplicate_records_removed, flow_summary):
+def choose_preferred_whale_record(existing, candidate):
+    existing_score = (
+        bool(existing.get("event_id")),
+        bool(existing.get("log_index") not in (None, "")),
+        abs(float(existing.get("value") or 0)),
+        bool(existing.get("from_label")),
+        bool(existing.get("to_label")),
+    )
+    candidate_score = (
+        bool(candidate.get("event_id")),
+        bool(candidate.get("log_index") not in (None, "")),
+        abs(float(candidate.get("value") or 0)),
+        bool(candidate.get("from_label")),
+        bool(candidate.get("to_label")),
+    )
+    return candidate if candidate_score > existing_score else existing
+
+
+def build_whale_event_id(item):
+    tx_hash = (item.get("tx_hash") or "").lower()
+    log_index = item.get("log_index")
+    if tx_hash and log_index not in (None, ""):
+        return f"{tx_hash}:{log_index}"
+    from_addr = (item.get("from") or "").lower()
+    to_addr = (item.get("to") or "").lower()
+    timestamp = int(item.get("timestamp") or 0)
+    transfer_type = item.get("type") or "TRANSFER"
+    return f"{tx_hash}:{from_addr}:{to_addr}:{timestamp}:{transfer_type}"
+
+
+def normalize_whale_transfers(data):
+    holder_map = {holder["address"].lower(): holder for holder in data.get("top_holders", [])}
+    summary = {
+        "raw_rows": len(data.get("whale_transfers", [])),
+        "deduplicated_rows": 0,
+        "removed_cex_to_cex": 0,
+        "reclassified_rows": 0,
+        "removed_below_threshold": 0,
+        "normalized_rows": 0,
+    }
+    deduped = {}
+
+    for raw_item in data.get("whale_transfers", []):
+        tx_hash = (raw_item.get("tx_hash") or "").lower()
+        from_addr = (raw_item.get("from") or "").lower()
+        to_addr = (raw_item.get("to") or "").lower()
+        if not tx_hash or not from_addr or not to_addr:
+            continue
+
+        value = round(float(raw_item.get("value") or 0), 2)
+        if value < 100_000:
+            summary["removed_below_threshold"] += 1
+            continue
+
+        from_is_cex = from_addr in KNOWN_CEX_ADDRESSES
+        to_is_cex = to_addr in KNOWN_CEX_ADDRESSES
+        if from_is_cex and to_is_cex:
+            summary["removed_cex_to_cex"] += 1
+            continue
+
+        transfer_type = "CEX_WITHDRAWAL" if from_is_cex else "CEX_DEPOSIT" if to_is_cex else "TRANSFER"
+        if transfer_type != raw_item.get("type"):
+            summary["reclassified_rows"] += 1
+
+        normalized = {
+            "tx_hash": tx_hash,
+            "from": from_addr,
+            "to": to_addr,
+            "value": value,
+            "timestamp": int(raw_item.get("timestamp") or 0),
+            "type": transfer_type,
+            "from_label": KNOWN_CEX_ADDRESSES.get(from_addr)
+            or holder_map.get(from_addr, {}).get("label")
+            or raw_item.get("from_label")
+            or from_addr,
+            "to_label": KNOWN_CEX_ADDRESSES.get(to_addr)
+            or holder_map.get(to_addr, {}).get("label")
+            or raw_item.get("to_label")
+            or to_addr,
+        }
+        if raw_item.get("log_index") not in (None, ""):
+            normalized["log_index"] = raw_item.get("log_index")
+        normalized["event_id"] = raw_item.get("event_id") or build_whale_event_id(normalized)
+
+        event_id = normalized["event_id"]
+        if event_id in deduped:
+            summary["deduplicated_rows"] += 1
+            deduped[event_id] = choose_preferred_whale_record(deduped[event_id], normalized)
+            continue
+        deduped[event_id] = normalized
+
+    normalized_rows = sorted(deduped.values(), key=lambda item: item.get("timestamp", 0))
+    summary["normalized_rows"] = len(normalized_rows)
+    data["whale_transfers"] = normalized_rows[-500:]
+    return summary
+
+
+def build_integrity_report(data, duplicate_records_removed, flow_summary, whale_summary):
     holders = data.get("top_holders", [])
     chain_totals = {chain: 0 for chain in data.get("chains", {})}
     for holder in holders:
@@ -589,6 +686,7 @@ def build_integrity_report(data, duplicate_records_removed, flow_summary):
         "tracked_chain_balances": {chain: round(total, 8) for chain, total in chain_totals.items()},
         "chain_balance_anomalies": chain_balance_anomalies,
         "flow_diagnostics": flow_summary,
+        "whale_transfer_diagnostics": whale_summary,
     }
     return integrity
 
@@ -612,8 +710,9 @@ def main():
     deduped_holders, duplicate_records_removed = normalize_holders(data, fresh_cache)
     data["top_holders"] = deduped_holders
     flow_summary = normalize_flows(data)
+    whale_summary = normalize_whale_transfers(data)
     data.setdefault("meta", {})
-    data["meta"]["integrity"] = build_integrity_report(data, duplicate_records_removed, flow_summary)
+    data["meta"]["integrity"] = build_integrity_report(data, duplicate_records_removed, flow_summary, whale_summary)
 
     integrity = data["meta"]["integrity"]
     anomaly_count = len(integrity["chain_balance_anomalies"])
@@ -624,6 +723,9 @@ def main():
     print(f"   Fresh wallets missing created date: {integrity['fresh_wallets_missing_created']}")
     print(f"   Fresh wallets missing last flow: {integrity['fresh_wallets_missing_last_flow']}")
     print(f"   Chain balance anomalies: {anomaly_count}")
+    print(f"   Whale rows normalized: {whale_summary['normalized_rows']}")
+    print(f"   Whale rows deduplicated: {whale_summary['deduplicated_rows']}")
+    print(f"   Whale CEX→CEX rows removed: {whale_summary['removed_cex_to_cex']}")
 
     if integrity["chain_balance_anomalies"]:
         for anomaly in integrity["chain_balance_anomalies"]:

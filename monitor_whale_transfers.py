@@ -91,6 +91,18 @@ def short_addr(addr):
     return addr[:6] + "…" + addr[-4:]
 
 
+def get_transfer_event_id(tx_hash, log_index):
+    if log_index in (None, ""):
+        return tx_hash
+    return f"{tx_hash}:{log_index}"
+
+
+def mark_seen(seen, tx_hash, log_index):
+    seen.add(get_transfer_event_id(tx_hash, log_index))
+    if log_index in (None, ""):
+        seen.add(tx_hash)
+
+
 def check_wallet_age(address):
     """Check if wallet is fresh (<30 days). Returns (is_fresh, age_days, creation_ts).
     Uses robust multi-chain checking logic identical to detect_fresh.py."""
@@ -158,7 +170,9 @@ def main():
     if resp and resp.get("status") == "1" and resp.get("result"):
         for tx in resp["result"]:
             tx_hash = tx.get("hash", "")
-            if tx_hash in seen:
+            log_index = tx.get("logIndex", "")
+            event_id = get_transfer_event_id(tx_hash, log_index)
+            if tx_hash in seen or event_id in seen:
                 continue
             value = int(tx.get("value", "0")) / 1e18
             if value < MIN_WHALE_AMOUNT:
@@ -175,6 +189,7 @@ def main():
 
     for tx in sorted(transfers, key=lambda x: int(x.get("blockNumber", "0"))):
         tx_hash = tx["hash"]
+        log_index = tx.get("logIndex", "")
         from_addr = tx.get("from", "").lower()
         to_addr = tx.get("to", "").lower()
         value = int(tx.get("value", "0")) / 1e18
@@ -184,12 +199,12 @@ def main():
 
         # Skip CB Prime Hub transfers (already tracked by monitor_cb_prime.py)
         if from_addr == COINBASE_PRIME_HUB or to_addr == COINBASE_PRIME_HUB:
-            seen.add(tx_hash)
+            mark_seen(seen, tx_hash, log_index)
             continue
 
         # Skip if BOTH from and to are CB Prime investors (internal rebalancing)
         if from_addr in cb_prime_addrs and to_addr in cb_prime_addrs:
-            seen.add(tx_hash)
+            mark_seen(seen, tx_hash, log_index)
             continue
 
         # Classify transfer
@@ -200,7 +215,7 @@ def main():
 
         # Skip internal CEX-to-CEX transfers (e.g. Binance 14 → Binance 15)
         if from_is_cex and to_is_cex:
-            seen.add(tx_hash)
+            mark_seen(seen, tx_hash, log_index)
             print(f"  ⏭️ Skip CEX→CEX: {KNOWN_CEX[from_addr]} → {KNOWN_CEX[to_addr]} ({fmt(value)} ZRO)")
             continue
 
@@ -288,6 +303,7 @@ def main():
         # Store whale transfer
         transfer_record = {
             "tx_hash": tx_hash,
+            "event_id": get_transfer_event_id(tx_hash, log_index),
             "from": from_addr,
             "to": to_addr,
             "value": round(value, 2),
@@ -296,6 +312,11 @@ def main():
             "from_label": from_label or short_addr(from_addr),
             "to_label": to_label or short_addr(to_addr),
         }
+        if log_index not in (None, ""):
+            try:
+                transfer_record["log_index"] = int(log_index)
+            except (TypeError, ValueError):
+                transfer_record["log_index"] = log_index
         whale_transfers.append(transfer_record)
 
         usd_val = fmt_usd(value * price) if price else ""
@@ -342,7 +363,7 @@ def main():
         }
         send_discord(embed)
         alerts_sent += 1
-        seen.add(tx_hash)
+        mark_seen(seen, tx_hash, log_index)
 
     # Keep only last 500 whale transfers
     whale_transfers = whale_transfers[-500:]
