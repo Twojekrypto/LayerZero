@@ -17,6 +17,7 @@ import time
 from collections import defaultdict
 from copy import deepcopy
 
+from cex_addresses import KNOWN_CEX_ADDRESSES
 from utils import atomic_json_dump
 
 
@@ -65,6 +66,22 @@ FLOW_MIN_BALANCE = 1_000
 FLOW_MIN_NET_RETENTION = 0.10
 FLOW_MIN_BALANCE_SHARE = 0.01
 FLOW_MIN_SELL_BALANCE_SHARE = 0.005
+FLOW_COHORT_LABELS = {
+    "organic": "Organic",
+    "strategic": "Strategic / VC",
+    "coinbase": "Coinbase / Custody",
+}
+SELLER_PROFILE_LABELS = {
+    "coinbase_outflow": "Coinbase outflow",
+    "cex_outflow": "CEX outflow",
+    "strategic_rotation": "Strategic rotation",
+    "holder_redistribution": "Holder redistribution",
+    "external_outflow": "External outflow",
+    "mixed_outflow": "Mixed outflow",
+    "coinbase_rotation": "Coinbase / custody rotation",
+    "unresolved_outflow": "Unresolved outflow",
+}
+STRATEGIC_FLOW_TYPES = {"VC", "TEAM", "UNLOCK", "INST"}
 
 
 def load_json(path):
@@ -226,6 +243,19 @@ def is_flow_infrastructure(flow_type):
     return flow_type in FLOW_INFRA_TYPES
 
 
+def derive_flow_cohort(label, flow_type, address=""):
+    label_lower = (label or "").lower()
+    flow_type = (flow_type or "").upper()
+    cex_name = KNOWN_CEX_ADDRESSES.get((address or "").lower(), "")
+    if "coinbase" in label_lower or "coinbase" in cex_name.lower():
+        return "coinbase"
+    if flow_type in STRATEGIC_FLOW_TYPES:
+        return "strategic"
+    if any(token in label_lower for token in ("investment recipient", "borderless capital", "strategic")):
+        return "strategic"
+    return "organic"
+
+
 def get_flow_net_retention_ratio(item):
     total_in = float(item.get("total_in") or 0)
     if total_in <= 0:
@@ -238,6 +268,34 @@ def get_flow_balance_share(item):
     if balance <= 0:
         return 0
     return abs(float(item.get("net_flow") or 0)) / balance
+
+
+def derive_seller_profile(item):
+    existing = item.get("seller_profile")
+    if existing:
+        return existing
+    cohort = derive_flow_cohort(item.get("label"), item.get("type"), item.get("address"))
+    if cohort == "coinbase":
+        return "coinbase_rotation"
+    if cohort == "strategic":
+        return "strategic_rotation"
+    return "unresolved_outflow"
+
+
+def derive_flow_score(item):
+    balance_share = get_flow_balance_share(item)
+    if item["net_flow"] > 0:
+        retention = max(0, min(float(item.get("retention_ratio") or 0), 2))
+        net_retention = max(0, min(get_flow_net_retention_ratio(item), 1.5))
+        conviction = 1 + (retention * 0.35) + (net_retention * 0.55) + (min(balance_share, 0.25) * 2.5)
+        return round(item["net_flow"] * conviction, 2)
+    seller_profile = derive_seller_profile(item)
+    pressure = 1 + (min(balance_share, 0.2) * 4.0)
+    if seller_profile in {"coinbase_outflow", "cex_outflow"}:
+        pressure += 0.35
+    elif seller_profile == "mixed_outflow":
+        pressure += 0.15
+    return round(abs(item["net_flow"]) * pressure, 2)
 
 
 def is_meaningful_accumulator(item):
@@ -294,6 +352,9 @@ def normalize_flow_item(raw_item, holder_map):
         "net_flow": net_flow,
         "balance": balance,
     }
+    flow_cohort = raw_item.get("flow_cohort") or derive_flow_cohort(label, flow_type, address)
+    normalized["flow_cohort"] = flow_cohort
+    normalized["flow_cohort_label"] = raw_item.get("flow_cohort_label") or FLOW_COHORT_LABELS[flow_cohort]
     if total_in > 0:
         normalized["total_in"] = round(total_in)
     if total_out > 0:
@@ -313,6 +374,13 @@ def normalize_flow_item(raw_item, holder_map):
         normalized["primary_flow_chain"] = normalized["flow_chains"][0]
     else:
         normalized["chain_unresolved"] = True
+
+    if net_flow < 0:
+        seller_profile = derive_seller_profile(raw_item)
+        normalized["seller_profile"] = seller_profile
+        normalized["seller_profile_label"] = raw_item.get("seller_profile_label") or SELLER_PROFILE_LABELS[seller_profile]
+
+    normalized["flow_score"] = round(float(raw_item.get("flow_score") or derive_flow_score(normalized)), 2)
 
     return normalized, "ok"
 
@@ -372,8 +440,8 @@ def normalize_flows(data):
                 continue
             sellers.append(item)
 
-        accumulators.sort(key=lambda item: (item["net_flow"], item.get("retention_ratio", 0), item["balance"]), reverse=True)
-        sellers.sort(key=lambda item: (item["net_flow"], -item["balance"]))
+        accumulators.sort(key=lambda item: (item.get("flow_score", 0), item["net_flow"], item.get("retention_ratio", 0), item["balance"]), reverse=True)
+        sellers.sort(key=lambda item: (item.get("flow_score", 0), abs(item["net_flow"]), -item["balance"]), reverse=True)
 
         flow_bucket["accumulators"] = accumulators
         flow_bucket["sellers"] = sellers

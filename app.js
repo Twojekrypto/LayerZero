@@ -16,6 +16,23 @@ const FLOW_MIN_BALANCE = 1000;
 const FLOW_MIN_NET_RETENTION = 0.10;
 const FLOW_MIN_BALANCE_SHARE = 0.01;
 const FLOW_MIN_SELL_BALANCE_SHARE = 0.005;
+const FLOW_COHORT_LABELS = {
+    all: 'All holders',
+    organic: 'Organic',
+    strategic: 'Strategic / VC',
+    coinbase: 'Coinbase / Custody',
+};
+const SELLER_PROFILE_LABELS = {
+    coinbase_outflow: 'Coinbase outflow',
+    cex_outflow: 'CEX outflow',
+    strategic_rotation: 'Strategic rotation',
+    holder_redistribution: 'Holder redistribution',
+    external_outflow: 'External outflow',
+    mixed_outflow: 'Mixed outflow',
+    coinbase_rotation: 'Coinbase rotation',
+    unresolved_outflow: 'Unresolved outflow',
+};
+const STRATEGIC_FLOW_TYPES = new Set(['VC', 'TEAM', 'UNLOCK', 'INST']);
 
 function fmt(n, d=0) {
     if (n==null||isNaN(n)) return '—';
@@ -622,6 +639,55 @@ function isMeaningfulFlowItem(item, type) {
     return netFlow < 0 && (Math.abs(netFlow) >= FLOW_MIN_BALANCE || balanceShare >= FLOW_MIN_SELL_BALANCE_SHARE);
 }
 
+function getFlowCohort(item, holder=getTrackedHolder(item.address)) {
+    if (item?.flow_cohort) return item.flow_cohort;
+    const label = (item?.label || holder?.label || '').toLowerCase();
+    const flowType = (item?.type || holder?.type || '').toUpperCase();
+    if (label.includes('coinbase')) return 'coinbase';
+    if (STRATEGIC_FLOW_TYPES.has(flowType)) return 'strategic';
+    if (label.includes('investment recipient') || label.includes('borderless capital') || label.includes('strategic')) return 'strategic';
+    return 'organic';
+}
+
+function getFlowCohortLabel(item, holder=getTrackedHolder(item.address)) {
+    return item?.flow_cohort_label || FLOW_COHORT_LABELS[getFlowCohort(item, holder)] || FLOW_COHORT_LABELS.organic;
+}
+
+function getSellerProfile(item, holder=getTrackedHolder(item.address)) {
+    if (item?.seller_profile) return item.seller_profile;
+    const cohort = getFlowCohort(item, holder);
+    if (cohort === 'coinbase') return 'coinbase_rotation';
+    if (cohort === 'strategic') return 'strategic_rotation';
+    return 'unresolved_outflow';
+}
+
+function getSellerProfileLabel(item, holder=getTrackedHolder(item.address)) {
+    return item?.seller_profile_label || SELLER_PROFILE_LABELS[getSellerProfile(item, holder)] || SELLER_PROFILE_LABELS.unresolved_outflow;
+}
+
+function getFlowDisplayScore(item, type, holder=getTrackedHolder(item.address)) {
+    const explicit = Number(item?.flow_score);
+    if (Number.isFinite(explicit) && explicit > 0) return explicit;
+    const balance = getFlowItemBalance(item, holder);
+    const balanceShare = getFlowBalanceShare(item, balance);
+    if (type === 'accumulators') {
+        const retentionRatio = getFlowRetentionRatio(item, balance);
+        const netRetentionRatio = getFlowNetRetentionRatio(item);
+        const conviction = 1 + (Math.min(retentionRatio, 2) * 0.35) + (Math.min(netRetentionRatio, 1.5) * 0.55) + (Math.min(balanceShare, 0.25) * 2.5);
+        return Math.max(0, Number(item?.net_flow || 0)) * conviction;
+    }
+    const sellerProfile = getSellerProfile(item, holder);
+    let pressure = 1 + (Math.min(balanceShare, 0.2) * 4);
+    if (sellerProfile === 'coinbase_outflow' || sellerProfile === 'cex_outflow') pressure += 0.35;
+    else if (sellerProfile === 'mixed_outflow') pressure += 0.15;
+    return Math.abs(Number(item?.net_flow || 0)) * pressure;
+}
+
+function flowMatchesCohort(item, cohort) {
+    if (cohort === 'all') return true;
+    return getFlowCohort(item) === cohort;
+}
+
 function addrCell(item) {
     const addr=item.address, shortA=addr.slice(0,6)+'…'+addr.slice(-4);
     const chain = getMainChain(addr);
@@ -630,11 +696,16 @@ function addrCell(item) {
     const copyButton = copyButtonHTML(addr);
     const dbIcon = debankIconHTML(dbUrl);
     const explorerIcon = explorerIconHTML(explorerUrl, `View ${shortA} on explorer`);
+    const cohort = getFlowCohort(item);
+    const cohortBadge = `<span class="h-badge h-badge-flow-cohort h-badge-flow-${cohort}">${escapeHtml(getFlowCohortLabel(item))}</span>`;
+    const sellerBadge = Number(item?.net_flow || 0) < 0
+        ? `<span class="h-badge h-badge-flow-profile">${escapeHtml(getSellerProfileLabel(item))}</span>`
+        : '';
     if (item.label) {
         const bCls={'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','WALLET':'h-badge-wallet','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[item.type]||'h-badge-whale';
-        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span>${cohortBadge}${sellerBadge}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
     }
-    return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+    return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${cohortBadge}${sellerBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
 }
 
 // ── Tabs ──
@@ -689,6 +760,7 @@ function applyStateFromUrl() {
 
     flowSearchQuery = params.get('flowSearch')?.trim() || '';
     flowChain = pickAllowedValue(params.get('flowChain'), ['all', ...Object.keys(DATA.chains || {})], 'all');
+    flowCohort = pickAllowedValue(params.get('flowCohort'), ['all', 'organic', 'strategic', 'coinbase'], 'all');
     hideCex = params.get('hideCex') == null ? true : parseBooleanParam(params.get('hideCex'));
     flowPageAcc = parsePositiveInt(params.get('flowAccPage'), 1);
     flowPageSell = parsePositiveInt(params.get('flowSellPage'), 1);
@@ -728,6 +800,7 @@ function updateUrlState(modeOverride) {
 
     if (flowSearchQuery) params.set('flowSearch', flowSearchQuery);
     if (flowChain !== 'all') params.set('flowChain', flowChain);
+    if (flowCohort !== 'all') params.set('flowCohort', flowCohort);
     if (!hideCex) params.set('hideCex', '0');
     if (flowPageAcc !== 1) params.set('flowAccPage', String(flowPageAcc));
     if (flowPageSell !== 1) params.set('flowSellPage', String(flowPageSell));
@@ -753,6 +826,7 @@ function syncControlsFromState() {
     setInputValue('flow-search', flowSearchQuery);
 
     setActivePill('flow-period-pills', currentPeriod);
+    setActiveDataChoice('flow-cohort-pills', 'flowCohort', flowCohort);
     setActivePill('cb-period-pills', cbPeriodDays);
     setActivePill('cbt-period-pills', cbtPeriodDays);
     setCbtTypeTriggerLabel();
@@ -874,6 +948,12 @@ function handleDelegatedClick(event) {
     const flowChainButton = event.target.closest('[data-flow-chain]');
     if (flowChainButton) {
         setFlowChain(flowChainButton.dataset.flowChain, flowChainButton.dataset.flowLabel);
+        return;
+    }
+
+    const flowCohortButton = event.target.closest('[data-flow-cohort]');
+    if (flowCohortButton) {
+        setFlowCohort(flowCohortButton.dataset.flowCohort);
         return;
     }
 
@@ -1878,17 +1958,23 @@ function renderNewInstitutional() {
     if(card) card.style.display = total ? '' : 'none';
 }
 
-let flowPageAcc=1, flowPageSell=1, flowChain='all', hideCex=true, flowSearchQuery='';
+let flowPageAcc=1, flowPageSell=1, flowChain='all', flowCohort='all', hideCex=true, flowSearchQuery='';
 const CHAIN_ICONS_MAP={ethereum:'https://icons.llamao.fi/icons/chains/rsz_ethereum.jpg',arbitrum:'https://icons.llamao.fi/icons/chains/rsz_arbitrum.jpg',base:'https://icons.llamao.fi/icons/chains/rsz_base.jpg',bsc:'https://icons.llamao.fi/icons/chains/rsz_binance.jpg',optimism:'https://icons.llamao.fi/icons/chains/rsz_optimism.jpg',polygon:'https://icons.llamao.fi/icons/chains/rsz_polygon.jpg',avalanche:'https://icons.llamao.fi/icons/chains/rsz_avalanche.jpg'};
 
 function getFlowItems(type){
     const flows=DATA.flows[currentPeriod]; if(!flows) return [];
-    let items=flows[type]||[];
+    let items=(flows[type]||[]).slice();
     const q=flowSearchQuery.trim().toLowerCase();
     if(q) items=items.filter(f=>f.address.toLowerCase().includes(q)||(f.label&&f.label.toLowerCase().includes(q)));
+    if(flowCohort!=='all') items=items.filter(item=>flowMatchesCohort(item, flowCohort));
     if(flowChain!=='all') items=items.filter(item=>flowMatchesChain(item, flowChain));
     if(hideCex) items=items.filter(item=>isMeaningfulFlowItem(item, type));
     else items=items.filter(item=>type==='accumulators' ? Number(item.net_flow||0) > 0 : Number(item.net_flow||0) < 0);
+    items.sort((a, b) => {
+        const scoreDiff = getFlowDisplayScore(b, type) - getFlowDisplayScore(a, type);
+        if (scoreDiff !== 0) return scoreDiff;
+        return Math.abs(Number(b.net_flow || 0)) - Math.abs(Number(a.net_flow || 0));
+    });
     return items;
 }
 function toggleHideCex(){
@@ -1902,6 +1988,8 @@ function toggleHideCex(){
 }
 
 function renderFlows() {
+    const flowBucket = DATA.flows[currentPeriod] || {};
+    const diagnostics = flowBucket.meta || DATA.meta?.integrity?.flow_diagnostics?.[currentPeriod] || null;
     ['accumulators','sellers'].forEach(type=>{
         const isAcc=type==='accumulators';
         const items=getFlowItems(type);
@@ -1928,6 +2016,15 @@ function renderFlows() {
             ${pageButtonHTML(target, 1, '&rsaquo;', page>=totalPages)}
             ${pageButtonHTML(target, 999, '&raquo;', page>=totalPages)}`;
     });
+    const contextParts = [`${FLOW_COHORT_LABELS[flowCohort]} view`];
+    if (hideCex) contextParts.push('quality filter on');
+    if (flowChain !== 'all') contextParts.push(`${DATA.chains?.[flowChain]?.short || flowChain.toUpperCase()} only`);
+    if (diagnostics?.chain_unresolved_rows) {
+        contextParts.push(flowChain !== 'all'
+            ? `${diagnostics.chain_unresolved_rows} unresolved rows hidden from chain filter`
+            : `${diagnostics.chain_unresolved_rows} rows still have unresolved chain context`);
+    }
+    setText('flow-context-note', contextParts.join(' · '));
     updateUrlState();
 }
 function goFlowPage(pfx,delta){
@@ -1944,6 +2041,14 @@ function setFlowChain(chain, label) {
     flowChain=chain; flowPageAcc=1; flowPageSell=1;
     document.getElementById('chain-dd-label').textContent = label || 'All Chains';
     closeFlowChainDropdown();
+    requestHistoryMode('push');
+    renderFlows();
+}
+function setFlowCohort(cohort) {
+    flowCohort = ['all', 'organic', 'strategic', 'coinbase'].includes(cohort) ? cohort : 'all';
+    flowPageAcc = 1;
+    flowPageSell = 1;
+    setActiveDataChoice('flow-cohort-pills', 'flowCohort', flowCohort);
     requestHistoryMode('push');
     renderFlows();
 }

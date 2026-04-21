@@ -77,23 +77,42 @@ test('repo exposes one-command local refresh entrypoints', () => {
 test('flow generation keeps chain context and focuses rankings on tracked holders', () => {
   assert.match(generateFlowsEntrypoint, /"chain": chain_name/);
   assert.match(generateFlowsEntrypoint, /FLOW_INFRA_TYPES/);
+  assert.match(generateFlowsEntrypoint, /FLOW_COHORT_LABELS/);
+  assert.match(generateFlowsEntrypoint, /SELLER_PROFILE_LABELS/);
   assert.match(generateFlowsEntrypoint, /retention_ratio/);
   assert.match(generateFlowsEntrypoint, /primary_flow_chain/);
   assert.match(generateFlowsEntrypoint, /chain_unresolved/);
   assert.match(generateFlowsEntrypoint, /FLOW_MIN_NET_RETENTION/);
   assert.match(generateFlowsEntrypoint, /FLOW_MIN_SELL_BALANCE_SHARE/);
+  assert.match(generateFlowsEntrypoint, /derive_flow_cohort/);
+  assert.match(generateFlowsEntrypoint, /derive_seller_profile/);
+  assert.match(generateFlowsEntrypoint, /derive_flow_score/);
   assert.match(generateFlowsEntrypoint, /is_meaningful_accumulator/);
   assert.match(generateFlowsEntrypoint, /is_meaningful_seller/);
   assert.match(sanitizeEntrypoint, /def normalize_flows\(/);
   assert.match(sanitizeEntrypoint, /chain_unresolved_rows/);
+  assert.match(sanitizeEntrypoint, /flow_cohort_label/);
+  assert.match(sanitizeEntrypoint, /seller_profile_label/);
+  assert.match(sanitizeEntrypoint, /flow_score/);
   assert.match(sanitizeEntrypoint, /excluded_low_signal/);
   assert.match(sanitizeEntrypoint, /excluded_low_retention/);
   assert.match(appJs, /function hydrateFlowChainFallbacks\(/);
   assert.match(appJs, /function getHolderFlowChainFallbacks\(/);
   assert.match(appJs, /function flowMatchesChain\(/);
   assert.match(appJs, /function isMeaningfulFlowItem\(/);
+  assert.match(appJs, /function getFlowCohort\(/);
+  assert.match(appJs, /function getSellerProfile\(/);
+  assert.match(appJs, /function getFlowDisplayScore\(/);
+  assert.match(appJs, /function flowMatchesCohort\(/);
   assert.match(appJs, /FLOW_MIN_NET_RETENTION/);
   assert.match(appJs, /chain_unresolved_rows/);
+  assert.match(indexHtml, /data-flow-cohort="organic"/);
+  assert.match(indexHtml, /data-flow-cohort="strategic"/);
+  assert.match(indexHtml, /data-flow-cohort="coinbase"/);
+  assert.match(indexHtml, /id="flow-context-note"/);
+  assert.match(styleCss, /flow-context-note/);
+  assert.match(styleCss, /h-badge-flow-cohort/);
+  assert.match(styleCss, /h-badge-flow-profile/);
   assert.match(indexHtml, /Tracked holders only/);
 });
 
@@ -200,10 +219,15 @@ test('snapshot data remains internally consistent', () => {
     for (const item of dashboardData.flows[period].accumulators) {
       assert.ok(typeof item.address === 'string' && item.address.startsWith('0x'), `accumulator should expose address in ${period}`);
       assert.ok(Number(item.net_flow || 0) > 0, `accumulator should keep positive net flow in ${period}`);
+      assert.ok(typeof item.flow_cohort === 'string', `accumulator should expose flow cohort in ${period}`);
+      assert.ok(typeof item.flow_score === 'number', `accumulator should expose flow score in ${period}`);
     }
     for (const item of dashboardData.flows[period].sellers) {
       assert.ok(typeof item.address === 'string' && item.address.startsWith('0x'), `seller should expose address in ${period}`);
       assert.ok(Number(item.net_flow || 0) < 0, `seller should keep negative net flow in ${period}`);
+      assert.ok(typeof item.flow_cohort === 'string', `seller should expose flow cohort in ${period}`);
+      assert.ok(typeof item.seller_profile === 'string', `seller should expose seller profile in ${period}`);
+      assert.ok(typeof item.flow_score === 'number', `seller should expose flow score in ${period}`);
     }
   }
 });

@@ -214,6 +214,12 @@
                     <input type="search" class="search-input" id="flow-search" name="flow-search" placeholder="Search Address Or Label…" aria-label="Search flow addresses or labels" autocomplete="off" spellcheck="false" inputmode="search">
                 </div>
                 <div class="flow-toolbar-divider"></div>
+                <div class="period-pills flow-cohort-pills" id="flow-cohort-pills">
+                    <button type="button" data-flow-cohort="all" class="active">All</button>
+                    <button type="button" data-flow-cohort="organic">Organic</button>
+                    <button type="button" data-flow-cohort="strategic">Strategic</button>
+                    <button type="button" data-flow-cohort="coinbase">Coinbase</button>
+                </div>
                 <div class="chain-dropdown" id="chain-dropdown">
                     <button type="button" class="chain-dd-trigger" id="chain-dd-trigger" data-flow-chain-toggle aria-haspopup="menu" aria-expanded="false">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
@@ -232,6 +238,7 @@
                     <button type="button" data-period="180d">180D</button><button type="button" data-period="all">ALL</button>
                 </div>
             </div>
+            <div class="flow-context-note" id="flow-context-note" aria-live="polite"></div>
             <div class="flow-grid">
                 <div class="flow-column" id="flow-col-acc">
                     <div class="flow-col-header inflow">🟢 Top Accumulators <span class="count" id="acc-count">0</span></div>

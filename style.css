@@ -503,6 +503,28 @@ body::after {
 .period-pills button { background:transparent; border:none; color:rgba(255,255,255,0.35); border-radius:7px; padding:6px 14px; font-size:11px; font-weight:600; cursor:pointer; transition:background-color 0.25s cubic-bezier(0.4,0,0.2,1), color 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1); font-family:inherit; letter-spacing:0.3px; position:relative; }
 .period-pills button:hover { color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.04); }
 .period-pills button.active { color:#fff; background:linear-gradient(135deg, rgba(168,85,247,0.3), rgba(99,102,241,0.25)); box-shadow:0 0 16px rgba(168,85,247,0.2), inset 0 0 0 1px rgba(168,85,247,0.2); text-shadow:0 0 12px rgba(168,85,247,0.4); }
+.flow-cohort-pills button {
+    min-width:92px;
+    text-align:center;
+}
+.flow-context-note {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 24px 0;
+    font-size:11px;
+    line-height:1.45;
+    color:rgba(255,255,255,0.58);
+}
+.flow-context-note::before {
+    content:'';
+    width:8px;
+    height:8px;
+    border-radius:999px;
+    flex-shrink:0;
+    background:linear-gradient(135deg, rgba(34,211,238,0.85), rgba(168,85,247,0.9));
+    box-shadow:0 0 14px rgba(34,211,238,0.22);
+}
 .toolbar-count { font-size:11px; color:var(--text-muted); margin-left:auto; }
 
 /* ===== CHAIN TOGGLES ===== */
@@ -605,6 +627,33 @@ body::after {
 .h-badge-fresh-signal { background:rgba(250,204,21,0.14); color:#fde68a; border:1px solid rgba(250,204,21,0.28); }
 .h-badge-funded { background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.3); font-style:italic; }
 .h-badge-fresh-profile { background:rgba(56,189,248,0.14); color:#67e8f9; border:1px solid rgba(56,189,248,0.28); }
+.h-badge-flow-cohort,
+.h-badge-flow-profile {
+    border-radius:999px;
+    padding:2px 7px;
+    font-size:7px;
+    letter-spacing:0.45px;
+}
+.h-badge-flow-organic {
+    background:rgba(74,222,128,0.14);
+    color:#86efac;
+    border:1px solid rgba(74,222,128,0.26);
+}
+.h-badge-flow-strategic {
+    background:rgba(168,85,247,0.15);
+    color:#d8b4fe;
+    border:1px solid rgba(168,85,247,0.28);
+}
+.h-badge-flow-coinbase {
+    background:rgba(96,165,250,0.16);
+    color:#93c5fd;
+    border:1px solid rgba(96,165,250,0.28);
+}
+.h-badge-flow-profile {
+    background:rgba(251,113,133,0.12);
+    color:#fda4af;
+    border:1px solid rgba(251,113,133,0.24);
+}
 .fresh-date { color:#e2e8f0; font-size:0.82rem; font-weight:500; }
 .fresh-date-estimated { color:#f8d66d; }
 .fresh-signal-main { color:#fff7cc; font-size:0.82rem; font-weight:600; }
@@ -1664,6 +1713,17 @@ body.drawer-open { overflow:hidden; }
 }
 #flow-card #sell-tbody .flow-row-sell:hover {
     box-shadow:inset 3px 0 0 rgba(251,113,133,0.44);
+}
+#flow-card .flow-row-acc .h-badge-flow-organic {
+    box-shadow:0 0 0 1px rgba(74,222,128,0.06);
+}
+#flow-card .flow-row-acc .h-badge-flow-strategic,
+#flow-card .flow-row-sell .h-badge-flow-strategic {
+    box-shadow:0 0 0 1px rgba(168,85,247,0.07);
+}
+#flow-card .flow-row-acc .h-badge-flow-coinbase,
+#flow-card .flow-row-sell .h-badge-flow-coinbase {
+    box-shadow:0 0 0 1px rgba(96,165,250,0.08);
 }
 #fresh-card .h-addr-two-line,
 #cb-card .h-addr-two-line,
