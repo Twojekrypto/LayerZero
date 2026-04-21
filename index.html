@@ -242,19 +242,29 @@
             <div class="flow-signal-strip" id="flow-signal-strip" aria-live="polite"></div>
             <div class="flow-grid">
                 <div class="flow-column" id="flow-col-acc">
-                    <div class="flow-col-header inflow">🟢 Top Accumulators <span class="count" id="acc-count">0</span><span class="flow-col-meta" id="acc-meta">Conviction-ranked inflows</span></div>
+                    <div class="flow-col-header inflow">
+                        <div class="flow-col-title-wrap">
+                            <div class="flow-col-title-row">🟢 Top Accumulators <span class="count" id="acc-count">0</span></div>
+                            <div class="flow-col-meta" id="acc-meta">Conviction-ranked inflows</div>
+                        </div>
+                    </div>
                     <div class="flow-table-wrap">
-                        <table class="data-table table-mobile-cards table-mobile-flow"><colgroup><col style="width:44px"><col style="width:46%"><col style="width:27%"><col style="width:27%"></colgroup>
-                        <thead><tr><th>#</th><th>Address</th><th class="right" style="color:var(--accent-green)">Net Flow</th><th class="right">Balance</th></tr></thead>
+                        <table class="data-table table-mobile-cards table-mobile-flow"><colgroup><col style="width:52px"><col style="width:60%"><col style="width:40%"></colgroup>
+                        <thead><tr><th>#</th><th>Wallet</th><th class="right" style="color:var(--accent-green)">Signal</th></tr></thead>
                         <tbody id="acc-tbody"></tbody></table>
                     </div>
                     <div class="table-footer" id="acc-pager"></div>
                 </div>
                 <div class="flow-column" id="flow-col-sell">
-                    <div class="flow-col-header outflow">🔴 Top Sellers <span class="count" id="sell-count">0</span><span class="flow-col-meta" id="sell-meta">Pressure-ranked outflows</span></div>
+                    <div class="flow-col-header outflow">
+                        <div class="flow-col-title-wrap">
+                            <div class="flow-col-title-row">🔴 Top Sellers <span class="count" id="sell-count">0</span></div>
+                            <div class="flow-col-meta" id="sell-meta">Pressure-ranked outflows</div>
+                        </div>
+                    </div>
                     <div class="flow-table-wrap">
-                        <table class="data-table table-mobile-cards table-mobile-flow"><colgroup><col style="width:44px"><col style="width:46%"><col style="width:27%"><col style="width:27%"></colgroup>
-                        <thead><tr><th>#</th><th>Address</th><th class="right" style="color:var(--accent-rose)">Net Flow</th><th class="right">Balance</th></tr></thead>
+                        <table class="data-table table-mobile-cards table-mobile-flow"><colgroup><col style="width:52px"><col style="width:60%"><col style="width:40%"></colgroup>
+                        <thead><tr><th>#</th><th>Wallet</th><th class="right" style="color:var(--accent-rose)">Signal</th></tr></thead>
                         <tbody id="sell-tbody"></tbody></table>
                     </div>
                     <div class="table-footer" id="sell-pager"></div>

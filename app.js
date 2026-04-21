@@ -798,6 +798,18 @@ function flowSignalBadgeHTML(signalMeta, title='') {
 function flowIntensityBarHTML(pct, tone='neutral') {
     return `<div class="flow-intensity-bar"><div class="flow-intensity-fill tone-${escapeAttr(tone)}" style="width:${pct.toFixed(1)}%"></div></div>`;
 }
+function buildFlowWalletCell(item, holder, balance, balanceUsd) {
+    const movedShare = getFlowBalanceShare(item, balance);
+    return `<div class="flow-wallet-stack">${addrCell(item)}<div class="flow-wallet-meta"><span class="flow-wallet-balance">${fmt(balance)} ZRO</span><span class="flow-wallet-dot">•</span><span class="flow-wallet-usd">${fmtUSD(balanceUsd)}</span></div><div class="flow-wallet-sub">${escapeHtml(`${(movedShare * 100).toFixed(1)}% of current wallet moved in this window`)}</div></div>`;
+}
+function buildFlowSignalCell(item, type, scoreMeta, intensityPct, flowUsd, holder, balance) {
+    const isAcc = type === 'accumulators';
+    const signalText = isAcc
+        ? `Conviction ${scoreMeta.value.toFixed(2)} · ${getFlowAccumulationSourceLabel(item, holder)}`
+        : `Pressure ${scoreMeta.value.toFixed(2)} · ${getSellerProfileLabel(item, holder)}`;
+    const turnover = balance > 0 ? Math.abs(Number(item.net_flow || 0)) / balance : 0;
+    return `<div class="flow-signal-stack"><div class="flow-signal-top">${flowSignalBadgeHTML(scoreMeta, scoreMeta.label)}<span class="flow-signal-amount">${isAcc ? '+' : ''}${fmt(item.net_flow)} ZRO</span></div><div class="flow-signal-support">${fmtUSD(flowUsd)} · ${(turnover * 100).toFixed(1)}% turnover</div><div class="h-flow-meta">${escapeHtml(signalText)}</div>${flowIntensityBarHTML(intensityPct, isAcc ? 'buy' : 'sell')}</div>`;
+}
 function getAddressExplorerUrl(addr) {
     const chain = getMainChain(addr);
     return (EXPLORER_MAP[chain] || EXPLORER_MAP.ethereum) + addr;
@@ -2202,22 +2214,20 @@ function renderFlows() {
         const pageItems=items.slice(start,start+FLOW_PER_PAGE);
         let html='';
         if (!pageItems.length) {
-            html = `<tr><td colspan="4">${tableEmptyStateHTML(isAcc ? '🟢' : '🔴', isAcc ? 'No accumulators match this scope' : 'No sellers match this scope', `Try another cohort, chain or period inside ${currentPeriod.toUpperCase()}.`)}</td></tr>`;
+            html = `<tr><td colspan="3">${tableEmptyStateHTML(isAcc ? '🟢' : '🔴', isAcc ? 'No accumulators match this scope' : 'No sellers match this scope', `Try another cohort, chain or period inside ${currentPeriod.toUpperCase()}.`)}</td></tr>`;
         }
         pageItems.forEach((f,i)=>{
             const holder = getTrackedHolder(f.address);
+            const balance = getFlowItemBalance(f, holder);
             const flowUsd=Math.abs(f.net_flow)*(DATA.meta.price_usd||0);
-            const balUsd=(f.balance||0)*(DATA.meta.price_usd||0);
+            const balUsd=balance*(DATA.meta.price_usd||0);
             const scoreMeta = getFlowSignalMeta(f, type, holder);
             const intensityPct = getFlowIntensityPct(f, type, holder);
-            const scoreText = isAcc
-                ? `Conviction ${scoreMeta.value.toFixed(2)} · ${getFlowAccumulationSourceLabel(f, holder)}`
-                : `Pressure ${scoreMeta.value.toFixed(2)} · ${getSellerProfileLabel(f, holder)}`;
             const detailKey = `${type}-${f.address}-${currentPeriod}`;
             const detailPayload = buildFlowDetailPayload(f, type, scoreMeta, flowUsd, balUsd, holder);
-            html+=`<tr class="${isAcc ? 'flow-row-acc' : 'flow-row-sell'} flow-row-signal-${scoreMeta.tone}" ${clickableRowAttrs(getAddressExplorerUrl(f.address), `Open ${isAcc ? 'accumulator' : 'seller'} details`)}${registerDetailPayload(detailKey, detailPayload)}><td class="rank-cell"${dataLabelAttr('Rank')}>${start+i+1}</td><td${dataLabelAttr('Address')}>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'} flow-cell-main"${dataLabelAttr('Net Flow')}><div class="flow-value-stack"><div class="flow-value-head">${flowSignalBadgeHTML(scoreMeta, scoreMeta.label)}<span>${isAcc?'+':''}${fmt(f.net_flow)} ZRO</span></div><div class="h-usd-sub">${fmtUSD(flowUsd)}</div><div class="h-flow-meta">${escapeHtml(scoreText)}</div>${flowIntensityBarHTML(intensityPct, isAcc ? 'buy' : 'sell')}</div></td><td class="right val-muted flow-cell-main"${dataLabelAttr('Balance')}><div class="flow-value-stack"><div class="flow-balance-main">${fmt(f.balance)} ZRO</div><div class="h-usd-sub">${fmtUSD(balUsd)}</div><div class="h-flow-meta">${escapeHtml(`${(getFlowBalanceShare(f, getFlowItemBalance(f, holder)) * 100).toFixed(1)}% of wallet moved in view`)}</div></div></td></tr>`;
+            html+=`<tr class="${isAcc ? 'flow-row-acc' : 'flow-row-sell'} flow-row-signal-${scoreMeta.tone}" ${clickableRowAttrs(getAddressExplorerUrl(f.address), `Open ${isAcc ? 'accumulator' : 'seller'} details`)}${registerDetailPayload(detailKey, detailPayload)}><td class="rank-cell"${dataLabelAttr('Rank')}>${start+i+1}</td><td class="flow-wallet-cell"${dataLabelAttr('Wallet')}>${buildFlowWalletCell(f, holder, balance, balUsd)}</td><td class="right ${isAcc?'val-green':'val-red'} flow-cell-main flow-signal-cell"${dataLabelAttr('Signal')}>${buildFlowSignalCell(f, type, scoreMeta, intensityPct, flowUsd, holder, balance)}</td></tr>`;
         });
-        for(let i=pageItems.length;i<FLOW_PER_PAGE && total>0;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
+        for(let i=pageItems.length;i<FLOW_PER_PAGE && total>0;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(3)}</tr>`;
         document.getElementById(isAcc?'acc-tbody':'sell-tbody').innerHTML=html;
         const pagerEl=document.getElementById(isAcc?'acc-pager':'sell-pager');
         const target=isAcc?'flow-acc':'flow-sell';
