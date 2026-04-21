@@ -167,7 +167,31 @@ test('whale transfer pipeline keeps canonical CEX labels and event identity', ()
   assert.match(sanitizeEntrypoint, /deduplicated_rows/);
   assert.match(sanitizeEntrypoint, /whale_transfer_diagnostics/);
   assert.match(appJs, /Known CEX addresses \(must remain canonical\)/);
-  assert.match(appJs, /large Ethereum transfers tracked/);
+  assert.match(appJs, /indexed Ethereum feed/);
+});
+
+test('whale transfers expose premium discovery controls and scoring cues', () => {
+  assert.match(indexHtml, /id="whale-filter-pills"/);
+  assert.match(indexHtml, /data-whale-filter="ALL"/);
+  assert.match(indexHtml, /data-whale-filter="BUY"/);
+  assert.match(indexHtml, /data-whale-filter="SELL"/);
+  assert.match(indexHtml, /data-whale-filter="MOVE"/);
+  assert.match(indexHtml, /id="whale-count"/);
+  assert.match(appJs, /const WHALE_FILTER_LABELS =/);
+  assert.match(appJs, /let whaleFilter = 'ALL'/);
+  assert.match(appJs, /function getWhaleFilterKey\(/);
+  assert.match(appJs, /function whaleMatchesFilter\(/);
+  assert.match(appJs, /function setWhaleFilter\(/);
+  assert.match(appJs, /function getWhaleContextMeta\(/);
+  assert.match(appJs, /function getWhaleScoreMeta\(/);
+  assert.match(appJs, /function buildWhaleDetailPayload\(/);
+  assert.match(appJs, /whale-score-badge/);
+  assert.match(appJs, /whale-context-badge/);
+  assert.match(appJs, /whaleFilter !== 'ALL'/);
+  assert.match(styleCss, /\.whale-filter-pills button/);
+  assert.match(styleCss, /\.whale-score-badge/);
+  assert.match(styleCss, /\.whale-context-badge/);
+  assert.match(styleCss, /\.whale-score-row-prime/);
 });
 
 test('CEX registry and anti-CEX heuristics are centralized and refined', () => {

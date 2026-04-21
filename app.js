@@ -47,6 +47,12 @@ const FRESH_FLOW_LABELS = {
     fresh_wallet: 'Fresh wallet',
     fresh_seller: 'Fresh seller',
 };
+const WHALE_FILTER_LABELS = {
+    ALL: 'Large transfers',
+    BUY: 'Buy-side transfers',
+    SELL: 'Sell-side transfers',
+    MOVE: 'Wallet-to-wallet moves',
+};
 const STRATEGIC_FLOW_TYPES = new Set(['VC', 'TEAM', 'UNLOCK', 'INST']);
 
 function fmt(n, d=0) {
@@ -846,6 +852,7 @@ function applyStateFromUrl() {
     flowPageAcc = parsePositiveInt(params.get('flowAccPage'), 1);
     flowPageSell = parsePositiveInt(params.get('flowSellPage'), 1);
 
+    whaleFilter = pickAllowedValue(params.get('whaleFilter'), ['ALL', 'BUY', 'SELL', 'MOVE'], 'ALL');
     whalePageNum = parsePositiveInt(params.get('whalePage'), 1);
 }
 function updateUrlState(modeOverride) {
@@ -886,6 +893,7 @@ function updateUrlState(modeOverride) {
     if (flowPageAcc !== 1) params.set('flowAccPage', String(flowPageAcc));
     if (flowPageSell !== 1) params.set('flowSellPage', String(flowPageSell));
 
+    if (whaleFilter !== 'ALL') params.set('whaleFilter', whaleFilter);
     if (whalePageNum !== 1) params.set('whalePage', String(whalePageNum));
 
     const nextQuery = params.toString();
@@ -905,6 +913,7 @@ function syncControlsFromState() {
     setInputValue('cb-search', cbSearchQuery);
     setInputValue('cbt-search', cbtSearchQuery);
     setInputValue('flow-search', flowSearchQuery);
+    setActiveDataChoice('whale-filter-pills', 'whaleFilter', whaleFilter);
 
     setActivePill('flow-period-pills', currentPeriod);
     setActiveDataChoice('flow-cohort-pills', 'flowCohort', flowCohort);
@@ -1041,6 +1050,12 @@ function handleDelegatedClick(event) {
     const flowHideButton = event.target.closest('#flow-hide-cex');
     if (flowHideButton) {
         toggleHideCex();
+        return;
+    }
+
+    const whaleFilterButton = event.target.closest('[data-whale-filter]');
+    if (whaleFilterButton) {
+        setWhaleFilter(whaleFilterButton.dataset.whaleFilter);
         return;
     }
 
@@ -2284,6 +2299,7 @@ function updateFreshness() {
 
 // ── Whale Transfers ──
 let whalePageNum = 1;
+let whaleFilter = 'ALL';
 const WHALE_PER_PAGE = 15;
 // Known CEX addresses for label resolution (mirrors monitor_whale_transfers.py KNOWN_CEX)
 const KNOWN_CEX_LABELS = {
@@ -2331,21 +2347,124 @@ function buildWhaleLabelMap() {
     for (const [addr, name] of Object.entries(KNOWN_CEX_LABELS)) map[addr.toLowerCase()] = name;
     return map;
 }
+function getWhaleFilterKey(transfer) {
+    if (transfer?.type === 'CEX_WITHDRAWAL') return 'BUY';
+    if (transfer?.type === 'CEX_DEPOSIT') return 'SELL';
+    return 'MOVE';
+}
+function whaleMatchesFilter(transfer) {
+    return whaleFilter === 'ALL' || getWhaleFilterKey(transfer) === whaleFilter;
+}
+function setWhaleFilter(nextFilter) {
+    const resolved = pickAllowedValue(nextFilter, ['ALL', 'BUY', 'SELL', 'MOVE'], 'ALL');
+    if (resolved === whaleFilter) return;
+    whaleFilter = resolved;
+    whalePageNum = 1;
+    requestHistoryMode('push');
+    renderWhaleTransfers();
+}
+function getWhaleContextMeta(transfer, holder=getTrackedHolder(transfer.to)) {
+    if (KNOWN_CEX_LABELS[transfer.to.toLowerCase()]) {
+        const label = transfer.to_label || KNOWN_CEX_LABELS[transfer.to.toLowerCase()] || 'CEX';
+        const cohort = label.toLowerCase().includes('coinbase') ? 'coinbase' : 'cex';
+        return { label: cohort === 'coinbase' ? 'Coinbase / Custody' : 'CEX destination', className: cohort === 'coinbase' ? 'h-badge-flow-cohort h-badge-flow-coinbase' : 'h-badge-cex', tone: cohort };
+    }
+    const freshSignal = holder?.fresh_signal || '';
+    if (freshSignal === 'fresh_whale_accumulator' || freshSignal === 'fresh_accumulator') {
+        return { label: FRESH_FLOW_LABELS[freshSignal], className: `h-badge-flow-fresh h-badge-flow-fresh-${freshSignal}`, tone: 'fresh' };
+    }
+    if (holder?.type === 'FRESH' || holder?.label === 'Fresh Wallet') {
+        return { label: 'Fresh wallet', className: 'h-badge-fresh', tone: 'fresh' };
+    }
+    const cohort = getFlowCohort({ address: transfer.to, label: holder?.label, type: holder?.type }, holder);
+    if (cohort === 'coinbase') {
+        return { label: FLOW_COHORT_LABELS.coinbase, className: 'h-badge-flow-cohort h-badge-flow-coinbase', tone: 'coinbase' };
+    }
+    if (cohort === 'strategic') {
+        return { label: FLOW_COHORT_LABELS.strategic, className: 'h-badge-flow-cohort h-badge-flow-strategic', tone: 'strategic' };
+    }
+    if (holder?.type) {
+        const badgeClass = {'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','WALLET':'h-badge-wallet','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','UNLOCK':'h-badge-unlock'}[holder.type] || 'h-badge-whale';
+        return { label: holder.type === 'WALLET' ? 'Tracked wallet' : holder.type, className: badgeClass, tone: holder.type.toLowerCase() };
+    }
+    return { label: 'Unlabeled destination', className: 'h-badge-flow-profile', tone: 'neutral' };
+}
+function getWhaleScoreMeta(transfer, fromHolder=getTrackedHolder(transfer.from), toHolder=getTrackedHolder(transfer.to)) {
+    let score = Math.min(Number(transfer.value || 0) / 100000, 20);
+    if (transfer.type === 'CEX_WITHDRAWAL') score += 2.4;
+    else if (transfer.type === 'CEX_DEPOSIT') score += 1.2;
+    const freshSignal = toHolder?.fresh_signal || '';
+    if (freshSignal === 'fresh_whale_accumulator') score += 3.2;
+    else if (freshSignal === 'fresh_accumulator') score += 2.4;
+    else if (toHolder?.type === 'FRESH' || toHolder?.label === 'Fresh Wallet') score += 1.3;
+    if (toHolder?.type === 'WHALE') score += 1.3;
+    if (toHolder?.type === 'VC' || toHolder?.type === 'INST') score += 0.8;
+    if (fromHolder?.type === 'WHALE') score += 0.45;
+    if (fromHolder?.type === 'VC' || fromHolder?.type === 'INST') score += 0.35;
+    const rounded = Math.round(score * 10) / 10;
+    if (rounded >= 12) return { value: rounded, label: 'Prime', className: 'whale-score-prime' };
+    if (rounded >= 8) return { value: rounded, label: 'High', className: 'whale-score-high' };
+    if (rounded >= 5) return { value: rounded, label: 'Watch', className: 'whale-score-watch' };
+    return { value: rounded, label: 'Track', className: 'whale-score-track' };
+}
+function whaleScoreBadgeHTML(scoreMeta) {
+    return `<span class="whale-score-badge ${escapeAttr(scoreMeta.className)}" title="Whale score ${escapeAttr(scoreMeta.value.toFixed(1))}">${escapeHtml(scoreMeta.label)} ${escapeHtml(scoreMeta.value.toFixed(1))}</span>`;
+}
+function whaleContextBadgeHTML(contextMeta) {
+    return `<span class="h-badge ${escapeAttr(contextMeta.className)} whale-context-badge">${escapeHtml(contextMeta.label)}</span>`;
+}
+function buildWhaleDetailPayload(transfer, fromResolved, toResolved, contextMeta, scoreMeta, usdVal, timeStr, agoStr) {
+    const amountLabel = `${transfer.type === 'CEX_DEPOSIT' ? '-' : '+'}${fmt(transfer.value)} ZRO`;
+    return {
+        eyebrow: 'Whale transfer',
+        title: `${transfer.type === 'CEX_WITHDRAWAL' ? 'Buy-side' : transfer.type === 'CEX_DEPOSIT' ? 'Sell-side' : 'Large transfer'} signal`,
+        subtitle: `${timeStr} · ${agoStr}`,
+        badges: [
+            { label: transfer.type === 'CEX_WITHDRAWAL' ? 'BUY' : transfer.type === 'CEX_DEPOSIT' ? 'SELL' : 'MOVE', tone: transfer.type === 'CEX_WITHDRAWAL' ? 'buy' : transfer.type === 'CEX_DEPOSIT' ? 'sell' : 'neutral' },
+            { label: contextMeta.label, tone: contextMeta.tone || 'neutral' },
+            { label: `${scoreMeta.label} ${scoreMeta.value.toFixed(1)}`, tone: scoreMeta.className.replace('whale-score-', '') },
+        ],
+        metrics: [
+            { label: 'Amount', value: amountLabel, sub: usdVal || 'USD unavailable' },
+            { label: 'Whale score', value: scoreMeta.value.toFixed(1), sub: scoreMeta.label },
+            { label: 'Type', value: transfer.type.replace('_', ' '), sub: 'Ethereum transfer' },
+        ],
+        sectionTitle: 'Counterparties',
+        list: [
+            { label: 'From', value: fromResolved },
+            { label: 'To', value: toResolved },
+            { label: 'Recipient context', value: contextMeta.label },
+            { label: 'Transaction', value: shortAddr(transfer.tx_hash) },
+        ],
+        actions: [
+            { label: 'Open transaction', url: `https://etherscan.io/tx/${transfer.tx_hash}`, primary: true },
+            { label: 'Open recipient', url: `https://etherscan.io/address/${transfer.to}` },
+        ],
+    };
+}
 function renderWhaleTransfers() {
     const transfers = (DATA.whale_transfers || []).slice().sort((a, b) => b.timestamp - a.timestamp);
     const card = document.getElementById('whale-card');
     if (!card) return;
     if (!transfers.length) { card.style.display = 'none'; return; }
     card.style.display = '';
+    setActiveDataChoice('whale-filter-pills', 'whaleFilter', whaleFilter);
     const labelMap = buildWhaleLabelMap();
+    const filteredTransfers = transfers.filter(whaleMatchesFilter);
     const total = transfers.length;
-    const totalPages = Math.max(1, Math.ceil(total / WHALE_PER_PAGE));
+    const filteredTotal = filteredTransfers.length;
+    const totalPages = Math.max(1, Math.ceil(Math.max(filteredTotal, 1) / WHALE_PER_PAGE));
     whalePageNum = Math.min(whalePageNum, totalPages);
     const start = (whalePageNum - 1) * WHALE_PER_PAGE;
-    const pageItems = transfers.slice(start, start + WHALE_PER_PAGE);
+    const pageItems = filteredTransfers.slice(start, start + WHALE_PER_PAGE);
     const price = DATA.meta.price_usd || 0;
     let html = '';
+    if (!pageItems.length) {
+        html = `<tr><td colspan="5">${tableEmptyStateHTML('🐋', 'No whale transfers for this filter', `Switch back to ${WHALE_FILTER_LABELS.ALL.toLowerCase()} or wait for the next indexed snapshot.`)}</td></tr>`;
+    }
     pageItems.forEach(t => {
+        const fromHolder = getTrackedHolder(t.from);
+        const toHolder = getTrackedHolder(t.to);
         const date = new Date(t.timestamp * 1000);
         const timeStr = date.toLocaleDateString('en-GB', {day:'numeric',month:'short'}) + ' ' + date.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
         const agoStr = formatDaysAgoFromSnapshot(t.timestamp);
@@ -2353,6 +2472,8 @@ function renderWhaleTransfers() {
         const typeLabel = t.type === 'CEX_WITHDRAWAL' ? '🟢 BUY' : t.type === 'CEX_DEPOSIT' ? '🔴 SELL' : '🔄 MOVE';
         const fromResolved = labelMap[t.from.toLowerCase()] || t.from_label;
         const toResolved = labelMap[t.to.toLowerCase()] || t.to_label;
+        const contextMeta = getWhaleContextMeta(t, toHolder);
+        const scoreMeta = getWhaleScoreMeta(t, fromHolder, toHolder);
         const fromShort = fromResolved || (t.from.slice(0,6) + '…' + t.from.slice(-4));
         const toShort = toResolved || (t.to.slice(0,6) + '…' + t.to.slice(-4));
         const fromLink = `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm">${fromShort}</a>`;
@@ -2360,17 +2481,24 @@ function renderWhaleTransfers() {
         const usdVal = price ? fmtUSD(t.value * price) : '';
         const amtColor = t.type === 'CEX_DEPOSIT' ? 'color:#f87171' : 'color:#4ade80';
         const amtSign = t.type === 'CEX_DEPOSIT' ? '-' : '+';
-        const whaleRowClass = t.type === 'CEX_WITHDRAWAL' ? 'whale-row whale-row-buy' : t.type === 'CEX_DEPOSIT' ? 'whale-row whale-row-sell' : 'whale-row whale-row-transfer';
-        html += `<tr class="${whaleRowClass}" ${clickableRowAttrs(`https://etherscan.io/tx/${t.tx_hash}`, 'Open whale transfer transaction')} style="cursor:pointer">
+        const whaleRowClass = [
+            'whale-row',
+            t.type === 'CEX_WITHDRAWAL' ? 'whale-row-buy' : t.type === 'CEX_DEPOSIT' ? 'whale-row-sell' : 'whale-row-transfer',
+            `whale-score-row-${scoreMeta.className.replace('whale-score-', '')}`,
+        ].join(' ');
+        const detailKey = `whale-${t.event_id || t.tx_hash}`;
+        const detailPayload = buildWhaleDetailPayload(t, fromShort, toShort, contextMeta, scoreMeta, usdVal, timeStr, agoStr);
+        html += `<tr class="${whaleRowClass}" ${clickableRowAttrs(`https://etherscan.io/tx/${t.tx_hash}`, 'Open whale transfer transaction')}${registerDetailPayload(detailKey, detailPayload)} style="cursor:pointer">
             <td${dataLabelAttr('Time')}><div class="fresh-date">${timeStr}</div><div class="val-muted">${agoStr}</div></td>
-            <td${dataLabelAttr('Type')}><span class="h-badge ${typeCls}">${typeLabel}</span></td>
+            <td${dataLabelAttr('Type')}><span class="h-badge ${typeCls}">${typeLabel}</span><div class="h-whale-meta-row">${whaleScoreBadgeHTML(scoreMeta)}</div></td>
             <td${dataLabelAttr('From')}>${fromLink}</td>
-            <td${dataLabelAttr('To')}>${toLink}</td>
+            <td${dataLabelAttr('To')}><div class="h-addr-two-line"><div>${toLink}</div><div class="h-whale-meta-row">${whaleContextBadgeHTML(contextMeta)}</div></div></td>
             <td class="right" style="${amtColor};font-weight:600"${dataLabelAttr('Amount')}>${amtSign}${fmt(t.value)} ZRO${usdVal ? `<div class="h-usd-sub">${usdVal}</div>` : ''}</td>
         </tr>`;
     });
     document.getElementById('whale-tbody').innerHTML = html;
-    document.getElementById('whale-sub').textContent = `${total} large Ethereum transfers tracked`;
+    setText('whale-count', `${filteredTotal}${whaleFilter === 'ALL' ? '' : ` / ${total}`} rows`);
+    document.getElementById('whale-sub').textContent = `${filteredTotal} ${WHALE_FILTER_LABELS[whaleFilter].toLowerCase()} in the indexed Ethereum feed`;
     const pager = document.getElementById('whale-pager');
     pager.innerHTML = `
         ${pageButtonHTML('whale', -999, '&laquo;', whalePageNum<=1)}

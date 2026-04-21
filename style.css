@@ -507,6 +507,10 @@ body::after {
     min-width:92px;
     text-align:center;
 }
+.whale-filter-pills button {
+    min-width:84px;
+    text-align:center;
+}
 .flow-context-note {
     display:flex;
     align-items:center;
@@ -1741,6 +1745,59 @@ body.drawer-open { overflow:hidden; }
 #cbt-card .cbt-row-transfer:hover,
 #whale-card .whale-row-transfer:hover {
     box-shadow:inset 3px 0 0 rgba(96,165,250,0.44);
+}
+#whale-card .whale-score-row-prime {
+    background:linear-gradient(90deg, rgba(250,204,21,0.055), transparent 56%);
+}
+#whale-card .whale-score-row-high {
+    background:linear-gradient(90deg, rgba(74,222,128,0.045), transparent 56%);
+}
+#whale-card .whale-score-row-watch {
+    background:linear-gradient(90deg, rgba(96,165,250,0.042), transparent 56%);
+}
+.h-whale-meta-row {
+    margin-top:4px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+}
+.whale-context-badge {
+    max-width:100%;
+}
+.whale-score-badge {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    border-radius:999px;
+    padding:2px 8px;
+    font-size:9px;
+    letter-spacing:0.45px;
+    border:1px solid rgba(255,255,255,0.12);
+    background:rgba(255,255,255,0.05);
+    color:#e2e8f0;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+}
+.whale-score-prime {
+    background:rgba(250,204,21,0.14);
+    color:#fde68a;
+    border-color:rgba(250,204,21,0.28);
+}
+.whale-score-high {
+    background:rgba(74,222,128,0.14);
+    color:#86efac;
+    border-color:rgba(74,222,128,0.24);
+}
+.whale-score-watch {
+    background:rgba(96,165,250,0.14);
+    color:#bfdbfe;
+    border-color:rgba(96,165,250,0.24);
+}
+.whale-score-track {
+    background:rgba(148,163,184,0.14);
+    color:#cbd5e1;
+    border-color:rgba(148,163,184,0.22);
 }
 #flow-card #acc-tbody .flow-row-acc:hover {
     box-shadow:inset 3px 0 0 rgba(74,222,128,0.42);
