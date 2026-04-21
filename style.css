@@ -658,7 +658,6 @@ body::after {
 .val-white { color:#fff; font-weight:600; } .val-muted { color:var(--text-muted); font-size:11px; }
 .empty-row td { border-bottom:1px solid rgba(255,255,255,0.04); height:38px; }
 .flow-column .data-table { table-layout:fixed; }
-#flow-card .data-table.table-mobile-flow,
 #whale-table {
     min-width:960px;
 }
@@ -687,8 +686,22 @@ body::after {
 .flow-signal-stack {
     display:flex;
     flex-direction:column;
-    gap:6px;
+    gap:5px;
     min-width:0;
+}
+.flow-addr-compact .h-addr-line1,
+.flow-addr-compact .h-addr-line2 {
+    gap:5px;
+}
+.flow-addr-compact .h-badge {
+    margin-left:0;
+}
+.flow-addr-compact .h-addr-label,
+.flow-addr-compact .h-addr-hex {
+    font-size:11px;
+}
+.flow-addr-compact .h-addr-hex-sm {
+    font-size:9px;
 }
 .flow-wallet-meta,
 .flow-signal-support {
@@ -696,8 +709,8 @@ body::after {
     align-items:center;
     gap:8px;
     flex-wrap:wrap;
-    font-size:10px;
-    color:rgba(255,255,255,0.52);
+    font-size:9px;
+    color:rgba(255,255,255,0.48);
 }
 .flow-wallet-balance,
 .flow-signal-amount {
@@ -724,6 +737,7 @@ body::after {
 }
 #flow-card .h-addr-label,
 #flow-card .h-addr-hex,
+#flow-card .h-addr-hex-sm,
 #whale-card .h-addr-hex-sm,
 #whale-card .whale-route-note,
 #flow-card .h-flow-meta,
@@ -2129,6 +2143,13 @@ body.drawer-open { overflow:hidden; }
         width:100%;
     }
 }
+@media(max-width:1100px){
+    .flow-grid{
+        grid-template-columns:1fr;
+        gap:14px;
+        padding:14px 20px 18px;
+    }
+}
 @media(max-width:900px){
     .metrics-strip{grid-template-columns:repeat(3,1fr)} .chain-dist-grid,.alloc-grid{grid-template-columns:1fr}
     .chain-stats-section,.alloc-donut{border-left:none;border-top:1px solid var(--border-subtle)}
@@ -2278,6 +2299,10 @@ body.drawer-open { overflow:hidden; }
     .table-mobile-cards.table-mobile-flow .flow-signal-top {
         justify-content:flex-start;
     }
+    .table-mobile-cards.table-mobile-flow .flow-addr-compact .h-addr-line1,
+    .table-mobile-cards.table-mobile-flow .flow-addr-compact .h-addr-line2 {
+        row-gap:4px;
+    }
     .table-mobile-cards.table-mobile-cbt td {
         grid-template-columns:minmax(84px, 102px) minmax(0,1fr);
     }
@@ -2333,6 +2358,9 @@ body.drawer-open { overflow:hidden; }
     .table-mobile-cards.table-mobile-flow .flow-signal-support,
     .table-mobile-cards.table-mobile-flow .flow-signal-top {
         justify-content:flex-start;
+    }
+    .table-mobile-cards.table-mobile-flow .flow-wallet-meta {
+        gap:6px;
     }
     .table-mobile-cards .flow-value-head {
         justify-content:flex-start;

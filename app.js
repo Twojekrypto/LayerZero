@@ -800,15 +800,14 @@ function flowIntensityBarHTML(pct, tone='neutral') {
 }
 function buildFlowWalletCell(item, holder, balance, balanceUsd) {
     const movedShare = getFlowBalanceShare(item, balance);
-    return `<div class="flow-wallet-stack">${addrCell(item)}<div class="flow-wallet-meta"><span class="flow-wallet-balance">${fmt(balance)} ZRO</span><span class="flow-wallet-dot">•</span><span class="flow-wallet-usd">${fmtUSD(balanceUsd)}</span></div><div class="flow-wallet-sub">${escapeHtml(`${(movedShare * 100).toFixed(1)}% of current wallet moved in this window`)}</div></div>`;
+    return `<div class="flow-wallet-stack">${flowAddrCell(item)}<div class="flow-wallet-meta"><span class="flow-wallet-balance">${fmt(balance)} ZRO</span><span class="flow-wallet-dot">•</span><span class="flow-wallet-usd">${fmtUSD(balanceUsd)}</span><span class="flow-wallet-dot">•</span><span>${(movedShare * 100).toFixed(1)}% moved</span></div></div>`;
 }
 function buildFlowSignalCell(item, type, scoreMeta, intensityPct, flowUsd, holder, balance) {
     const isAcc = type === 'accumulators';
     const signalText = isAcc
         ? `Conviction ${scoreMeta.value.toFixed(2)} · ${getFlowAccumulationSourceLabel(item, holder)}`
         : `Pressure ${scoreMeta.value.toFixed(2)} · ${getSellerProfileLabel(item, holder)}`;
-    const turnover = balance > 0 ? Math.abs(Number(item.net_flow || 0)) / balance : 0;
-    return `<div class="flow-signal-stack"><div class="flow-signal-top">${flowSignalBadgeHTML(scoreMeta, scoreMeta.label)}<span class="flow-signal-amount">${isAcc ? '+' : ''}${fmt(item.net_flow)} ZRO</span></div><div class="flow-signal-support">${fmtUSD(flowUsd)} · ${(turnover * 100).toFixed(1)}% turnover</div><div class="h-flow-meta">${escapeHtml(signalText)}</div>${flowIntensityBarHTML(intensityPct, isAcc ? 'buy' : 'sell')}</div>`;
+    return `<div class="flow-signal-stack"><div class="flow-signal-top">${flowSignalBadgeHTML(scoreMeta, scoreMeta.label)}<span class="flow-signal-amount">${isAcc ? '+' : ''}${fmt(item.net_flow)} ZRO</span></div><div class="flow-signal-support">${fmtUSD(flowUsd)}</div><div class="h-flow-meta">${escapeHtml(signalText)}</div>${flowIntensityBarHTML(intensityPct, isAcc ? 'buy' : 'sell')}</div>`;
 }
 function getAddressExplorerUrl(addr) {
     const chain = getMainChain(addr);
@@ -884,6 +883,26 @@ function addrCell(item) {
         return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span>${cohortBadge}${sourceBadge}${sellerBadge}${freshBadge}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
     }
     return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${cohortBadge}${sourceBadge}${sellerBadge}${freshBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+}
+function flowAddrCell(item) {
+    const addr = item.address;
+    const shortA = shortAddr(addr);
+    const explorerUrl = getAddressExplorerUrl(addr);
+    const copyButton = copyButtonHTML(addr);
+    const dbIcon = debankIconHTML(`https://debank.com/profile/${addr}`);
+    const explorerIcon = explorerIconHTML(explorerUrl, `View ${shortA} on explorer`);
+    const cohort = getFlowCohort(item);
+    const cohortBadge = `<span class="h-badge h-badge-flow-cohort h-badge-flow-${cohort}">${escapeHtml(getFlowCohortLabel(item))}</span>`;
+    const freshSignal = getFreshFlowSignal(item);
+    const freshBadge = freshSignal
+        ? `<span class="h-badge h-badge-flow-fresh h-badge-flow-fresh-${escapeAttr(freshSignal)}">${escapeHtml(getFreshFlowLabel(item))}</span>`
+        : '';
+    const bCls = {'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','WALLET':'h-badge-wallet','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[item.type] || 'h-badge-whale';
+    const typeBadge = item.label ? `<span class="h-badge ${bCls}">${escapeHtml(item.type || 'Wallet')}</span>` : '';
+    if (item.label) {
+        return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a>${typeBadge}${freshBadge}</div><div class="h-addr-line2">${cohortBadge}<span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+    }
+    return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${freshBadge}</div><div class="h-addr-line2">${cohortBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
 }
 
 // ── Tabs ──
