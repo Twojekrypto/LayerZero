@@ -1269,10 +1269,13 @@ function renderChains() {
     const maxTracked=Math.max(...entries.map(([,c])=>c.trackedBalance), 0);
     const maxHolders=Math.max(...entries.map(([,c])=>c.holders));
     const totalDriftPct = configuredTotal ? ((totalTracked - configuredTotal) / configuredTotal) * 100 : 0;
+    const snapshotSupplySynced = entries.some(([, config]) => config.supply_source === 'indexed_holder_snapshot');
     const noteClass = anomalies.length || Math.abs(totalDriftPct) > 0.5 ? ' warn' : '';
     const noteText = anomalies.length
         ? `Using indexed holder balances for distribution. ${anomalies.length} chain snapshot${anomalies.length > 1 ? 's' : ''} currently exceed configured supply, so treat per-chain supply as approximate until the dataset is regenerated.`
-        : 'Using indexed holder balances for distribution and configured holder counts for coverage.';
+        : snapshotSupplySynced
+            ? 'Using indexed holder balances for distribution and snapshot-synced per-chain supply from the current holder universe.'
+            : 'Using indexed holder balances for distribution and configured holder counts for coverage.';
     document.getElementById('chain-bars').innerHTML=`<div class="chain-integrity-note${noteClass}">${noteText}</div>`+entries.map(([k,c])=>{
         const pct=maxTracked ? (c.trackedBalance/maxTracked*100).toFixed(1) : '0.0';
         const sPct=totalTracked ? (c.trackedBalance/totalTracked*100).toFixed(1) : '0.0';

@@ -18,6 +18,29 @@ def save_json(path, data):
     atomic_json_dump(data, path)
 
 
+def compute_holder_chain_balances(holders):
+    totals = {}
+    for holder in holders:
+        for chain, value in (holder.get("balances") or {}).items():
+            totals[chain] = totals.get(chain, 0) + float(value or 0)
+    return {chain: round(total, 2) for chain, total in totals.items() if total > 0}
+
+
+def sync_chain_snapshot_supply(existing, chain_stats, holders, synced_at):
+    holder_totals = compute_holder_chain_balances(holders)
+    chains = existing.get("chains", {})
+    for chain_key, chain_config in chains.items():
+        tracked_supply = float((chain_stats.get(chain_key) or {}).get("tracked_balance_gt10") or holder_totals.get(chain_key) or 0)
+        if chain_config.get("reference_supply") in (None, "") and chain_config.get("supply") not in (None, ""):
+            chain_config["reference_supply"] = chain_config.get("supply")
+        if chain_config.get("reference_verified_date") in (None, "") and chain_config.get("verified_date"):
+            chain_config["reference_verified_date"] = chain_config.get("verified_date")
+        if tracked_supply > 0:
+            chain_config["supply"] = round(tracked_supply, 2)
+            chain_config["supply_source"] = "indexed_holder_snapshot"
+            chain_config["supply_synced_at"] = synced_at
+
+
 def is_locked_fresh(holder):
     return holder.get("type") == "FRESH" or holder.get("label") == "Fresh Wallet" or holder.get("fresh") is True
 
@@ -207,16 +230,18 @@ def main():
 
     # Update existing data structure
     existing["top_holders"] = new_holders
-    existing["total_supply"] = sum(
-        c.get("supply", 0) for c in existing.get("chains", {}).values()
-    )
-    existing["meta"]["generated"] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    synced_at = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    canonical_total_supply = existing.get("meta", {}).get("total_supply") or existing.get("total_supply") or 1_000_000_000
+    existing["total_supply"] = canonical_total_supply
+    existing["meta"]["total_supply"] = canonical_total_supply
+    existing["meta"]["generated"] = synced_at
 
     # Update chain holder counts from fresh data
     chain_stats = fresh.get("chain_stats", {})
     for chain_key, stats in chain_stats.items():
         if chain_key in existing.get("chains", {}):
             existing["chains"][chain_key]["holders"] = stats.get("holders_gt10", 0)
+    sync_chain_snapshot_supply(existing, chain_stats, new_holders, synced_at)
 
     # ── Data Validation ──
     warnings = []

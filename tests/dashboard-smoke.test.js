@@ -72,6 +72,9 @@ test('repo exposes one-command local refresh entrypoints', () => {
   assert.match(refreshEntrypoint, /--dry-run/);
   assert.match(sanitizeEntrypoint, /duplicate_holder_records_removed/);
   assert.match(sanitizeEntrypoint, /chain_balance_anomalies/);
+  assert.match(updateDataEntrypoint, /sync_chain_snapshot_supply/);
+  assert.match(updateDataEntrypoint, /supply_source/);
+  assert.match(updateDataEntrypoint, /indexed_holder_snapshot/);
 });
 
 test('flow generation keeps chain context and focuses rankings on tracked holders', () => {

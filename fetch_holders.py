@@ -346,7 +346,12 @@ def main():
                             csv_balances[addr] = round(bal, 2)
 
                 print(f"   Holders from CSV: {len(csv_balances)}")
-                chain_stats[chain_key] = {"transfers": 0, "holders_gt10": len(csv_balances), "source": "CSV"}
+                chain_stats[chain_key] = {
+                    "transfers": 0,
+                    "holders_gt10": len(csv_balances),
+                    "tracked_balance_gt10": round(sum(csv_balances.values()), 2),
+                    "source": "CSV",
+                }
 
                 for addr, balance in csv_balances.items():
                     if addr not in all_holders:
@@ -360,10 +365,19 @@ def main():
 
         if not transfers and not is_full:
             print(f"   No new transfers — keeping existing data")
-            chain_stats[chain_key] = chain_state.get("stats", {"transfers": 0, "holders_gt10": 0})
+            tracked_balance = sum(
+                balances.get(chain_key, 0)
+                for balances in existing_holders.values()
+                if chain_key in balances
+            )
+            chain_stats[chain_key] = chain_state.get(
+                "stats",
+                {"transfers": 0, "holders_gt10": 0, "tracked_balance_gt10": round(tracked_balance, 2)},
+            )
+            chain_stats[chain_key].setdefault("tracked_balance_gt10", round(tracked_balance, 2))
             continue
         elif not transfers:
-            chain_stats[chain_key] = {"transfers": 0, "holders_gt10": 0}
+            chain_stats[chain_key] = {"transfers": 0, "holders_gt10": 0, "tracked_balance_gt10": 0}
             continue
 
         if is_full:
@@ -395,7 +409,8 @@ def main():
 
         chain_stats[chain_key] = {
             "transfers": len(transfers),
-            "holders_gt10": len(balances)
+            "holders_gt10": len(balances),
+            "tracked_balance_gt10": round(sum(balances.values()), 2),
         }
 
         # Save last block
