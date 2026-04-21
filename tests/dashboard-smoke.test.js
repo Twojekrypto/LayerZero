@@ -117,6 +117,9 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(appJs, /function getSellerProfile\(/);
   assert.match(appJs, /function getSellPressureScore\(/);
   assert.match(appJs, /function getFlowDisplayScore\(/);
+  assert.match(appJs, /function getFlowSignalMeta\(/);
+  assert.match(appJs, /function getFlowIntensityPct\(/);
+  assert.match(appJs, /function buildFlowDetailPayload\(/);
   assert.match(appJs, /function flowMatchesCohort\(/);
   assert.match(appJs, /FLOW_MIN_NET_RETENTION/);
   assert.match(appJs, /chain_unresolved_rows/);
@@ -124,7 +127,14 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(indexHtml, /data-flow-cohort="strategic"/);
   assert.match(indexHtml, /data-flow-cohort="coinbase"/);
   assert.match(indexHtml, /id="flow-context-note"/);
+  assert.match(indexHtml, /id="flow-signal-strip"/);
+  assert.match(indexHtml, /id="acc-meta"/);
+  assert.match(indexHtml, /id="sell-meta"/);
   assert.match(styleCss, /flow-context-note/);
+  assert.match(styleCss, /flow-signal-strip/);
+  assert.match(styleCss, /flow-col-meta/);
+  assert.match(styleCss, /flow-signal-badge/);
+  assert.match(styleCss, /flow-intensity-bar/);
   assert.match(styleCss, /h-badge-flow-cohort/);
   assert.match(styleCss, /h-badge-flow-source/);
   assert.match(styleCss, /h-badge-flow-fresh/);
@@ -177,6 +187,7 @@ test('whale transfers expose premium discovery controls and scoring cues', () =>
   assert.match(indexHtml, /data-whale-filter="SELL"/);
   assert.match(indexHtml, /data-whale-filter="MOVE"/);
   assert.match(indexHtml, /id="whale-count"/);
+  assert.match(indexHtml, /id="whale-signal-strip"/);
   assert.match(appJs, /const WHALE_FILTER_LABELS =/);
   assert.match(appJs, /let whaleFilter = 'ALL'/);
   assert.match(appJs, /function getWhaleFilterKey\(/);
@@ -189,6 +200,7 @@ test('whale transfers expose premium discovery controls and scoring cues', () =>
   assert.match(appJs, /whale-context-badge/);
   assert.match(appJs, /whaleFilter !== 'ALL'/);
   assert.match(styleCss, /\.whale-filter-pills button/);
+  assert.match(styleCss, /\.whale-signal-strip/);
   assert.match(styleCss, /\.whale-score-badge/);
   assert.match(styleCss, /\.whale-context-badge/);
   assert.match(styleCss, /\.whale-score-row-prime/);

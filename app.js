@@ -762,6 +762,86 @@ function getFlowDisplayScore(item, type, holder=getTrackedHolder(item.address)) 
     }
     return getSellPressureScore(item, holder);
 }
+function getFlowSignalMeta(item, type, holder=getTrackedHolder(item.address)) {
+    const score = getFlowDisplayScore(item, type, holder);
+    const base = Math.max(Math.abs(Number(item?.net_flow || 0)), 1);
+    const normalized = score / base;
+    if (type === 'accumulators') {
+        if (normalized >= 1.65) return { label: 'Prime conviction', shortLabel: 'Prime', className: 'flow-signal-prime', tone: 'prime', value: normalized };
+        if (normalized >= 1.4) return { label: 'High conviction', shortLabel: 'High', className: 'flow-signal-high', tone: 'high', value: normalized };
+        if (normalized >= 1.18) return { label: 'Watchlist build', shortLabel: 'Watch', className: 'flow-signal-watch', tone: 'watch', value: normalized };
+        return { label: 'Tracked build', shortLabel: 'Track', className: 'flow-signal-track', tone: 'track', value: normalized };
+    }
+    if (normalized >= 2.2) return { label: 'Prime pressure', shortLabel: 'Prime', className: 'flow-signal-prime', tone: 'prime', value: normalized };
+    if (normalized >= 1.8) return { label: 'High pressure', shortLabel: 'High', className: 'flow-signal-high', tone: 'high', value: normalized };
+    if (normalized >= 1.35) return { label: 'Watch pressure', shortLabel: 'Watch', className: 'flow-signal-watch', tone: 'watch', value: normalized };
+    return { label: 'Tracked trim', shortLabel: 'Track', className: 'flow-signal-track', tone: 'track', value: normalized };
+}
+function getFlowIntensityPct(item, type, holder=getTrackedHolder(item.address)) {
+    const balance = getFlowItemBalance(item, holder);
+    if (type === 'accumulators') {
+        return Math.max(8, Math.min(100, Math.max(
+            getFlowRetentionRatio(item, balance) * 36,
+            getFlowNetRetentionRatio(item) * 100,
+            getFlowBalanceShare(item, balance) * 280,
+        )));
+    }
+    return Math.max(8, Math.min(100, Math.max(
+        getFlowBalanceShare(item, balance) * 320,
+        Number(item?.cex_outflow_ratio || 0) * 100,
+        Number(item?.external_outflow_ratio || 0) * 75,
+    )));
+}
+function flowSignalBadgeHTML(signalMeta, title='') {
+    return `<span class="flow-signal-badge ${escapeAttr(signalMeta.className)}"${title ? ` title="${escapeAttr(title)}"` : ''}>${escapeHtml(signalMeta.shortLabel)}</span>`;
+}
+function flowIntensityBarHTML(pct, tone='neutral') {
+    return `<div class="flow-intensity-bar"><div class="flow-intensity-fill tone-${escapeAttr(tone)}" style="width:${pct.toFixed(1)}%"></div></div>`;
+}
+function getAddressExplorerUrl(addr) {
+    const chain = getMainChain(addr);
+    return (EXPLORER_MAP[chain] || EXPLORER_MAP.ethereum) + addr;
+}
+function buildFlowDetailPayload(item, type, scoreMeta, flowUsd, balUsd, holder=getTrackedHolder(item.address)) {
+    const addr = item.address;
+    const shortA = shortAddr(addr);
+    const explorerUrl = getAddressExplorerUrl(addr);
+    const debankUrl = `https://debank.com/profile/${addr}`;
+    const balance = getFlowItemBalance(item, holder);
+    const retentionPct = (getFlowRetentionRatio(item, balance) * 100).toFixed(0);
+    const balanceSharePct = (getFlowBalanceShare(item, balance) * 100).toFixed(1);
+    const flowLabel = type === 'accumulators' ? 'Net accumulation' : 'Net distribution';
+    const secondaryLabel = type === 'accumulators'
+        ? getFlowAccumulationSourceLabel(item, holder)
+        : getSellerProfileLabel(item, holder);
+    return {
+        eyebrow: type === 'accumulators' ? 'Accumulator profile' : 'Seller profile',
+        title: item.label || shortA,
+        subtitle: `${getFlowCohortLabel(item, holder)} · ${secondaryLabel}`,
+        badges: [
+            { label: scoreMeta.label, tone: scoreMeta.tone },
+            { label: getFlowCohortLabel(item, holder), tone: getFlowCohort(item, holder) },
+            ...(getFreshFlowSignal(item, holder) ? [{ label: getFreshFlowLabel(item, holder), tone: 'fresh' }] : []),
+        ],
+        metrics: [
+            { label: flowLabel, value: `${Number(item.net_flow || 0) > 0 ? '+' : ''}${fmt(item.net_flow)} ZRO`, sub: fmtUSD(flowUsd) },
+            { label: 'Current balance', value: `${fmt(balance)} ZRO`, sub: fmtUSD(balUsd) },
+            { label: type === 'accumulators' ? 'Conviction' : 'Pressure', value: scoreMeta.value.toFixed(2), sub: scoreMeta.label },
+        ],
+        sectionTitle: 'Flow context',
+        list: [
+            { label: 'Address', value: shortA },
+            { label: 'Cohort', value: getFlowCohortLabel(item, holder) },
+            { label: type === 'accumulators' ? 'Source' : 'Outflow profile', value: secondaryLabel },
+            { label: 'Retention / share', value: `${retentionPct}% retention`, sub: `${balanceSharePct}% of balance moved in selected window` },
+            { label: 'Chain context', value: item.primary_flow_chain || (item.flow_chains || []).join(', ') || 'Unresolved' },
+        ],
+        actions: [
+            { label: 'Open explorer', url: explorerUrl, primary: true },
+            { label: 'Open in DeBank', url: debankUrl },
+        ],
+    };
+}
 
 function flowMatchesCohort(item, cohort) {
     if (cohort === 'all') return true;
@@ -770,8 +850,7 @@ function flowMatchesCohort(item, cohort) {
 
 function addrCell(item) {
     const addr=item.address, shortA=addr.slice(0,6)+'…'+addr.slice(-4);
-    const chain = getMainChain(addr);
-    const explorerUrl = (EXPLORER_MAP[chain] || EXPLORER_MAP.ethereum) + addr;
+    const explorerUrl = getAddressExplorerUrl(addr);
     const dbUrl=`https://debank.com/profile/${addr}`;
     const copyButton = copyButtonHTML(addr);
     const dbIcon = debankIconHTML(dbUrl);
@@ -2089,27 +2168,56 @@ function toggleHideCex(){
 function renderFlows() {
     const flowBucket = DATA.flows[currentPeriod] || {};
     const diagnostics = flowBucket.meta || DATA.meta?.integrity?.flow_diagnostics?.[currentPeriod] || null;
-    const freshCounts = {accumulators: 0, sellers: 0};
+    const allAccItems = getFlowItems('accumulators');
+    const allSellItems = getFlowItems('sellers');
+    const freshCounts = {
+        accumulators: allAccItems.filter(item => isFreshFlowOverlap(item)).length,
+        sellers: allSellItems.filter(item => isFreshFlowOverlap(item)).length,
+    };
+    const accVolume = allAccItems.reduce((sum, item) => sum + Math.max(Number(item.net_flow || 0), 0), 0);
+    const sellVolume = allSellItems.reduce((sum, item) => sum + Math.abs(Number(item.net_flow || 0)), 0);
+    const netTilt = accVolume - sellVolume;
+    const signalStrip = document.getElementById('flow-signal-strip');
+    if (signalStrip) {
+        const accLeader = allAccItems[0];
+        const sellLeader = allSellItems[0];
+        const accLeaderLabel = accLeader ? (accLeader.label || shortAddr(accLeader.address)) : 'None';
+        const sellLeaderLabel = sellLeader ? (sellLeader.label || shortAddr(sellLeader.address)) : 'None';
+        signalStrip.innerHTML = `
+            <div class="flow-signal-stat"><div class="flow-signal-label">Accumulated</div><div class="flow-signal-value accent-green">${fmt(accVolume)} ZRO</div><div class="flow-signal-sub">${allAccItems.length} filtered wallets</div></div>
+            <div class="flow-signal-stat"><div class="flow-signal-label">Distributed</div><div class="flow-signal-value accent-rose">${fmt(sellVolume)} ZRO</div><div class="flow-signal-sub">${allSellItems.length} filtered wallets</div></div>
+            <div class="flow-signal-stat"><div class="flow-signal-label">Net tilt</div><div class="flow-signal-value ${netTilt >= 0 ? 'accent-green' : 'accent-rose'}">${netTilt >= 0 ? '+' : ''}${fmt(netTilt)} ZRO</div><div class="flow-signal-sub">${FLOW_COHORT_LABELS[flowCohort]} · ${currentPeriod.toUpperCase()}</div></div>
+            <div class="flow-signal-stat flow-signal-stat-wide"><div class="flow-signal-label">Signal leaders</div><div class="flow-signal-value">${accLeaderLabel} vs ${sellLeaderLabel}</div><div class="flow-signal-sub">${freshCounts.accumulators + freshCounts.sellers} fresh overlaps in scope</div></div>
+        `;
+    }
     ['accumulators','sellers'].forEach(type=>{
         const isAcc=type==='accumulators';
-        const items=getFlowItems(type);
-        freshCounts[type] = items.filter(item => isFreshFlowOverlap(item)).length;
+        const items=isAcc ? allAccItems : allSellItems;
         const total=items.length;
         document.getElementById(isAcc?'acc-count':'sell-count').textContent=total.toLocaleString();
+        setText(isAcc ? 'acc-meta' : 'sell-meta', `${freshCounts[type]} fresh · ${fmt(items.reduce((sum, item) => sum + Math.abs(Number(item.net_flow || 0)), 0))} ZRO`);
         const page=isAcc?flowPageAcc:flowPageSell;
         const totalPages=Math.max(1,Math.ceil(total/FLOW_PER_PAGE));
         const start=(page-1)*FLOW_PER_PAGE;
         const pageItems=items.slice(start,start+FLOW_PER_PAGE);
         let html='';
+        if (!pageItems.length) {
+            html = `<tr><td colspan="4">${tableEmptyStateHTML(isAcc ? '🟢' : '🔴', isAcc ? 'No accumulators match this scope' : 'No sellers match this scope', `Try another cohort, chain or period inside ${currentPeriod.toUpperCase()}.`)}</td></tr>`;
+        }
         pageItems.forEach((f,i)=>{
+            const holder = getTrackedHolder(f.address);
             const flowUsd=Math.abs(f.net_flow)*(DATA.meta.price_usd||0);
             const balUsd=(f.balance||0)*(DATA.meta.price_usd||0);
+            const scoreMeta = getFlowSignalMeta(f, type, holder);
+            const intensityPct = getFlowIntensityPct(f, type, holder);
             const scoreText = isAcc
-                ? `Score ${fmt(getFlowDisplayScore(f, type), 0)}`
-                : `Pressure ${fmt(getSellPressureScore(f), 0)}`;
-            html+=`<tr class="${isAcc ? 'flow-row-acc' : 'flow-row-sell'}"><td class="rank-cell"${dataLabelAttr('Rank')}>${start+i+1}</td><td${dataLabelAttr('Address')}>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'}" style="font-variant-numeric:tabular-nums;font-weight:600"${dataLabelAttr('Net Flow')}>${isAcc?'+':''}${fmt(f.net_flow)}<div class="h-usd-sub">${fmtUSD(flowUsd)}</div><div class="h-flow-meta">${escapeHtml(scoreText)}</div></td><td class="right val-muted" style="font-variant-numeric:tabular-nums"${dataLabelAttr('Balance')}>${fmt(f.balance)}<div class="h-usd-sub">${fmtUSD(balUsd)}</div></td></tr>`;
+                ? `Conviction ${scoreMeta.value.toFixed(2)} · ${getFlowAccumulationSourceLabel(f, holder)}`
+                : `Pressure ${scoreMeta.value.toFixed(2)} · ${getSellerProfileLabel(f, holder)}`;
+            const detailKey = `${type}-${f.address}-${currentPeriod}`;
+            const detailPayload = buildFlowDetailPayload(f, type, scoreMeta, flowUsd, balUsd, holder);
+            html+=`<tr class="${isAcc ? 'flow-row-acc' : 'flow-row-sell'} flow-row-signal-${scoreMeta.tone}" ${clickableRowAttrs(getAddressExplorerUrl(f.address), `Open ${isAcc ? 'accumulator' : 'seller'} details`)}${registerDetailPayload(detailKey, detailPayload)}><td class="rank-cell"${dataLabelAttr('Rank')}>${start+i+1}</td><td${dataLabelAttr('Address')}>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'} flow-cell-main"${dataLabelAttr('Net Flow')}><div class="flow-value-stack"><div class="flow-value-head">${flowSignalBadgeHTML(scoreMeta, scoreMeta.label)}<span>${isAcc?'+':''}${fmt(f.net_flow)} ZRO</span></div><div class="h-usd-sub">${fmtUSD(flowUsd)}</div><div class="h-flow-meta">${escapeHtml(scoreText)}</div>${flowIntensityBarHTML(intensityPct, isAcc ? 'buy' : 'sell')}</div></td><td class="right val-muted flow-cell-main"${dataLabelAttr('Balance')}><div class="flow-value-stack"><div class="flow-balance-main">${fmt(f.balance)} ZRO</div><div class="h-usd-sub">${fmtUSD(balUsd)}</div><div class="h-flow-meta">${escapeHtml(`${(getFlowBalanceShare(f, getFlowItemBalance(f, holder)) * 100).toFixed(1)}% of wallet moved in view`)}</div></div></td></tr>`;
         });
-        for(let i=pageItems.length;i<FLOW_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
+        for(let i=pageItems.length;i<FLOW_PER_PAGE && total>0;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
         document.getElementById(isAcc?'acc-tbody':'sell-tbody').innerHTML=html;
         const pagerEl=document.getElementById(isAcc?'acc-pager':'sell-pager');
         const target=isAcc?'flow-acc':'flow-sell';
@@ -2458,6 +2566,23 @@ function renderWhaleTransfers() {
     const start = (whalePageNum - 1) * WHALE_PER_PAGE;
     const pageItems = filteredTransfers.slice(start, start + WHALE_PER_PAGE);
     const price = DATA.meta.price_usd || 0;
+    const whaleSignalStrip = document.getElementById('whale-signal-strip');
+    if (whaleSignalStrip) {
+        const buyRows = filteredTransfers.filter(t => t.type === 'CEX_WITHDRAWAL');
+        const sellRows = filteredTransfers.filter(t => t.type === 'CEX_DEPOSIT');
+        const moveRows = filteredTransfers.filter(t => t.type === 'TRANSFER');
+        const buyVolume = buyRows.reduce((sum, t) => sum + Number(t.value || 0), 0);
+        const sellVolume = sellRows.reduce((sum, t) => sum + Number(t.value || 0), 0);
+        const topSignal = filteredTransfers
+            .map(t => ({ transfer: t, meta: getWhaleScoreMeta(t, getTrackedHolder(t.from), getTrackedHolder(t.to)) }))
+            .sort((a, b) => b.meta.value - a.meta.value)[0];
+        whaleSignalStrip.innerHTML = `
+            <div class="whale-signal-stat"><div class="whale-signal-label">Feed scope</div><div class="whale-signal-value">${filteredTotal}</div><div class="whale-signal-sub">${WHALE_FILTER_LABELS[whaleFilter]}</div></div>
+            <div class="whale-signal-stat"><div class="whale-signal-label">Buy-side</div><div class="whale-signal-value accent-green">${fmt(buyVolume)} ZRO</div><div class="whale-signal-sub">${buyRows.length} rows</div></div>
+            <div class="whale-signal-stat"><div class="whale-signal-label">Sell-side</div><div class="whale-signal-value accent-rose">${fmt(sellVolume)} ZRO</div><div class="whale-signal-sub">${sellRows.length} rows</div></div>
+            <div class="whale-signal-stat whale-signal-stat-wide"><div class="whale-signal-label">Signal leader</div><div class="whale-signal-value">${topSignal ? `${topSignal.meta.label} · ${(labelMap[topSignal.transfer.to.toLowerCase()] || topSignal.transfer.to_label || shortAddr(topSignal.transfer.to))}` : 'No standout row'}</div><div class="whale-signal-sub">${moveRows.length} wallet-to-wallet moves in scope</div></div>
+        `;
+    }
     let html = '';
     if (!pageItems.length) {
         html = `<tr><td colspan="5">${tableEmptyStateHTML('🐋', 'No whale transfers for this filter', `Switch back to ${WHALE_FILTER_LABELS.ALL.toLowerCase()} or wait for the next indexed snapshot.`)}</td></tr>`;
@@ -2491,7 +2616,7 @@ function renderWhaleTransfers() {
         html += `<tr class="${whaleRowClass}" ${clickableRowAttrs(`https://etherscan.io/tx/${t.tx_hash}`, 'Open whale transfer transaction')}${registerDetailPayload(detailKey, detailPayload)} style="cursor:pointer">
             <td${dataLabelAttr('Time')}><div class="fresh-date">${timeStr}</div><div class="val-muted">${agoStr}</div></td>
             <td${dataLabelAttr('Type')}><span class="h-badge ${typeCls}">${typeLabel}</span><div class="h-whale-meta-row">${whaleScoreBadgeHTML(scoreMeta)}</div></td>
-            <td${dataLabelAttr('From')}>${fromLink}</td>
+            <td${dataLabelAttr('From')}><div class="h-addr-two-line"><div>${fromLink}</div><div class="h-whale-meta-row"><span class="whale-route-note">${escapeHtml(t.type === 'CEX_WITHDRAWAL' ? 'Origin liquidity source' : t.type === 'CEX_DEPOSIT' ? 'Distribution source' : 'Sending wallet')}</span></div></div></td>
             <td${dataLabelAttr('To')}><div class="h-addr-two-line"><div>${toLink}</div><div class="h-whale-meta-row">${whaleContextBadgeHTML(contextMeta)}</div></div></td>
             <td class="right" style="${amtColor};font-weight:600"${dataLabelAttr('Amount')}>${amtSign}${fmt(t.value)} ZRO${usdVal ? `<div class="h-usd-sub">${usdVal}</div>` : ''}</td>
         </tr>`;
