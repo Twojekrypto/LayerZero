@@ -56,6 +56,15 @@ FLOW_COHORT_LABELS = {
     "strategic": "Strategic / VC",
     "coinbase": "Coinbase / Custody",
 }
+ACCUMULATION_SOURCE_LABELS = {
+    "coinbase_funded": "Coinbase funded",
+    "cex_funded": "CEX funded",
+    "strategic_inflow": "Strategic inflow",
+    "holder_built": "Holder-built",
+    "external_inflow": "External inflow",
+    "mixed_inflow": "Mixed inflow",
+    "unresolved_inflow": "Unresolved inflow",
+}
 SELLER_PROFILE_LABELS = {
     "coinbase_outflow": "Coinbase outflow",
     "cex_outflow": "CEX outflow",
@@ -65,6 +74,12 @@ SELLER_PROFILE_LABELS = {
     "mixed_outflow": "Mixed outflow",
     "coinbase_rotation": "Coinbase / custody rotation",
     "unresolved_outflow": "Unresolved outflow",
+}
+FRESH_FLOW_LABELS = {
+    "fresh_whale_accumulator": "Fresh whale",
+    "fresh_accumulator": "Fresh accumulator",
+    "fresh_wallet": "Fresh wallet",
+    "fresh_seller": "Fresh seller",
 }
 STRATEGIC_FLOW_TYPES = {"VC", "TEAM", "UNLOCK", "INST"}
 
@@ -189,6 +204,39 @@ def classify_outbound_counterparty(counterparty, holder_meta_map):
     return "holder"
 
 
+def classify_inbound_counterparty(counterparty, holder_meta_map):
+    return classify_outbound_counterparty(counterparty, holder_meta_map)
+
+
+def derive_accumulation_source(inbound_buckets, holder_meta):
+    total_in = sum(inbound_buckets.values())
+    if total_in <= 0:
+        cohort = derive_flow_cohort(holder_meta)
+        if cohort == "coinbase":
+            return "coinbase_funded"
+        if cohort == "strategic":
+            return "strategic_inflow"
+        return "unresolved_inflow"
+
+    bucket_shares = {bucket: value / total_in for bucket, value in inbound_buckets.items() if value > 0}
+    if not bucket_shares:
+        return "unresolved_inflow"
+
+    dominant_bucket, dominant_share = max(bucket_shares.items(), key=lambda item: item[1])
+    cex_share = bucket_shares.get("cex", 0) + bucket_shares.get("coinbase", 0)
+    if bucket_shares.get("coinbase", 0) >= 0.45:
+        return "coinbase_funded"
+    if cex_share >= 0.6 or (dominant_bucket == "cex" and dominant_share >= 0.45):
+        return "cex_funded"
+    if dominant_bucket == "strategic" and dominant_share >= 0.5:
+        return "strategic_inflow"
+    if dominant_bucket == "holder" and dominant_share >= 0.5:
+        return "holder_built"
+    if dominant_bucket == "unknown" and dominant_share >= 0.65:
+        return "external_inflow"
+    return "mixed_inflow"
+
+
 def derive_seller_profile(outbound_buckets, holder_meta):
     total_out = sum(outbound_buckets.values())
     if total_out <= 0:
@@ -218,6 +266,40 @@ def derive_seller_profile(outbound_buckets, holder_meta):
     return "mixed_outflow"
 
 
+def derive_fresh_flow_signal(holder_meta, net_flow):
+    is_fresh = holder_meta.get("type") == "FRESH" or holder_meta.get("label") == "Fresh Wallet" or holder_meta.get("fresh") is True
+    if not is_fresh:
+        return ""
+    if net_flow < 0:
+        return "fresh_seller"
+    fresh_signal = holder_meta.get("fresh_signal") or ""
+    if fresh_signal in {"fresh_whale_accumulator", "fresh_accumulator"}:
+        return fresh_signal
+    return "fresh_wallet"
+
+
+def derive_sell_pressure_score(item):
+    balance = item.get("balance", 0) or 0
+    balance_share = abs(item["net_flow"]) / balance if balance > 0 else 0
+    cex_ratio = item.get("cex_outflow_ratio", 0) or 0
+    external_ratio = item.get("external_outflow_ratio", 0) or 0
+    pressure = 1 + (min(balance_share, 0.25) * 4.0) + (min(cex_ratio, 1) * 0.9) + (min(external_ratio, 1) * 0.35)
+    seller_profile = item.get("seller_profile", "")
+    if seller_profile == "coinbase_outflow":
+        pressure += 0.55
+    elif seller_profile == "cex_outflow":
+        pressure += 0.45
+    elif seller_profile == "mixed_outflow":
+        pressure += 0.2
+    elif seller_profile == "holder_redistribution":
+        pressure = max(0.8, pressure - 0.1)
+    elif seller_profile == "strategic_rotation":
+        pressure = max(0.75, pressure - 0.15)
+    if item.get("fresh_flow_signal") == "fresh_seller":
+        pressure += 0.08
+    return round(abs(item["net_flow"]) * pressure, 2)
+
+
 def derive_flow_score(item):
     balance = item.get("balance", 0) or 0
     balance_share = abs(item["net_flow"]) / balance if balance > 0 else 0
@@ -225,17 +307,23 @@ def derive_flow_score(item):
         retention = max(0, min(item.get("retention_ratio", 0) or 0, 2))
         net_retention = max(0, min(get_net_retention_ratio(item), 1.5))
         conviction = 1 + (retention * 0.35) + (net_retention * 0.55) + (min(balance_share, 0.25) * 2.5)
+        fresh_signal = item.get("fresh_flow_signal", "")
+        accumulation_source = item.get("accumulation_source", "")
+        if fresh_signal == "fresh_whale_accumulator":
+            conviction += 0.25
+        elif fresh_signal == "fresh_accumulator":
+            conviction += 0.18
+        elif fresh_signal:
+            conviction += 0.08
+        if accumulation_source == "holder_built":
+            conviction += 0.10
+        elif accumulation_source in {"strategic_inflow", "mixed_inflow"}:
+            conviction += 0.05
         return round(item["net_flow"] * conviction, 2)
-    seller_profile = item.get("seller_profile", "")
-    pressure = 1 + (min(balance_share, 0.2) * 4.0)
-    if seller_profile in {"coinbase_outflow", "cex_outflow"}:
-        pressure += 0.35
-    elif seller_profile == "mixed_outflow":
-        pressure += 0.15
-    return round(abs(item["net_flow"]) * pressure, 2)
+    return derive_sell_pressure_score(item)
 
 
-def build_flow_item(addr, holder_meta, inbound, outbound, chain_volume, outbound_buckets):
+def build_flow_item(addr, holder_meta, inbound, outbound, chain_volume, outbound_buckets, inbound_buckets):
     """Build a normalized flow item for the dashboard."""
     balance = round(holder_meta.get("balance", 0))
     net_flow = round(inbound - outbound)
@@ -262,10 +350,25 @@ def build_flow_item(addr, holder_meta, inbound, outbound, chain_volume, outbound
         item["primary_flow_chain"] = flow_chains[0]
     else:
         item["chain_unresolved"] = True
+    fresh_flow_signal = derive_fresh_flow_signal(holder_meta, net_flow)
+    if fresh_flow_signal:
+        item["fresh_overlap"] = True
+        item["fresh_flow_signal"] = fresh_flow_signal
+        item["fresh_flow_label"] = FRESH_FLOW_LABELS[fresh_flow_signal]
+    if inbound > 0:
+        accumulation_source = derive_accumulation_source(inbound_buckets, holder_meta)
+        item["accumulation_source"] = accumulation_source
+        item["accumulation_source_label"] = ACCUMULATION_SOURCE_LABELS[accumulation_source]
     if outbound > 0:
         seller_profile = derive_seller_profile(outbound_buckets, holder_meta)
         item["seller_profile"] = seller_profile
         item["seller_profile_label"] = SELLER_PROFILE_LABELS[seller_profile]
+        total_out = sum(outbound_buckets.values()) or outbound
+        cex_outflow_ratio = (outbound_buckets.get("cex", 0) + outbound_buckets.get("coinbase", 0)) / total_out if total_out > 0 else 0
+        external_outflow_ratio = outbound_buckets.get("unknown", 0) / total_out if total_out > 0 else 0
+        item["cex_outflow_ratio"] = round(cex_outflow_ratio, 4)
+        item["external_outflow_ratio"] = round(external_outflow_ratio, 4)
+        item["sell_pressure_score"] = derive_sell_pressure_score(item)
     item["flow_score"] = derive_flow_score(item)
     return item
 
@@ -457,6 +560,12 @@ def main():
             "label": h.get("label", ""),
             "type": h.get("type", ""),
             "balance": round(sum(h.get("balances", {}).values())),
+            "fresh": h.get("fresh"),
+            "fresh_signal": h.get("fresh_signal", ""),
+            "fresh_signal_label": h.get("fresh_signal_label", ""),
+            "fresh_profile": h.get("fresh_profile", ""),
+            "fresh_profile_label": h.get("fresh_profile_label", ""),
+            "funded_by": h.get("funded_by", ""),
         }
 
     # Compute flows per period from cached transfers
@@ -469,6 +578,7 @@ def main():
             "out": 0.0,
             "chain_volume": defaultdict(float),
             "outbound_buckets": defaultdict(float),
+            "inbound_buckets": defaultdict(float),
         })
 
         for addr, transfers in cache["transfers"].items():
@@ -480,6 +590,8 @@ def main():
                     period_data[addr]["in"] += tx["value"]
                     if chain_name:
                         period_data[addr]["chain_volume"][chain_name] += tx["value"]
+                    bucket = classify_inbound_counterparty(tx.get("from"), holder_meta_map)
+                    period_data[addr]["inbound_buckets"][bucket] += tx["value"]
                 if tx["from"] == addr:
                     period_data[addr]["out"] += tx["value"]
                     if chain_name:
@@ -494,7 +606,7 @@ def main():
             holder_meta = holder_meta_map.get(addr)
             if not holder_meta or holder_meta.get("balance", 0) <= 0:
                 continue
-            item = build_flow_item(addr, holder_meta, stats["in"], stats["out"], stats["chain_volume"], stats["outbound_buckets"])
+            item = build_flow_item(addr, holder_meta, stats["in"], stats["out"], stats["chain_volume"], stats["outbound_buckets"], stats["inbound_buckets"])
             if not item:
                 continue
             if is_meaningful_accumulator(item):
@@ -503,7 +615,7 @@ def main():
                 sell.append(item)
 
         acc = sorted(acc, key=lambda x: (x.get("flow_score", 0), x["net_flow"], x.get("retention_ratio", 0), x["balance"]), reverse=True)
-        sell = sorted(sell, key=lambda x: (x.get("flow_score", 0), abs(x["net_flow"]), -x["balance"]), reverse=True)
+        sell = sorted(sell, key=lambda x: (x.get("sell_pressure_score", x.get("flow_score", 0)), abs(x["net_flow"]), -x["balance"]), reverse=True)
 
         new_flows[period_key] = {"accumulators": acc, "sellers": sell}
         print(f"   {period_key}: {len(acc)} accumulators, {len(sell)} sellers")

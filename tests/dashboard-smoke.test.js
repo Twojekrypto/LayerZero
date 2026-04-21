@@ -78,21 +78,29 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(generateFlowsEntrypoint, /"chain": chain_name/);
   assert.match(generateFlowsEntrypoint, /FLOW_INFRA_TYPES/);
   assert.match(generateFlowsEntrypoint, /FLOW_COHORT_LABELS/);
+  assert.match(generateFlowsEntrypoint, /ACCUMULATION_SOURCE_LABELS/);
   assert.match(generateFlowsEntrypoint, /SELLER_PROFILE_LABELS/);
+  assert.match(generateFlowsEntrypoint, /FRESH_FLOW_LABELS/);
   assert.match(generateFlowsEntrypoint, /retention_ratio/);
   assert.match(generateFlowsEntrypoint, /primary_flow_chain/);
   assert.match(generateFlowsEntrypoint, /chain_unresolved/);
   assert.match(generateFlowsEntrypoint, /FLOW_MIN_NET_RETENTION/);
   assert.match(generateFlowsEntrypoint, /FLOW_MIN_SELL_BALANCE_SHARE/);
   assert.match(generateFlowsEntrypoint, /derive_flow_cohort/);
+  assert.match(generateFlowsEntrypoint, /derive_accumulation_source/);
   assert.match(generateFlowsEntrypoint, /derive_seller_profile/);
+  assert.match(generateFlowsEntrypoint, /derive_fresh_flow_signal/);
+  assert.match(generateFlowsEntrypoint, /derive_sell_pressure_score/);
   assert.match(generateFlowsEntrypoint, /derive_flow_score/);
   assert.match(generateFlowsEntrypoint, /is_meaningful_accumulator/);
   assert.match(generateFlowsEntrypoint, /is_meaningful_seller/);
   assert.match(sanitizeEntrypoint, /def normalize_flows\(/);
   assert.match(sanitizeEntrypoint, /chain_unresolved_rows/);
   assert.match(sanitizeEntrypoint, /flow_cohort_label/);
+  assert.match(sanitizeEntrypoint, /accumulation_source_label/);
   assert.match(sanitizeEntrypoint, /seller_profile_label/);
+  assert.match(sanitizeEntrypoint, /fresh_flow_label/);
+  assert.match(sanitizeEntrypoint, /sell_pressure_score/);
   assert.match(sanitizeEntrypoint, /flow_score/);
   assert.match(sanitizeEntrypoint, /excluded_low_signal/);
   assert.match(sanitizeEntrypoint, /excluded_low_retention/);
@@ -101,7 +109,10 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(appJs, /function flowMatchesChain\(/);
   assert.match(appJs, /function isMeaningfulFlowItem\(/);
   assert.match(appJs, /function getFlowCohort\(/);
+  assert.match(appJs, /function getFlowAccumulationSource\(/);
+  assert.match(appJs, /function getFreshFlowSignal\(/);
   assert.match(appJs, /function getSellerProfile\(/);
+  assert.match(appJs, /function getSellPressureScore\(/);
   assert.match(appJs, /function getFlowDisplayScore\(/);
   assert.match(appJs, /function flowMatchesCohort\(/);
   assert.match(appJs, /FLOW_MIN_NET_RETENTION/);
@@ -112,7 +123,10 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(indexHtml, /id="flow-context-note"/);
   assert.match(styleCss, /flow-context-note/);
   assert.match(styleCss, /h-badge-flow-cohort/);
+  assert.match(styleCss, /h-badge-flow-source/);
+  assert.match(styleCss, /h-badge-flow-fresh/);
   assert.match(styleCss, /h-badge-flow-profile/);
+  assert.match(styleCss, /h-flow-meta/);
   assert.match(indexHtml, /Tracked holders only/);
 });
 
@@ -220,6 +234,7 @@ test('snapshot data remains internally consistent', () => {
       assert.ok(typeof item.address === 'string' && item.address.startsWith('0x'), `accumulator should expose address in ${period}`);
       assert.ok(Number(item.net_flow || 0) > 0, `accumulator should keep positive net flow in ${period}`);
       assert.ok(typeof item.flow_cohort === 'string', `accumulator should expose flow cohort in ${period}`);
+      assert.ok(typeof item.accumulation_source === 'string', `accumulator should expose accumulation source in ${period}`);
       assert.ok(typeof item.flow_score === 'number', `accumulator should expose flow score in ${period}`);
     }
     for (const item of dashboardData.flows[period].sellers) {
@@ -227,6 +242,7 @@ test('snapshot data remains internally consistent', () => {
       assert.ok(Number(item.net_flow || 0) < 0, `seller should keep negative net flow in ${period}`);
       assert.ok(typeof item.flow_cohort === 'string', `seller should expose flow cohort in ${period}`);
       assert.ok(typeof item.seller_profile === 'string', `seller should expose seller profile in ${period}`);
+      assert.ok(typeof item.sell_pressure_score === 'number', `seller should expose sell pressure score in ${period}`);
       assert.ok(typeof item.flow_score === 'number', `seller should expose flow score in ${period}`);
     }
   }

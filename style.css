@@ -628,7 +628,9 @@ body::after {
 .h-badge-funded { background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.3); font-style:italic; }
 .h-badge-fresh-profile { background:rgba(56,189,248,0.14); color:#67e8f9; border:1px solid rgba(56,189,248,0.28); }
 .h-badge-flow-cohort,
-.h-badge-flow-profile {
+.h-badge-flow-profile,
+.h-badge-flow-source,
+.h-badge-flow-fresh {
     border-radius:999px;
     padding:2px 7px;
     font-size:7px;
@@ -653,6 +655,38 @@ body::after {
     background:rgba(251,113,133,0.12);
     color:#fda4af;
     border:1px solid rgba(251,113,133,0.24);
+}
+.h-badge-flow-source {
+    background:rgba(34,211,238,0.12);
+    color:#67e8f9;
+    border:1px solid rgba(34,211,238,0.24);
+}
+.h-badge-flow-fresh {
+    background:rgba(250,204,21,0.14);
+    color:#fde68a;
+    border:1px solid rgba(250,204,21,0.26);
+}
+.h-badge-flow-fresh-fresh_whale_accumulator {
+    background:rgba(245,158,11,0.16);
+    color:#fcd34d;
+    border-color:rgba(245,158,11,0.3);
+}
+.h-badge-flow-fresh-fresh_accumulator {
+    background:rgba(34,197,94,0.14);
+    color:#86efac;
+    border-color:rgba(34,197,94,0.28);
+}
+.h-badge-flow-fresh-fresh_seller {
+    background:rgba(248,113,113,0.14);
+    color:#fda4af;
+    border-color:rgba(248,113,113,0.26);
+}
+.h-flow-meta {
+    margin-top:3px;
+    font-size:10px;
+    line-height:1.25;
+    color:rgba(255,255,255,0.46);
+    font-weight:500;
 }
 .fresh-date { color:#e2e8f0; font-size:0.82rem; font-weight:500; }
 .fresh-date-estimated { color:#f8d66d; }

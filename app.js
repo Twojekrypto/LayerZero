@@ -22,6 +22,15 @@ const FLOW_COHORT_LABELS = {
     strategic: 'Strategic / VC',
     coinbase: 'Coinbase / Custody',
 };
+const ACCUMULATION_SOURCE_LABELS = {
+    coinbase_funded: 'Coinbase funded',
+    cex_funded: 'CEX funded',
+    strategic_inflow: 'Strategic inflow',
+    holder_built: 'Holder-built',
+    external_inflow: 'External inflow',
+    mixed_inflow: 'Mixed inflow',
+    unresolved_inflow: 'Unresolved inflow',
+};
 const SELLER_PROFILE_LABELS = {
     coinbase_outflow: 'Coinbase outflow',
     cex_outflow: 'CEX outflow',
@@ -31,6 +40,12 @@ const SELLER_PROFILE_LABELS = {
     mixed_outflow: 'Mixed outflow',
     coinbase_rotation: 'Coinbase rotation',
     unresolved_outflow: 'Unresolved outflow',
+};
+const FRESH_FLOW_LABELS = {
+    fresh_whale_accumulator: 'Fresh whale',
+    fresh_accumulator: 'Fresh accumulator',
+    fresh_wallet: 'Fresh wallet',
+    fresh_seller: 'Fresh seller',
 };
 const STRATEGIC_FLOW_TYPES = new Set(['VC', 'TEAM', 'UNLOCK', 'INST']);
 
@@ -653,6 +668,44 @@ function getFlowCohortLabel(item, holder=getTrackedHolder(item.address)) {
     return item?.flow_cohort_label || FLOW_COHORT_LABELS[getFlowCohort(item, holder)] || FLOW_COHORT_LABELS.organic;
 }
 
+function getFlowAccumulationSource(item, holder=getTrackedHolder(item.address)) {
+    if (item?.accumulation_source) return item.accumulation_source;
+    const fundedBy = String(item?.funded_by || holder?.funded_by || '').toLowerCase();
+    const freshProfile = String(item?.fresh_profile || holder?.fresh_profile || '').toLowerCase();
+    if (fundedBy.includes('coinbase')) return 'coinbase_funded';
+    if (fundedBy || freshProfile === 'cex_funded') return 'cex_funded';
+    if (getFlowCohort(item, holder) === 'strategic') return 'strategic_inflow';
+    return Number(item?.net_flow || 0) > 0 ? 'mixed_inflow' : 'unresolved_inflow';
+}
+
+function getFlowAccumulationSourceLabel(item, holder=getTrackedHolder(item.address)) {
+    return item?.accumulation_source_label || ACCUMULATION_SOURCE_LABELS[getFlowAccumulationSource(item, holder)] || ACCUMULATION_SOURCE_LABELS.mixed_inflow;
+}
+
+function getFreshFlowSignal(item, holder=getTrackedHolder(item.address)) {
+    if (item?.fresh_flow_signal) return item.fresh_flow_signal;
+    const isFresh = item?.fresh_overlap === true
+        || item?.type === 'FRESH'
+        || item?.label === 'Fresh Wallet'
+        || holder?.type === 'FRESH'
+        || holder?.label === 'Fresh Wallet'
+        || holder?.fresh === true;
+    if (!isFresh) return '';
+    if (Number(item?.net_flow || 0) < 0) return 'fresh_seller';
+    const freshSignal = item?.fresh_signal || holder?.fresh_signal || '';
+    if (freshSignal === 'fresh_whale_accumulator' || freshSignal === 'fresh_accumulator') return freshSignal;
+    return 'fresh_wallet';
+}
+
+function getFreshFlowLabel(item, holder=getTrackedHolder(item.address)) {
+    const signal = getFreshFlowSignal(item, holder);
+    return signal ? (item?.fresh_flow_label || FRESH_FLOW_LABELS[signal] || FRESH_FLOW_LABELS.fresh_wallet) : '';
+}
+
+function isFreshFlowOverlap(item, holder=getTrackedHolder(item.address)) {
+    return Boolean(getFreshFlowSignal(item, holder));
+}
+
 function getSellerProfile(item, holder=getTrackedHolder(item.address)) {
     if (item?.seller_profile) return item.seller_profile;
     const cohort = getFlowCohort(item, holder);
@@ -665,22 +718,43 @@ function getSellerProfileLabel(item, holder=getTrackedHolder(item.address)) {
     return item?.seller_profile_label || SELLER_PROFILE_LABELS[getSellerProfile(item, holder)] || SELLER_PROFILE_LABELS.unresolved_outflow;
 }
 
+function getSellPressureScore(item, holder=getTrackedHolder(item.address)) {
+    const explicit = Number(item?.sell_pressure_score);
+    if (Number.isFinite(explicit) && explicit > 0) return explicit;
+    const balance = getFlowItemBalance(item, holder);
+    const balanceShare = getFlowBalanceShare(item, balance);
+    const sellerProfile = getSellerProfile(item, holder);
+    const cexRatio = Number(item?.cex_outflow_ratio || 0);
+    const externalRatio = Number(item?.external_outflow_ratio || 0);
+    let pressure = 1 + (Math.min(balanceShare, 0.25) * 4) + (Math.min(cexRatio, 1) * 0.9) + (Math.min(externalRatio, 1) * 0.35);
+    if (sellerProfile === 'coinbase_outflow') pressure += 0.55;
+    else if (sellerProfile === 'cex_outflow') pressure += 0.45;
+    else if (sellerProfile === 'mixed_outflow') pressure += 0.2;
+    else if (sellerProfile === 'holder_redistribution') pressure = Math.max(0.8, pressure - 0.1);
+    else if (sellerProfile === 'strategic_rotation') pressure = Math.max(0.75, pressure - 0.15);
+    if (getFreshFlowSignal(item, holder) === 'fresh_seller') pressure += 0.08;
+    return Math.abs(Number(item?.net_flow || 0)) * pressure;
+}
+
 function getFlowDisplayScore(item, type, holder=getTrackedHolder(item.address)) {
-    const explicit = Number(item?.flow_score);
+    const explicit = type === 'sellers' ? Number(item?.sell_pressure_score || item?.flow_score) : Number(item?.flow_score);
     if (Number.isFinite(explicit) && explicit > 0) return explicit;
     const balance = getFlowItemBalance(item, holder);
     const balanceShare = getFlowBalanceShare(item, balance);
     if (type === 'accumulators') {
         const retentionRatio = getFlowRetentionRatio(item, balance);
         const netRetentionRatio = getFlowNetRetentionRatio(item);
-        const conviction = 1 + (Math.min(retentionRatio, 2) * 0.35) + (Math.min(netRetentionRatio, 1.5) * 0.55) + (Math.min(balanceShare, 0.25) * 2.5);
+        let conviction = 1 + (Math.min(retentionRatio, 2) * 0.35) + (Math.min(netRetentionRatio, 1.5) * 0.55) + (Math.min(balanceShare, 0.25) * 2.5);
+        const freshSignal = getFreshFlowSignal(item, holder);
+        const accumulationSource = getFlowAccumulationSource(item, holder);
+        if (freshSignal === 'fresh_whale_accumulator') conviction += 0.25;
+        else if (freshSignal === 'fresh_accumulator') conviction += 0.18;
+        else if (freshSignal) conviction += 0.08;
+        if (accumulationSource === 'holder_built') conviction += 0.10;
+        else if (accumulationSource === 'strategic_inflow' || accumulationSource === 'mixed_inflow') conviction += 0.05;
         return Math.max(0, Number(item?.net_flow || 0)) * conviction;
     }
-    const sellerProfile = getSellerProfile(item, holder);
-    let pressure = 1 + (Math.min(balanceShare, 0.2) * 4);
-    if (sellerProfile === 'coinbase_outflow' || sellerProfile === 'cex_outflow') pressure += 0.35;
-    else if (sellerProfile === 'mixed_outflow') pressure += 0.15;
-    return Math.abs(Number(item?.net_flow || 0)) * pressure;
+    return getSellPressureScore(item, holder);
 }
 
 function flowMatchesCohort(item, cohort) {
@@ -698,14 +772,21 @@ function addrCell(item) {
     const explorerIcon = explorerIconHTML(explorerUrl, `View ${shortA} on explorer`);
     const cohort = getFlowCohort(item);
     const cohortBadge = `<span class="h-badge h-badge-flow-cohort h-badge-flow-${cohort}">${escapeHtml(getFlowCohortLabel(item))}</span>`;
+    const sourceBadge = Number(item?.net_flow || 0) > 0
+        ? `<span class="h-badge h-badge-flow-source">${escapeHtml(getFlowAccumulationSourceLabel(item))}</span>`
+        : '';
     const sellerBadge = Number(item?.net_flow || 0) < 0
         ? `<span class="h-badge h-badge-flow-profile">${escapeHtml(getSellerProfileLabel(item))}</span>`
         : '';
+    const freshSignal = getFreshFlowSignal(item);
+    const freshBadge = freshSignal
+        ? `<span class="h-badge h-badge-flow-fresh h-badge-flow-fresh-${escapeAttr(freshSignal)}">${escapeHtml(getFreshFlowLabel(item))}</span>`
+        : '';
     if (item.label) {
         const bCls={'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','WALLET':'h-badge-wallet','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[item.type]||'h-badge-whale';
-        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span>${cohortBadge}${sellerBadge}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span>${cohortBadge}${sourceBadge}${sellerBadge}${freshBadge}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
     }
-    return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${cohortBadge}${sellerBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+    return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${cohortBadge}${sourceBadge}${sellerBadge}${freshBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
 }
 
 // ── Tabs ──
@@ -1990,9 +2071,11 @@ function toggleHideCex(){
 function renderFlows() {
     const flowBucket = DATA.flows[currentPeriod] || {};
     const diagnostics = flowBucket.meta || DATA.meta?.integrity?.flow_diagnostics?.[currentPeriod] || null;
+    const freshCounts = {accumulators: 0, sellers: 0};
     ['accumulators','sellers'].forEach(type=>{
         const isAcc=type==='accumulators';
         const items=getFlowItems(type);
+        freshCounts[type] = items.filter(item => isFreshFlowOverlap(item)).length;
         const total=items.length;
         document.getElementById(isAcc?'acc-count':'sell-count').textContent=total.toLocaleString();
         const page=isAcc?flowPageAcc:flowPageSell;
@@ -2003,7 +2086,10 @@ function renderFlows() {
         pageItems.forEach((f,i)=>{
             const flowUsd=Math.abs(f.net_flow)*(DATA.meta.price_usd||0);
             const balUsd=(f.balance||0)*(DATA.meta.price_usd||0);
-            html+=`<tr class="${isAcc ? 'flow-row-acc' : 'flow-row-sell'}"><td class="rank-cell"${dataLabelAttr('Rank')}>${start+i+1}</td><td${dataLabelAttr('Address')}>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'}" style="font-variant-numeric:tabular-nums;font-weight:600"${dataLabelAttr('Net Flow')}>${isAcc?'+':''}${fmt(f.net_flow)}<div class="h-usd-sub">${fmtUSD(flowUsd)}</div></td><td class="right val-muted" style="font-variant-numeric:tabular-nums"${dataLabelAttr('Balance')}>${fmt(f.balance)}<div class="h-usd-sub">${fmtUSD(balUsd)}</div></td></tr>`;
+            const scoreText = isAcc
+                ? `Score ${fmt(getFlowDisplayScore(f, type), 0)}`
+                : `Pressure ${fmt(getSellPressureScore(f), 0)}`;
+            html+=`<tr class="${isAcc ? 'flow-row-acc' : 'flow-row-sell'}"><td class="rank-cell"${dataLabelAttr('Rank')}>${start+i+1}</td><td${dataLabelAttr('Address')}>${addrCell(f)}</td><td class="right ${isAcc?'val-green':'val-red'}" style="font-variant-numeric:tabular-nums;font-weight:600"${dataLabelAttr('Net Flow')}>${isAcc?'+':''}${fmt(f.net_flow)}<div class="h-usd-sub">${fmtUSD(flowUsd)}</div><div class="h-flow-meta">${escapeHtml(scoreText)}</div></td><td class="right val-muted" style="font-variant-numeric:tabular-nums"${dataLabelAttr('Balance')}>${fmt(f.balance)}<div class="h-usd-sub">${fmtUSD(balUsd)}</div></td></tr>`;
         });
         for(let i=pageItems.length;i<FLOW_PER_PAGE;i++) html+=`<tr class="empty-row">${'<td>&nbsp;</td>'.repeat(4)}</tr>`;
         document.getElementById(isAcc?'acc-tbody':'sell-tbody').innerHTML=html;
@@ -2019,6 +2105,8 @@ function renderFlows() {
     const contextParts = [`${FLOW_COHORT_LABELS[flowCohort]} view`];
     if (hideCex) contextParts.push('quality filter on');
     if (flowChain !== 'all') contextParts.push(`${DATA.chains?.[flowChain]?.short || flowChain.toUpperCase()} only`);
+    const freshOverlapTotal = freshCounts.accumulators + freshCounts.sellers;
+    if (freshOverlapTotal) contextParts.push(`${freshCounts.accumulators} fresh accumulators · ${freshCounts.sellers} fresh sellers`);
     if (diagnostics?.chain_unresolved_rows) {
         contextParts.push(flowChain !== 'all'
             ? `${diagnostics.chain_unresolved_rows} unresolved rows hidden from chain filter`
