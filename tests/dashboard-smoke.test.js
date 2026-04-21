@@ -253,6 +253,7 @@ test('page copy clearly distinguishes live price from indexed snapshot data', ()
   assert.match(indexHtml, /data-fresh-filter="accumulators"/);
   assert.match(indexHtml, /data-fresh-filter="whales"/);
   assert.doesNotMatch(indexHtml, /id="fresh-card"[\s\S]*% of Supply[\s\S]*id="cb-card"/);
+  assert.doesNotMatch(indexHtml, /id="cb-card"[\s\S]*% of Supply[\s\S]*id="cbt-card"/);
   assert.match(indexHtml, /table-mobile-holders/);
   assert.doesNotMatch(indexHtml, /Real-time LayerZero token flows/i);
   assert.match(styleCss, /header-status-grid/);

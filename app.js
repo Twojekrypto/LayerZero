@@ -1834,7 +1834,6 @@ function renderCoinbasePrime() {
     if(flowTh) flowTh.textContent = sortLabel('Last Flow', cbSortKey, 'flow', cbSortDir);
     if(balTh) balTh.textContent = sortLabel('Balance', cbSortKey, 'balance', cbSortDir);
     const allCb = getCoinbasePrimeHolders(false);
-    const totalSupply = DATA.total_supply || 1000000000;
     const price = DATA.meta?.price_usd || 0;
     const total = cbHolders.length;
     const totalPages = Math.max(1, Math.ceil(total / CB_PER_PAGE));
@@ -1842,12 +1841,8 @@ function renderCoinbasePrime() {
     const start = (cbPage - 1) * CB_PER_PAGE;
     const pageItems = cbHolders.slice(start, start + CB_PER_PAGE);
     let html = '';
-    const maxPct = pageItems.length ? Math.max(...pageItems.map(h => getHolderTotalBalance(h) / totalSupply * 100)) : 0.01;
     pageItems.forEach((h, i) => {
         const bal = getHolderTotalBalance(h);
-        const pct = (bal / totalSupply * 100).toFixed(4);
-        const pctNum = bal / totalSupply * 100;
-        const barW = Math.max(4, (pctNum / maxPct) * 100);
         const usdVal = price ? fmtUSD(bal * price) : '';
         const shortA = h.address.slice(0,6)+'…'+h.address.slice(-4);
         const dbUrl = `https://debank.com/profile/${h.address}`;
@@ -1880,13 +1875,12 @@ function renderCoinbasePrime() {
             <td class="right"${dataLabelAttr('First Funded')}><div class="fresh-date">${fundedDate}</div><div class="val-muted">${fundedAge}</div></td>
             <td class="right"${dataLabelAttr('Last Flow')}><div class="fresh-date">${cbTotalRcv}</div><div class="val-muted">${lastFundedAge}</div></td>
             <td class="right"${dataLabelAttr('Balance')}><div class="bal-main">${fmt(bal)}<span class="bal-unit">ZRO</span></div>${usdVal?`<div class="h-usd-sub">${usdVal}</div>`:''}</td>
-            <td class="right"${dataLabelAttr('% of Supply')}><div class="supply-bar-wrap"><span class="val-muted">${pct}%</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${barW}%"></div></div></div></td>
         </tr>`;
     });
     const emptyRows = CB_PER_PAGE - pageItems.length;
-    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="6"></td></tr>';
-    if(!total && !cbSearchQuery) html = '<tr><td colspan="6"><div class="table-empty-state"><div class="empty-icon">🏦</div><div class="empty-text">No Coinbase Prime wallets in this period</div></div></td></tr>';
-    if(!total && cbSearchQuery) html = '<tr><td colspan="6"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+cbSearchQuery+'"</div></div></td></tr>';
+    for(let e=0;e<emptyRows;e++) html += '<tr class="h-row-empty"><td colspan="5"></td></tr>';
+    if(!total && !cbSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🏦</div><div class="empty-text">No Coinbase Prime wallets in this period</div></div></td></tr>';
+    if(!total && cbSearchQuery) html = '<tr><td colspan="5"><div class="table-empty-state"><div class="empty-icon">🔍</div><div class="empty-text">No results for "'+cbSearchQuery+'"</div></div></td></tr>';
     document.getElementById('cb-tbody').innerHTML = html;
     const totalBal = allCb.reduce((sum, holder) => sum + getHolderTotalBalance(holder), 0);
     const totalUsd = price ? fmtUSD(totalBal * price) : '—';
