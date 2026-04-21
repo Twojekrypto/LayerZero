@@ -2604,6 +2604,7 @@ function buildWhaleCounterpartyCell(address, resolvedLabel, holder, options={}) 
     const hasGenericLabel = isGenericWhaleEntityLabel(resolvedLabel);
     const linkLabel = hasGenericLabel ? short : (resolvedLabel || short);
     const explorerUrl = `https://etherscan.io/address/${address}`;
+    const debankUrl = `https://debank.com/profile/${address}`;
     const typeBadge = options.showTypeBadge ? whaleTypeBadgeHTML(holder) : '';
     const cohortBadge = options.showCohortBadge ? whaleCohortBadgeHTML(address, holder) : '';
     const subAddress = resolvedLabel && !hasGenericLabel ? `<span class="whale-entity-address">${short}</span>` : '';
@@ -2614,7 +2615,7 @@ function buildWhaleCounterpartyCell(address, resolvedLabel, holder, options={}) 
     const routeLine = options.routeNote
         ? `<div class="whale-route-note">${escapeHtml(options.routeNote)}</div>`
         : '';
-    return `<div class="h-addr-two-line whale-entity-stack"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm whale-entity-link">${linkLabel}</a></div><div class="h-whale-meta-row whale-entity-meta">${typeBadge}${cohortBadge}${subAddress}</div>${balanceLine}${routeLine}</div>`;
+    return `<div class="h-addr-two-line whale-entity-stack"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm whale-entity-link">${linkLabel}</a>${debankIconHTML(debankUrl)}</div><div class="h-whale-meta-row whale-entity-meta">${typeBadge}${cohortBadge}${subAddress}</div>${balanceLine}${routeLine}</div>`;
 }
 function buildWhaleDetailPayload(transfer, fromResolved, toResolved, contextMeta, scoreMeta, usdVal, timeStr, agoStr) {
     const amountLabel = `${transfer.type === 'CEX_DEPOSIT' ? '-' : '+'}${fmt(transfer.value)} ZRO`;

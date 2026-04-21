@@ -277,7 +277,8 @@
         <!-- Whale Transfers -->
         <div class="card anim anim-d1" id="whale-card" style="display:none">
             <div class="card-header"><h3>🐋 Whale Transfers <span class="card-sub" id="whale-sub">Large Ethereum ZRO movements (≥100K)</span></h3></div>
-            <div class="flow-toolbar">
+            <div class="whale-signal-strip" id="whale-signal-strip" aria-live="polite"></div>
+            <div class="flow-toolbar whale-toolbar-secondary">
                 <span class="toolbar-count" id="whale-count" aria-live="polite"></span>
                 <div class="period-pills whale-filter-pills" id="whale-filter-pills" style="margin-left:auto">
                     <button type="button" data-whale-filter="ALL" class="active">All</button>
@@ -286,7 +287,6 @@
                     <button type="button" data-whale-filter="MOVE">Moves</button>
                 </div>
             </div>
-            <div class="whale-signal-strip" id="whale-signal-strip" aria-live="polite"></div>
             <div class="table-scroll">
                 <table class="data-table table-mobile-cards table-mobile-whale" id="whale-table">
                     <colgroup><col style="width:130px"><col style="width:80px"><col><col><col style="width:150px"></colgroup>
