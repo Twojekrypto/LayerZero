@@ -62,6 +62,9 @@ METADATA_KEYS = (
 FLOW_INFRA_TYPES = {"CEX", "DEX", "PROTOCOL", "TEAM", "MULTISIG", "CUSTODY", "MM", "UNLOCK"}
 FLOW_MIN_RETENTION = 0.25
 FLOW_MIN_BALANCE = 1_000
+FLOW_MIN_NET_RETENTION = 0.10
+FLOW_MIN_BALANCE_SHARE = 0.01
+FLOW_MIN_SELL_BALANCE_SHARE = 0.005
 
 
 def load_json(path):
@@ -223,6 +226,40 @@ def is_flow_infrastructure(flow_type):
     return flow_type in FLOW_INFRA_TYPES
 
 
+def get_flow_net_retention_ratio(item):
+    total_in = float(item.get("total_in") or 0)
+    if total_in <= 0:
+        return 0
+    return float(item.get("net_flow") or 0) / total_in
+
+
+def get_flow_balance_share(item):
+    balance = float(item.get("balance") or 0)
+    if balance <= 0:
+        return 0
+    return abs(float(item.get("net_flow") or 0)) / balance
+
+
+def is_meaningful_accumulator(item):
+    retention_ratio = float(item.get("retention_ratio") or 0)
+    net_retention_ratio = get_flow_net_retention_ratio(item)
+    balance_share = get_flow_balance_share(item)
+    min_balance = max(FLOW_MIN_BALANCE, abs(item["net_flow"]) * FLOW_MIN_RETENTION)
+    keeps_meaningful_balance = retention_ratio >= FLOW_MIN_RETENTION or item["balance"] >= min_balance
+    meaningful_period_signal = (
+        item["net_flow"] >= FLOW_MIN_BALANCE
+        or net_retention_ratio >= FLOW_MIN_NET_RETENTION
+        or balance_share >= FLOW_MIN_BALANCE_SHARE
+    )
+    return item["net_flow"] > 0 and keeps_meaningful_balance and meaningful_period_signal
+
+
+def is_meaningful_seller(item):
+    abs_net_flow = abs(float(item.get("net_flow") or 0))
+    balance_share = get_flow_balance_share(item)
+    return item["net_flow"] < 0 and (abs_net_flow >= FLOW_MIN_BALANCE or balance_share >= FLOW_MIN_SELL_BALANCE_SHARE)
+
+
 def normalize_flow_item(raw_item, holder_map):
     address = raw_item.get("address", "").lower()
     if not address:
@@ -267,9 +304,15 @@ def normalize_flow_item(raw_item, holder_map):
     flow_chains = raw_item.get("flow_chains")
     if isinstance(flow_chains, list) and flow_chains:
         normalized["flow_chains"] = sorted({chain for chain in flow_chains if chain})
+    elif raw_item.get("chain"):
+        normalized["flow_chains"] = [raw_item["chain"]]
     primary_chain = raw_item.get("primary_flow_chain")
     if primary_chain:
         normalized["primary_flow_chain"] = primary_chain
+    elif normalized.get("flow_chains"):
+        normalized["primary_flow_chain"] = normalized["flow_chains"][0]
+    else:
+        normalized["chain_unresolved"] = True
 
     return normalized, "ok"
 
@@ -286,6 +329,8 @@ def normalize_flows(data):
             "excluded_infrastructure": 0,
             "excluded_zero_balance": 0,
             "excluded_low_retention": 0,
+            "excluded_low_signal": 0,
+            "chain_unresolved_rows": 0,
         }
         accumulators = []
         sellers = []
@@ -302,9 +347,9 @@ def normalize_flows(data):
                 summary["excluded_zero_balance"] += 1
                 continue
 
-            retention_ratio = float(item.get("retention_ratio") or 0)
-            min_balance = max(FLOW_MIN_BALANCE, abs(item["net_flow"]) * FLOW_MIN_RETENTION)
-            if item["net_flow"] <= 0 or (retention_ratio < FLOW_MIN_RETENTION and item["balance"] < min_balance):
+            if item.get("chain_unresolved"):
+                summary["chain_unresolved_rows"] += 1
+            if not is_meaningful_accumulator(item):
                 summary["excluded_low_retention"] += 1
                 continue
             accumulators.append(item)
@@ -320,7 +365,10 @@ def normalize_flows(data):
             if reason != "ok":
                 summary["excluded_zero_balance"] += 1
                 continue
-            if item["net_flow"] >= 0:
+            if item.get("chain_unresolved"):
+                summary["chain_unresolved_rows"] += 1
+            if not is_meaningful_seller(item):
+                summary["excluded_low_signal"] += 1
                 continue
             sellers.append(item)
 

@@ -13,6 +13,9 @@ const FRESH_FILTER_LABELS = {
 const FLOW_INFRA_TYPES = new Set(['CEX', 'DEX', 'PROTOCOL', 'TEAM', 'MULTISIG', 'CUSTODY', 'MM', 'UNLOCK']);
 const FLOW_MIN_RETENTION = 0.25;
 const FLOW_MIN_BALANCE = 1000;
+const FLOW_MIN_NET_RETENTION = 0.10;
+const FLOW_MIN_BALANCE_SHARE = 0.01;
+const FLOW_MIN_SELL_BALANCE_SHARE = 0.005;
 
 function fmt(n, d=0) {
     if (n==null||isNaN(n)) return '—';
@@ -448,6 +451,7 @@ function computeDataIntegrity(data, duplicateHolderRecordsRemoved=0) {
             infrastructure_rows: items.filter(item => FLOW_INFRA_TYPES.has(item.type)).length,
             untracked_rows: items.filter(item => !holderIndex[item.address?.toLowerCase?.()]).length,
             zero_balance_rows: items.filter(item => !(Number(item.balance) || 0)).length,
+            chain_unresolved_rows: items.filter(item => item?.chain_unresolved).length,
         }];
     }));
     return {
@@ -475,18 +479,21 @@ function hydrateFlowChainFallbacks(data) {
             (periodFlows?.[side] || []).forEach(item => {
                 if (Array.isArray(item?.flow_chains) && item.flow_chains.length) {
                     if (!item.primary_flow_chain) item.primary_flow_chain = item.flow_chains[0];
+                    delete item.chain_unresolved;
                     return;
                 }
                 if (item?.chain) {
                     item.flow_chains = [item.chain];
                     item.primary_flow_chain = item.chain;
+                    delete item.chain_unresolved;
                     return;
                 }
                 const holder = data.holder_index?.[item?.address?.toLowerCase?.()];
                 const fallbackChains = getHolderFlowChainFallbacks(holder);
+                item.chain_unresolved = true;
                 if (!fallbackChains.length) return;
-                item.flow_chains = fallbackChains;
-                item.primary_flow_chain = fallbackChains[0];
+                item.flow_chain_guesses = fallbackChains;
+                item.primary_flow_guess = fallbackChains[0];
             });
         });
     });
@@ -574,13 +581,24 @@ function getFlowRetentionRatio(item, balance=getFlowItemBalance(item)) {
     return netFlow > 0 && balance > 0 ? balance / netFlow : 0;
 }
 
+function getFlowNetRetentionRatio(item) {
+    const totalIn = Number(item?.total_in || 0);
+    if (totalIn <= 0) return 0;
+    return Number(item?.net_flow || 0) / totalIn;
+}
+
+function getFlowBalanceShare(item, balance=getFlowItemBalance(item)) {
+    if (balance <= 0) return 0;
+    return Math.abs(Number(item?.net_flow || 0)) / balance;
+}
+
 function flowMatchesChain(item, chain) {
     if (chain === 'all') return true;
+    if (item?.chain_unresolved) return false;
     if (item?.chain) return item.chain === chain;
     if (Array.isArray(item?.flow_chains) && item.flow_chains.length) return item.flow_chains.includes(chain);
     if (item?.primary_flow_chain) return item.primary_flow_chain === chain;
-    const holder = getTrackedHolder(item.address);
-    return Boolean(holder && Number(holder.balances?.[chain] || 0) > 0);
+    return false;
 }
 
 function isMeaningfulFlowItem(item, type) {
@@ -593,10 +611,15 @@ function isMeaningfulFlowItem(item, type) {
     if (type === 'accumulators') {
         if (netFlow <= 0) return false;
         const retentionRatio = getFlowRetentionRatio(item, balance);
+        const netRetentionRatio = getFlowNetRetentionRatio(item);
+        const balanceShare = getFlowBalanceShare(item, balance);
         const minBalance = Math.max(FLOW_MIN_BALANCE, Math.abs(netFlow) * FLOW_MIN_RETENTION);
-        return retentionRatio >= FLOW_MIN_RETENTION || balance >= minBalance;
+        const keepsMeaningfulBalance = retentionRatio >= FLOW_MIN_RETENTION || balance >= minBalance;
+        const meaningfulPeriodSignal = netFlow >= FLOW_MIN_BALANCE || netRetentionRatio >= FLOW_MIN_NET_RETENTION || balanceShare >= FLOW_MIN_BALANCE_SHARE;
+        return keepsMeaningfulBalance && meaningfulPeriodSignal;
     }
-    return netFlow < 0;
+    const balanceShare = getFlowBalanceShare(item, balance);
+    return netFlow < 0 && (Math.abs(netFlow) >= FLOW_MIN_BALANCE || balanceShare >= FLOW_MIN_SELL_BALANCE_SHARE);
 }
 
 function addrCell(item) {

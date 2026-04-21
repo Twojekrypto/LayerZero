@@ -79,14 +79,21 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(generateFlowsEntrypoint, /FLOW_INFRA_TYPES/);
   assert.match(generateFlowsEntrypoint, /retention_ratio/);
   assert.match(generateFlowsEntrypoint, /primary_flow_chain/);
+  assert.match(generateFlowsEntrypoint, /chain_unresolved/);
+  assert.match(generateFlowsEntrypoint, /FLOW_MIN_NET_RETENTION/);
+  assert.match(generateFlowsEntrypoint, /FLOW_MIN_SELL_BALANCE_SHARE/);
   assert.match(generateFlowsEntrypoint, /is_meaningful_accumulator/);
   assert.match(generateFlowsEntrypoint, /is_meaningful_seller/);
   assert.match(sanitizeEntrypoint, /def normalize_flows\(/);
+  assert.match(sanitizeEntrypoint, /chain_unresolved_rows/);
+  assert.match(sanitizeEntrypoint, /excluded_low_signal/);
   assert.match(sanitizeEntrypoint, /excluded_low_retention/);
   assert.match(appJs, /function hydrateFlowChainFallbacks\(/);
   assert.match(appJs, /function getHolderFlowChainFallbacks\(/);
   assert.match(appJs, /function flowMatchesChain\(/);
   assert.match(appJs, /function isMeaningfulFlowItem\(/);
+  assert.match(appJs, /FLOW_MIN_NET_RETENTION/);
+  assert.match(appJs, /chain_unresolved_rows/);
   assert.match(indexHtml, /Tracked holders only/);
 });
 

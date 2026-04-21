@@ -47,6 +47,9 @@ FULL_SCAN_DAYS = 365
 FLOW_INFRA_TYPES = {"CEX", "DEX", "PROTOCOL", "TEAM", "MULTISIG", "CUSTODY", "MM", "UNLOCK"}
 FLOW_MIN_RETENTION = 0.25
 FLOW_MIN_BALANCE = 1_000
+FLOW_MIN_NET_RETENTION = 0.10
+FLOW_MIN_BALANCE_SHARE = 0.01
+FLOW_MIN_SELL_BALANCE_SHARE = 0.005
 
 
 
@@ -162,7 +165,23 @@ def build_flow_item(addr, holder_meta, inbound, outbound, chain_volume):
         item["retention_ratio"] = retention_ratio
     if flow_chains:
         item["primary_flow_chain"] = flow_chains[0]
+    else:
+        item["chain_unresolved"] = True
     return item
+
+
+def get_net_retention_ratio(item):
+    total_in = item.get("total_in", 0) or 0
+    if total_in <= 0:
+        return 0
+    return item["net_flow"] / total_in
+
+
+def get_balance_share(item):
+    balance = item.get("balance", 0) or 0
+    if balance <= 0:
+        return 0
+    return abs(item["net_flow"]) / balance
 
 
 def is_meaningful_accumulator(item):
@@ -170,15 +189,25 @@ def is_meaningful_accumulator(item):
     if item["type"] in FLOW_INFRA_TYPES or item["net_flow"] <= 0 or item["balance"] <= 0:
         return False
     retention_ratio = item.get("retention_ratio", 0)
+    net_retention_ratio = get_net_retention_ratio(item)
+    balance_share = get_balance_share(item)
     min_balance = max(FLOW_MIN_BALANCE, abs(item["net_flow"]) * FLOW_MIN_RETENTION)
-    return retention_ratio >= FLOW_MIN_RETENTION or item["balance"] >= min_balance
+    keeps_meaningful_balance = retention_ratio >= FLOW_MIN_RETENTION or item["balance"] >= min_balance
+    meaningful_period_signal = (
+        item["net_flow"] >= FLOW_MIN_BALANCE
+        or net_retention_ratio >= FLOW_MIN_NET_RETENTION
+        or balance_share >= FLOW_MIN_BALANCE_SHARE
+    )
+    return keeps_meaningful_balance and meaningful_period_signal
 
 
 def is_meaningful_seller(item):
     """Negative net-flow holder that still belongs to the tracked holder universe."""
-    if item["type"] in FLOW_INFRA_TYPES:
+    if item["type"] in FLOW_INFRA_TYPES or item["net_flow"] >= 0 or item["balance"] <= 0:
         return False
-    return item["net_flow"] < 0 and item["balance"] > 0
+    abs_net_flow = abs(item["net_flow"])
+    balance_share = get_balance_share(item)
+    return abs_net_flow >= FLOW_MIN_BALANCE or balance_share >= FLOW_MIN_SELL_BALANCE_SHARE
 
 
 def main():
