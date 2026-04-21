@@ -799,15 +799,11 @@ function flowIntensityBarHTML(pct, tone='neutral') {
     return `<div class="flow-intensity-bar"><div class="flow-intensity-fill tone-${escapeAttr(tone)}" style="width:${pct.toFixed(1)}%"></div></div>`;
 }
 function buildFlowWalletCell(item, holder, balance, balanceUsd) {
-    const movedShare = getFlowBalanceShare(item, balance);
-    return `<div class="flow-wallet-stack">${flowAddrCell(item)}<div class="flow-wallet-meta"><span class="flow-wallet-balance">${fmt(balance)} ZRO</span><span class="flow-wallet-dot">•</span><span class="flow-wallet-usd">${fmtUSD(balanceUsd)}</span><span class="flow-wallet-dot">•</span><span>${(movedShare * 100).toFixed(1)}% moved</span></div></div>`;
+    return `<div class="flow-wallet-stack">${flowAddrCell(item)}<div class="flow-wallet-meta"><span class="flow-wallet-balance">${fmt(balance)} ZRO</span></div></div>`;
 }
 function buildFlowSignalCell(item, type, scoreMeta, intensityPct, flowUsd, holder, balance) {
     const isAcc = type === 'accumulators';
-    const signalText = isAcc
-        ? `Conviction ${scoreMeta.value.toFixed(2)} · ${getFlowAccumulationSourceLabel(item, holder)}`
-        : `Pressure ${scoreMeta.value.toFixed(2)} · ${getSellerProfileLabel(item, holder)}`;
-    return `<div class="flow-signal-stack"><div class="flow-signal-top">${flowSignalBadgeHTML(scoreMeta, scoreMeta.label)}<span class="flow-signal-amount">${isAcc ? '+' : ''}${fmt(item.net_flow)} ZRO</span></div><div class="flow-signal-support">${fmtUSD(flowUsd)}</div><div class="h-flow-meta">${escapeHtml(signalText)}</div>${flowIntensityBarHTML(intensityPct, isAcc ? 'buy' : 'sell')}</div>`;
+    return `<div class="flow-signal-stack"><div class="flow-signal-top">${flowSignalBadgeHTML(scoreMeta, scoreMeta.label)}<span class="flow-signal-amount">${isAcc ? '+' : ''}${fmt(item.net_flow)} ZRO</span></div>${flowIntensityBarHTML(intensityPct, isAcc ? 'buy' : 'sell')}</div>`;
 }
 function getAddressExplorerUrl(addr) {
     const chain = getMainChain(addr);
