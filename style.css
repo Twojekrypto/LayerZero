@@ -646,8 +646,34 @@ body::after {
 .val-green { color:var(--accent-green); } .val-red { color:var(--accent-rose); }
 .val-white { color:#fff; font-weight:600; } .val-muted { color:var(--text-muted); font-size:11px; }
 .empty-row td { border-bottom:1px solid rgba(255,255,255,0.04); height:38px; }
-.flow-column .data-table td { height:38px; box-sizing:border-box; }
 .flow-column .data-table { table-layout:fixed; }
+#flow-card .data-table.table-mobile-flow,
+#whale-table {
+    min-width:960px;
+}
+#flow-card .flow-table-wrap {
+    overflow-x:auto;
+}
+#flow-card .data-table td,
+#whale-card .data-table td {
+    vertical-align:top;
+}
+#flow-card .h-addr-two-line,
+#whale-card .h-addr-two-line,
+#flow-card .flow-value-stack,
+#whale-card .h-whale-meta-row {
+    min-width:0;
+}
+#flow-card .h-addr-label,
+#flow-card .h-addr-hex,
+#whale-card .h-addr-hex-sm,
+#whale-card .whale-route-note,
+#flow-card .h-flow-meta,
+#flow-card .flow-signal-value,
+#whale-card .whale-signal-value,
+#whale-card .whale-signal-sub {
+    overflow-wrap:anywhere;
+}
 .flow-pager { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 20px; border-top:1px solid var(--border-subtle); font-size:12px; color:var(--text-muted); }
 .pager-info { font-size:11px; color:var(--text-muted); }
 .pager-btns { display:flex; align-items:center; gap:6px; }
@@ -2031,10 +2057,25 @@ body.drawer-open { overflow:hidden; }
     }
 }
 
+@media(max-width:1280px){
+    .flow-grid{grid-template-columns:1fr}
+    .flow-column + .flow-column{
+        border-left:none;
+        border-top:1px solid var(--border-subtle);
+    }
+    .flow-col-header{
+        flex-wrap:wrap;
+        align-items:flex-start;
+        row-gap:8px;
+    }
+    .flow-col-meta{
+        width:100%;
+        margin-left:0;
+    }
+}
 @media(max-width:900px){
     .metrics-strip{grid-template-columns:repeat(3,1fr)} .chain-dist-grid,.alloc-grid{grid-template-columns:1fr}
     .chain-stats-section,.alloc-donut{border-left:none;border-top:1px solid var(--border-subtle)}
-    .flow-grid{grid-template-columns:1fr} .flow-column+.flow-column{border-left:none;border-top:1px solid var(--border-subtle)}
     .vs-grid{grid-template-columns:1fr} .vest-grid,.bb-summary{grid-template-columns:1fr}
     .header-status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     #fresh-card .fresh-stats{grid-template-columns:repeat(3,minmax(0,1fr))}

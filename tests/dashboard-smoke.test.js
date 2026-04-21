@@ -130,11 +130,14 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(indexHtml, /id="flow-signal-strip"/);
   assert.match(indexHtml, /id="acc-meta"/);
   assert.match(indexHtml, /id="sell-meta"/);
+  assert.match(indexHtml, /<col style="width:44px"><col style="width:46%"><col style="width:27%"><col style="width:27%">/);
   assert.match(styleCss, /flow-context-note/);
   assert.match(styleCss, /flow-signal-strip/);
   assert.match(styleCss, /flow-col-meta/);
   assert.match(styleCss, /flow-signal-badge/);
   assert.match(styleCss, /flow-intensity-bar/);
+  assert.match(styleCss, /@media\(max-width:1280px\)/);
+  assert.match(styleCss, /#flow-card \.data-table\.table-mobile-flow,\s*#whale-table/);
   assert.match(styleCss, /h-badge-flow-cohort/);
   assert.match(styleCss, /h-badge-flow-source/);
   assert.match(styleCss, /h-badge-flow-fresh/);
@@ -204,6 +207,7 @@ test('whale transfers expose premium discovery controls and scoring cues', () =>
   assert.match(styleCss, /\.whale-score-badge/);
   assert.match(styleCss, /\.whale-context-badge/);
   assert.match(styleCss, /\.whale-score-row-prime/);
+  assert.match(styleCss, /overflow-wrap:anywhere/);
 });
 
 test('CEX registry and anti-CEX heuristics are centralized and refined', () => {
