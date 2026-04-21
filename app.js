@@ -2540,11 +2540,59 @@ function getWhaleScoreMeta(transfer, fromHolder=getTrackedHolder(transfer.from),
     if (rounded >= 5) return { value: rounded, label: 'Watch', className: 'whale-score-watch' };
     return { value: rounded, label: 'Track', className: 'whale-score-track' };
 }
-function whaleScoreBadgeHTML(scoreMeta) {
-    return `<span class="whale-score-badge ${escapeAttr(scoreMeta.className)}" title="Whale score ${escapeAttr(scoreMeta.value.toFixed(1))}">${escapeHtml(scoreMeta.label)} ${escapeHtml(scoreMeta.value.toFixed(1))}</span>`;
+function whaleScoreBadgeHTML(scoreMeta, compact=false) {
+    if (compact && ['Track', 'Watch'].includes(scoreMeta.label)) return '';
+    const content = compact ? scoreMeta.label : `${scoreMeta.label} ${scoreMeta.value.toFixed(1)}`;
+    return `<span class="whale-score-badge ${escapeAttr(scoreMeta.className)}" title="Whale score ${escapeAttr(scoreMeta.value.toFixed(1))}">${escapeHtml(content)}</span>`;
 }
 function whaleContextBadgeHTML(contextMeta) {
     return `<span class="h-badge ${escapeAttr(contextMeta.className)} whale-context-badge">${escapeHtml(contextMeta.label)}</span>`;
+}
+function whaleTypeBadgeHTML(holder) {
+    if (!holder?.type || holder.type === 'WALLET') return '';
+    const badgeClass = {'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','UNLOCK':'h-badge-unlock','FRESH':'h-badge-fresh'}[holder.type] || 'h-badge-whale';
+    const badgeLabel = {
+        CEX: 'CEX',
+        DEX: 'DEX',
+        PROTOCOL: 'Protocol',
+        VC: 'VC',
+        INST: 'Institutional',
+        TEAM: 'Team',
+        WHALE: 'Whale',
+        CUSTODY: 'Custody',
+        MULTISIG: 'Multisig',
+        MM: 'MM',
+        UNLOCK: 'Unlock',
+        FRESH: 'Fresh',
+    }[holder.type] || holder.type;
+    return `<span class="h-badge ${badgeClass} whale-context-badge">${escapeHtml(badgeLabel)}</span>`;
+}
+function whaleCohortBadgeHTML(address, holder) {
+    if (!holder) return '';
+    const cohort = getFlowCohort({ address, label: holder.label, type: holder.type }, holder);
+    if (cohort === 'all' || cohort === 'organic') return '';
+    return `<span class="h-badge h-badge-flow-cohort h-badge-flow-${escapeAttr(cohort)} whale-context-badge">${escapeHtml(FLOW_COHORT_LABELS[cohort] || cohort)}</span>`;
+}
+function isGenericWhaleEntityLabel(label) {
+    const normalized = String(label || '').trim().toLowerCase();
+    return !!normalized && ['whale', 'wallet', 'holder', 'address', 'unknown'].includes(normalized);
+}
+function buildWhaleCounterpartyCell(address, resolvedLabel, holder, options={}) {
+    const short = shortAddr(address);
+    const hasGenericLabel = isGenericWhaleEntityLabel(resolvedLabel);
+    const linkLabel = hasGenericLabel ? short : (resolvedLabel || short);
+    const explorerUrl = `https://etherscan.io/address/${address}`;
+    const typeBadge = options.showTypeBadge ? whaleTypeBadgeHTML(holder) : '';
+    const cohortBadge = options.showCohortBadge ? whaleCohortBadgeHTML(address, holder) : '';
+    const subAddress = resolvedLabel && !hasGenericLabel ? `<span class="whale-entity-address">${short}</span>` : '';
+    const balance = holder ? getHolderTotalBalance(holder) : 0;
+    const balanceLine = options.showBalance && balance > 0
+        ? `<div class="whale-entity-balance">${fmt(balance)} ZRO</div>`
+        : '';
+    const routeLine = options.routeNote
+        ? `<div class="whale-route-note">${escapeHtml(options.routeNote)}</div>`
+        : '';
+    return `<div class="h-addr-two-line whale-entity-stack"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm whale-entity-link">${linkLabel}</a></div><div class="h-whale-meta-row whale-entity-meta">${typeBadge}${cohortBadge}${subAddress}</div>${balanceLine}${routeLine}</div>`;
 }
 function buildWhaleDetailPayload(transfer, fromResolved, toResolved, contextMeta, scoreMeta, usdVal, timeStr, agoStr) {
     const amountLabel = `${transfer.type === 'CEX_DEPOSIT' ? '-' : '+'}${fmt(transfer.value)} ZRO`;
@@ -2626,11 +2674,21 @@ function renderWhaleTransfers() {
         const scoreMeta = getWhaleScoreMeta(t, fromHolder, toHolder);
         const fromShort = fromResolved || (t.from.slice(0,6) + '…' + t.from.slice(-4));
         const toShort = toResolved || (t.to.slice(0,6) + '…' + t.to.slice(-4));
-        const fromLink = `<a href="https://etherscan.io/address/${t.from}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm">${fromShort}</a>`;
-        const toLink = `<a href="https://etherscan.io/address/${t.to}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm">${toShort}</a>`;
+        const fromCell = buildWhaleCounterpartyCell(t.from, fromShort, fromHolder, {
+            routeNote: t.type === 'CEX_WITHDRAWAL' ? 'Liquidity source' : t.type === 'CEX_DEPOSIT' ? 'Distribution source' : 'Sender',
+            showTypeBadge: false,
+            showCohortBadge: false,
+            showBalance: false,
+        });
+        const toCell = buildWhaleCounterpartyCell(t.to, toShort, toHolder, {
+            showTypeBadge: true,
+            showCohortBadge: true,
+            showBalance: true,
+        });
         const usdVal = price ? fmtUSD(t.value * price) : '';
         const amtColor = t.type === 'CEX_DEPOSIT' ? 'color:#f87171' : 'color:#4ade80';
         const amtSign = t.type === 'CEX_DEPOSIT' ? '-' : '+';
+        const compactScoreBadge = whaleScoreBadgeHTML(scoreMeta, true);
         const whaleRowClass = [
             'whale-row',
             t.type === 'CEX_WITHDRAWAL' ? 'whale-row-buy' : t.type === 'CEX_DEPOSIT' ? 'whale-row-sell' : 'whale-row-transfer',
@@ -2640,10 +2698,10 @@ function renderWhaleTransfers() {
         const detailPayload = buildWhaleDetailPayload(t, fromShort, toShort, contextMeta, scoreMeta, usdVal, timeStr, agoStr);
         html += `<tr class="${whaleRowClass}" ${clickableRowAttrs(`https://etherscan.io/tx/${t.tx_hash}`, 'Open whale transfer transaction')}${registerDetailPayload(detailKey, detailPayload)} style="cursor:pointer">
             <td${dataLabelAttr('Time')}><div class="fresh-date">${timeStr}</div><div class="val-muted">${agoStr}</div></td>
-            <td${dataLabelAttr('Type')}><span class="h-badge ${typeCls}">${typeLabel}</span><div class="h-whale-meta-row">${whaleScoreBadgeHTML(scoreMeta)}</div></td>
-            <td${dataLabelAttr('From')}><div class="h-addr-two-line"><div>${fromLink}</div><div class="h-whale-meta-row"><span class="whale-route-note">${escapeHtml(t.type === 'CEX_WITHDRAWAL' ? 'Origin liquidity source' : t.type === 'CEX_DEPOSIT' ? 'Distribution source' : 'Sending wallet')}</span></div></div></td>
-            <td${dataLabelAttr('To')}><div class="h-addr-two-line"><div>${toLink}</div><div class="h-whale-meta-row">${whaleContextBadgeHTML(contextMeta)}</div></div></td>
-            <td class="right" style="${amtColor};font-weight:600"${dataLabelAttr('Amount')}>${amtSign}${fmt(t.value)} ZRO${usdVal ? `<div class="h-usd-sub">${usdVal}</div>` : ''}</td>
+            <td${dataLabelAttr('Type')}><span class="h-badge ${typeCls}">${typeLabel}</span></td>
+            <td${dataLabelAttr('From')}>${fromCell}</td>
+            <td${dataLabelAttr('To')}>${toCell}</td>
+            <td class="right whale-amount-cell" style="${amtColor};font-weight:600"${dataLabelAttr('Amount')}><div class="whale-amount-stack"><div class="whale-amount-top">${compactScoreBadge}<span>${amtSign}${fmt(t.value)} ZRO</span></div></div></td>
         </tr>`;
     });
     document.getElementById('whale-tbody').innerHTML = html;

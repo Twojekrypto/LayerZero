@@ -1987,6 +1987,32 @@ body.drawer-open { overflow:hidden; }
     gap:6px;
     flex-wrap:wrap;
 }
+.whale-entity-stack {
+    gap:3px;
+}
+.whale-entity-link {
+    color:#e8eefb;
+    font-weight:600;
+    font-size:11px;
+    text-decoration:none;
+}
+.whale-entity-link:hover {
+    color:var(--accent-cyan);
+}
+.whale-entity-meta {
+    margin-top:2px;
+}
+.whale-entity-address {
+    font-family:'JetBrains Mono', monospace;
+    font-size:9px;
+    color:rgba(255,255,255,0.38);
+}
+.whale-entity-balance {
+    font-size:10px;
+    font-weight:600;
+    color:#dbe6fb;
+    line-height:1.3;
+}
 .whale-context-badge {
     max-width:100%;
 }
@@ -1994,6 +2020,21 @@ body.drawer-open { overflow:hidden; }
     font-size:10px;
     color:rgba(255,255,255,0.44);
     line-height:1.3;
+}
+.whale-amount-cell {
+    vertical-align:middle;
+}
+.whale-amount-stack {
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+.whale-amount-top {
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
 }
 .whale-score-badge {
     display:inline-flex;
@@ -2292,6 +2333,9 @@ body.drawer-open { overflow:hidden; }
     .table-mobile-cards.table-mobile-flow .flow-addr-compact .h-addr-line2 {
         row-gap:4px;
     }
+    .table-mobile-cards.table-mobile-whale .whale-amount-top {
+        justify-content:flex-start;
+    }
     .table-mobile-cards.table-mobile-cbt td {
         grid-template-columns:minmax(84px, 102px) minmax(0,1fr);
     }
@@ -2350,6 +2394,9 @@ body.drawer-open { overflow:hidden; }
     }
     .table-mobile-cards.table-mobile-flow .flow-wallet-meta {
         gap:6px;
+    }
+    .table-mobile-cards.table-mobile-whale .whale-amount-top {
+        justify-content:flex-start;
     }
     .table-mobile-cards .flow-value-head {
         justify-content:flex-start;
