@@ -7,6 +7,10 @@ on:
   workflow_dispatch:
     # Allow manual trigger
 
+concurrency:
+  group: layerzero-hourly-monitor
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -17,10 +21,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -69,7 +75,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin master
           git add zro_data.json cb_monitor_state.json fresh_cache.json whale_monitor_state.json
+          git diff --cached --quiet && echo "No staged changes after refresh" && exit 0
           git commit -m "🔄 Hourly monitor $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git pull --rebase -X theirs origin master
+          git rebase -X theirs origin/master
           git push
