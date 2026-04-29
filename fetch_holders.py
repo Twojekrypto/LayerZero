@@ -275,6 +275,13 @@ def compute_balances(transfers):
     return result
 
 
+def normalize_csv_field(value):
+    """Return a safe, trimmed string for CSV fields, even for malformed rows."""
+    if value is None:
+        return ""
+    return str(value).replace(",", "").replace('"', "").strip()
+
+
 def main():
     state = load_state()
     is_full = should_full_rescan(state)
@@ -331,21 +338,26 @@ def main():
             if csv_path and os.path.exists(csv_path):
                 print(f"  📁 APIs failed — loading from CSV: {csv_file}")
                 csv_balances = {}
+                skipped_rows = 0
                 with open(csv_path, "r", encoding="utf-8-sig") as f:
                     reader = csv.DictReader(f)
                     for row in reader:
-                        addr = row.get("HolderAddress", "").strip().strip('"').lower()
-                        bal_str = row.get("Balance", "").replace(",", "").replace('"', '').strip()
+                        addr = normalize_csv_field(row.get("HolderAddress")).lower()
+                        bal_str = normalize_csv_field(row.get("Balance"))
                         if not addr or not bal_str:
+                            skipped_rows += 1
                             continue
                         try:
                             bal = float(bal_str)
                         except ValueError:
+                            skipped_rows += 1
                             continue
                         if bal > MIN_BALANCE:
                             csv_balances[addr] = round(bal, 2)
 
                 print(f"   Holders from CSV: {len(csv_balances)}")
+                if skipped_rows:
+                    print(f"   ⚠️ Skipped malformed CSV rows: {skipped_rows}")
                 chain_stats[chain_key] = {
                     "transfers": 0,
                     "holders_gt10": len(csv_balances),
