@@ -1,22 +1,22 @@
 {
-  "generated": "2026-05-03T01:57:13Z",
+  "generated": "2026-05-03T05:21:17Z",
   "min_balance": 10,
-  "total_holders": 833,
+  "total_holders": 831,
   "chain_stats": {
     "ethereum": {
-      "transfers": 633971,
-      "holders_gt10": 11505,
-      "tracked_balance_gt10": 950918372.71
+      "transfers": 144,
+      "holders_gt10": 530,
+      "tracked_balance_gt10": 940691857.31
     },
     "arbitrum": {
       "transfers": 2000000,
-      "holders_gt10": 236471,
-      "tracked_balance_gt10": 59156871.8
+      "holders_gt10": 32607,
+      "tracked_balance_gt10": 44678486.09
     },
     "base": {
       "transfers": 2000000,
-      "holders_gt10": 36961,
-      "tracked_balance_gt10": 6660383.78
+      "holders_gt10": 10848,
+      "tracked_balance_gt10": 5082555.49
     },
     "bsc": {
       "transfers": 0,
@@ -25,14 +25,14 @@
       "source": "CSV"
     },
     "optimism": {
-      "transfers": 2000000,
-      "holders_gt10": 19641,
-      "tracked_balance_gt10": 4947316.63
+      "transfers": 190170,
+      "holders_gt10": 493,
+      "tracked_balance_gt10": 3445618.69
     },
     "polygon": {
-      "transfers": 349507,
-      "holders_gt10": 2095,
-      "tracked_balance_gt10": 2480989.49
+      "transfers": 19,
+      "holders_gt10": 52,
+      "tracked_balance_gt10": 2359274.09
     },
     "avalanche": {
       "transfers": 0,
@@ -41,7 +41,7 @@
       "source": "CSV"
     }
   },
-  "scan_mode": "FULL",
+  "scan_mode": "INCREMENTAL",
   "holders": [
     {
       "address": "0x8f6449530606a9efddac42e05612427ddeba449c",
@@ -134,26 +134,18 @@
       "total": 19719000.0
     },
     {
-      "address": "0xd6b6a6701303b5ea36fa0edf7389b562d8f894db",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 18742849.53
-      },
-      "total": 18742849.53
-    },
-    {
       "address": "0xf977814e90da44bfa03b6295a0616a897441acec",
       "label": "",
       "type": "WALLET",
       "balances": {
         "ethereum": 12199170.23,
-        "base": 1860087.0,
+        "arbitrum": 900000.0,
+        "base": 1657406.0,
         "bsc": 1122968.38,
         "optimism": 1000000.0,
         "polygon": 1290552.8
       },
-      "total": 17472778.41
+      "total": 18170097.41
     },
     {
       "address": "0x7be1125e9284ee108850a19f362b111526737cfd",
@@ -187,9 +179,18 @@
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 13564207.15
+        "ethereum": 13564200.76
       },
-      "total": 13564207.15
+      "total": 13564200.76
+    },
+    {
+      "address": "0xd6b6a6701303b5ea36fa0edf7389b562d8f894db",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 11928581.67
+      },
+      "total": 11928581.67
     },
     {
       "address": "0x7c8aae256203a2ada50676470bb5e2ead1f0e705",
@@ -255,43 +256,7 @@
       "total": 8562515.0
     },
     {
-      "address": "0x9072eec56365fdbb7d91bb8d1db2fbebc2aa090a",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 8550000.0
-      },
-      "total": 8550000.0
-    },
-    {
-      "address": "0x7e98a4643cefcbe3ddb639afad95c22513c97ad0",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 8550000.0
-      },
-      "total": 8550000.0
-    },
-    {
-      "address": "0xf8b81c26782dff6c79b82a65363b23580558f137",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 8550000.0
-      },
-      "total": 8550000.0
-    },
-    {
       "address": "0x135befa85fcc8201714f41ead0e9902a6b3df710",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 8550000.0
-      },
-      "total": 8550000.0
-    },
-    {
-      "address": "0xe8e2bd8f4fe4c95f81193380c798862b038165a4",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -309,25 +274,7 @@
       "total": 8550000.0
     },
     {
-      "address": "0x30089e08d67c3528917bc0b1353dbfd31214f774",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 8550000.0
-      },
-      "total": 8550000.0
-    },
-    {
-      "address": "0xab1b7a1b117b96c01d5e831b11036a2b12b93ee6",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 8550000.0
-      },
-      "total": 8550000.0
-    },
-    {
-      "address": "0xf0ce21d5926bbcbf8f16aeba6248bb6e7d30a6c3",
+      "address": "0xe8e2bd8f4fe4c95f81193380c798862b038165a4",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -345,7 +292,61 @@
       "total": 8550000.0
     },
     {
+      "address": "0x7e98a4643cefcbe3ddb639afad95c22513c97ad0",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 8550000.0
+      },
+      "total": 8550000.0
+    },
+    {
+      "address": "0xab1b7a1b117b96c01d5e831b11036a2b12b93ee6",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 8550000.0
+      },
+      "total": 8550000.0
+    },
+    {
       "address": "0xb212d42f29efa5087bfa7dfc0549e46b9589e7f8",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 8550000.0
+      },
+      "total": 8550000.0
+    },
+    {
+      "address": "0x9072eec56365fdbb7d91bb8d1db2fbebc2aa090a",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 8550000.0
+      },
+      "total": 8550000.0
+    },
+    {
+      "address": "0x30089e08d67c3528917bc0b1353dbfd31214f774",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 8550000.0
+      },
+      "total": 8550000.0
+    },
+    {
+      "address": "0xf8b81c26782dff6c79b82a65363b23580558f137",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 8550000.0
+      },
+      "total": 8550000.0
+    },
+    {
+      "address": "0xf0ce21d5926bbcbf8f16aeba6248bb6e7d30a6c3",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -363,13 +364,17 @@
       "total": 7973395.0
     },
     {
-      "address": "0xb38e8c17e38363af6ebdcb3dae12e0243582891d",
+      "address": "0xa6bf06200361009491bad8c57410c9ded24c2444",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 7408340.99
+        "ethereum": 3659254.97,
+        "arbitrum": 3590313.0,
+        "base": 32125.0,
+        "bsc": 7213.98,
+        "polygon": 1404.84
       },
-      "total": 7408340.99
+      "total": 7290311.79
     },
     {
       "address": "0xabf2c6f0fe7d6da703b4b9cb7f895459f74715c7",
@@ -381,7 +386,7 @@
       "total": 6330666.81
     },
     {
-      "address": "0x2b206e899638362baa3ac63886b988157d40f19a",
+      "address": "0x369e1ba1f73a6500f3150214e373789be97b3a65",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -390,7 +395,7 @@
       "total": 5828860.74
     },
     {
-      "address": "0x369e1ba1f73a6500f3150214e373789be97b3a65",
+      "address": "0x2b206e899638362baa3ac63886b988157d40f19a",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -421,18 +426,9 @@
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 5298643.98
+        "ethereum": 5236606.98
       },
-      "total": 5298643.98
-    },
-    {
-      "address": "0x11b37ca2e0ca7014653bd0923b0a289cc2c29616",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 5000009.63
-      },
-      "total": 5000009.63
+      "total": 5236606.98
     },
     {
       "address": "0xe52b214fea6bfab7652b94aa94eed9eb6f14bdab",
@@ -462,19 +458,6 @@
       "total": 4733918.95
     },
     {
-      "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 375776.03,
-        "arbitrum": 3157417.03,
-        "optimism": 72516.48,
-        "polygon": 966418.66,
-        "avalanche": 60282.87
-      },
-      "total": 4632411.07
-    },
-    {
       "address": "0xdfd84bcf809e6f979fa45f620ad548c7637df4e3",
       "label": "",
       "type": "WALLET",
@@ -502,6 +485,19 @@
       "total": 4440034.36
     },
     {
+      "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 375776.03,
+        "arbitrum": 2873106.53,
+        "optimism": 14283.95,
+        "polygon": 966418.66,
+        "avalanche": 60282.87
+      },
+      "total": 4289868.04
+    },
+    {
       "address": "0x31343abbcafdc76bbe6fae81e7eb87c5d0e35682",
       "label": "",
       "type": "WALLET",
@@ -524,9 +520,18 @@
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 4053464.99
+        "ethereum": 4074668.91
       },
-      "total": 4053464.99
+      "total": 4074668.91
+    },
+    {
+      "address": "0xb38e8c17e38363af6ebdcb3dae12e0243582891d",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 3973208.19
+      },
+      "total": 3973208.19
     },
     {
       "address": "0x6f49d6e096ba6f6fd6201a2f34de18a188ef5757",
@@ -574,6 +579,15 @@
       "total": 3749999.0
     },
     {
+      "address": "0x11b37ca2e0ca7014653bd0923b0a289cc2c29616",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 3725996.52
+      },
+      "total": 3725996.52
+    },
+    {
       "address": "0xb820d3cf825c0bc9970e76856cbe587f20931023",
       "label": "",
       "type": "WALLET",
@@ -583,25 +597,22 @@
       "total": 3716749.93
     },
     {
-      "address": "0xa6bf06200361009491bad8c57410c9ded24c2444",
+      "address": "0x752cd0a34060c3c63e8b0f50425468b5858910a9",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 3659254.97,
-        "base": 32125.0,
-        "bsc": 7213.98,
-        "polygon": 1404.84
+        "arbitrum": 3700001.0
       },
-      "total": 3699998.79
+      "total": 3700001.0
     },
     {
       "address": "0xa31231e727ca53ff95f0d00a06c645110c4ab647",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 3691289.83
+        "ethereum": 3677575.28
       },
-      "total": 3691289.83
+      "total": 3677575.28
     },
     {
       "address": "0xe95fcb7c269b58e1326d06750099e7839b0a3bcc",
@@ -1000,6 +1011,24 @@
       "total": 1850001.0
     },
     {
+      "address": "0x62383739d68dd0f844103db8dfb05a7eded5bbe6",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 1798513.69
+      },
+      "total": 1798513.69
+    },
+    {
+      "address": "0xacd03d601e5bb1b275bb94076ff46ed9d753435a",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "optimism": 1744716.31
+      },
+      "total": 1744716.31
+    },
+    {
       "address": "0x5d853e6e5153dd69bdb7f8da5f9b9f61e572b62e",
       "label": "",
       "type": "WALLET",
@@ -1007,15 +1036,6 @@
         "ethereum": 1683733.93
       },
       "total": 1683733.93
-    },
-    {
-      "address": "0xacd03d601e5bb1b275bb94076ff46ed9d753435a",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "optimism": 1669802.74
-      },
-      "total": 1669802.74
     },
     {
       "address": "0xb81a0f92cc0bc79ccad54fdb30633e9db68ba837",
@@ -1054,6 +1074,15 @@
       "total": 1621766.36
     },
     {
+      "address": "0x4552e790279d8b6c450033248641b521374380b2",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 1562500.0
+      },
+      "total": 1562500.0
+    },
+    {
       "address": "0xb622f814806dc74561a51b6f75a2cd590794ba02",
       "label": "",
       "type": "WALLET",
@@ -1063,13 +1092,13 @@
       "total": 1562500.0
     },
     {
-      "address": "0x4552e790279d8b6c450033248641b521374380b2",
+      "address": "0xbaed383ede0e5d9d72430661f3285daa77e9439f",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 1562500.0
+        "base": 1559512.05
       },
-      "total": 1562500.0
+      "total": 1559512.05
     },
     {
       "address": "0xe2acdf5e5dada12e8013f8f8d42cc5670c254903",
@@ -1133,6 +1162,15 @@
         "ethereum": 1341508.03
       },
       "total": 1341508.03
+    },
+    {
+      "address": "0xebbd66e7174ff16e3b14cce85a6d98c3a83337e8",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 1299999.0
+      },
+      "total": 1299999.0
     },
     {
       "address": "0xd2dd7b597fd2435b6db61ddf48544fd931e6869f",
@@ -1202,9 +1240,9 @@
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 1186373.03
+        "ethereum": 1173490.47
       },
-      "total": 1186373.03
+      "total": 1173490.47
     },
     {
       "address": "0x8fb7a741ff5062b42e43b0571112a3a36832dd3e",
@@ -1225,6 +1263,15 @@
       "total": 1147034.01
     },
     {
+      "address": "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 1136577.11
+      },
+      "total": 1136577.11
+    },
+    {
       "address": "0x76ec5a0d3632b2133d9f1980903305b62678fbd3",
       "label": "",
       "type": "WALLET",
@@ -1243,13 +1290,13 @@
       "total": 1076825.56
     },
     {
-      "address": "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe",
+      "address": "0x8997c763c42e62a05cc4c030ac84ff6192275b19",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 1030467.91
+        "ethereum": 1000000.0
       },
-      "total": 1030467.91
+      "total": 1000000.0
     },
     {
       "address": "0x5ed2991b73c9b1203ef049cf052e51aad3fba25e",
@@ -1271,15 +1318,6 @@
     },
     {
       "address": "0x87cf3ccdfd23ae20171ad26fbfdd4ec121b9c52a",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 1000000.0
-      },
-      "total": 1000000.0
-    },
-    {
-      "address": "0x8997c763c42e62a05cc4c030ac84ff6192275b19",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -1342,15 +1380,6 @@
       "total": 884085.52
     },
     {
-      "address": "0xbaed383ede0e5d9d72430661f3285daa77e9439f",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 871005.81
-      },
-      "total": 871005.81
-    },
-    {
       "address": "0xcbfe4a36604c3df559c6d91e0581218e0e6c5f57",
       "label": "",
       "type": "WALLET",
@@ -1396,6 +1425,15 @@
       "total": 813473.44
     },
     {
+      "address": "0x8fda775a324a0970135b054a7df649342a9a7f17",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 803671.46
+      },
+      "total": 803671.46
+    },
+    {
       "address": "0x07c2fa71ac155a7bb9799e55b6f9e5ae021dad2a",
       "label": "",
       "type": "WALLET",
@@ -1405,24 +1443,6 @@
       "total": 791775.0
     },
     {
-      "address": "0x8fda775a324a0970135b054a7df649342a9a7f17",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 751658.24
-      },
-      "total": 751658.24
-    },
-    {
-      "address": "0x62383739d68dd0f844103db8dfb05a7eded5bbe6",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 713153.48
-      },
-      "total": 713153.48
-    },
-    {
       "address": "0x4d6addff9482a2c21f9f18b3083a49a5ddf6882d",
       "label": "",
       "type": "WALLET",
@@ -1430,6 +1450,19 @@
         "ethereum": 708333.33
       },
       "total": 708333.33
+    },
+    {
+      "address": "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 501301.19,
+        "arbitrum": 187971.29,
+        "base": 33.45,
+        "bsc": 1882.0,
+        "optimism": 32.69
+      },
+      "total": 691220.62
     },
     {
       "address": "0x43684d03d81d3a4c70da68febdd61029d426f042",
@@ -1448,27 +1481,6 @@
         "ethereum": 658498.43
       },
       "total": 658498.43
-    },
-    {
-      "address": "0xdfa78fa680a070c00b28b74a512c1366b3590655",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 640847.64
-      },
-      "total": 640847.64
-    },
-    {
-      "address": "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 631157.1,
-        "arbitrum": 1883.51,
-        "bsc": 1882.0,
-        "optimism": 32.69
-      },
-      "total": 634955.3
     },
     {
       "address": "0x9a3a033006972558d5adcf52fa3b7156298bcb14",
@@ -1516,13 +1528,13 @@
       "total": 612494.64
     },
     {
-      "address": "0x3348984e9285b4a214bf098573918b2d69172517",
+      "address": "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 607347.22
+        "ethereum": 597725.46
       },
-      "total": 607347.22
+      "total": 597725.46
     },
     {
       "address": "0x1b1a4fb64b5bb26dbd5a4b8a291e4de1bd5d58f9",
@@ -1570,6 +1582,24 @@
       "total": 583330.1
     },
     {
+      "address": "0x3348984e9285b4a214bf098573918b2d69172517",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 581580.04
+      },
+      "total": 581580.04
+    },
+    {
+      "address": "0x25681ab599b4e2ceea31f8b498052c53fc2d74db",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 578259.55
+      },
+      "total": 578259.55
+    },
+    {
       "address": "0x10086107a18f58ebd6d86cdf869a5c8b6a446944",
       "label": "",
       "type": "WALLET",
@@ -1579,23 +1609,32 @@
       "total": 575798.62
     },
     {
-      "address": "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
+      "address": "0xdfa78fa680a070c00b28b74a512c1366b3590655",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 556130.46
+        "arbitrum": 555917.16
       },
-      "total": 556130.46
+      "total": 555917.16
     },
     {
-      "address": "0x1ab4973a48dc892cd9971ece8e01dcc7688f8f23",
+      "address": "0xd6216fc19db775df9774a6e33526131da7d19a2c",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 304856.33,
-        "arbitrum": 193361.03
+        "arbitrum": 549818.48
       },
-      "total": 498217.36
+      "total": 549818.48
+    },
+    {
+      "address": "0x4ed1b7424de5cd307717878a1cad9c0a2b2c9ba6",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 106764.49,
+        "arbitrum": 420000.0
+      },
+      "total": 526764.49
     },
     {
       "address": "0xdaf62d4472f8e626334445f3ca4a6f96dafe8bda",
@@ -1643,22 +1682,13 @@
       "total": 472216.51
     },
     {
-      "address": "0xdfd5293d8e347dfe59e90efd55b2956a1343963d",
+      "address": "0x3931dab967c3e2dbb492fe12460a66d0fe4cc857",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 449487.42
+        "arbitrum": 455622.37
       },
-      "total": 449487.42
-    },
-    {
-      "address": "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 437844.03
-      },
-      "total": 437844.03
+      "total": 455622.37
     },
     {
       "address": "0x596b8f0c7fd6ce55d24e87d68a3a4694c5ead139",
@@ -1724,6 +1754,15 @@
       "total": 427036.02
     },
     {
+      "address": "0xdfd5293d8e347dfe59e90efd55b2956a1343963d",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 425933.76
+      },
+      "total": 425933.76
+    },
+    {
       "address": "0xc8c37ce2741174841ff4ef2276a0fde95742bb81",
       "label": "",
       "type": "WALLET",
@@ -1777,6 +1816,15 @@
         "ethereum": 400000.0
       },
       "total": 400000.0
+    },
+    {
+      "address": "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 399529.62
+      },
+      "total": 399529.62
     },
     {
       "address": "0xc3681709ee476308b45812eabe0eb22f3b816880",
@@ -1842,61 +1890,7 @@
       "total": 356936.23
     },
     {
-      "address": "0x827419fce70621a48cf592bed91267770d52f138",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 354166.67
-      },
-      "total": 354166.67
-    },
-    {
       "address": "0x61f4a72705f133146a2dae2185a877c2ecef50a8",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 354166.67
-      },
-      "total": 354166.67
-    },
-    {
-      "address": "0xfe087f749172af6866d9ef09e36fb9b3c3394674",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 354166.67
-      },
-      "total": 354166.67
-    },
-    {
-      "address": "0xcc26653b536dff6f5da7ccfd8423220283a6d495",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 354166.67
-      },
-      "total": 354166.67
-    },
-    {
-      "address": "0x6e5f6a015cb1985ecb5a817712ded8e6727d461d",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 354166.67
-      },
-      "total": 354166.67
-    },
-    {
-      "address": "0x72de71be6f3b47f10c8f339920e9d1d129cdd33c",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 354166.67
-      },
-      "total": 354166.67
-    },
-    {
-      "address": "0x1b3607fc73dc0996d69f0e4921388b40f881147c",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -1914,6 +1908,24 @@
       "total": 354166.67
     },
     {
+      "address": "0xe73b3e6c0b83ed61c2174a045a6e05fc9f722f21",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 354166.67
+      },
+      "total": 354166.67
+    },
+    {
+      "address": "0x827419fce70621a48cf592bed91267770d52f138",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 354166.67
+      },
+      "total": 354166.67
+    },
+    {
       "address": "0x765cbc15345620252be874ec591a98a138e22063",
       "label": "",
       "type": "WALLET",
@@ -1923,7 +1935,43 @@
       "total": 354166.67
     },
     {
-      "address": "0xe73b3e6c0b83ed61c2174a045a6e05fc9f722f21",
+      "address": "0x72de71be6f3b47f10c8f339920e9d1d129cdd33c",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 354166.67
+      },
+      "total": 354166.67
+    },
+    {
+      "address": "0xcc26653b536dff6f5da7ccfd8423220283a6d495",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 354166.67
+      },
+      "total": 354166.67
+    },
+    {
+      "address": "0xfe087f749172af6866d9ef09e36fb9b3c3394674",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 354166.67
+      },
+      "total": 354166.67
+    },
+    {
+      "address": "0x1b3607fc73dc0996d69f0e4921388b40f881147c",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 354166.67
+      },
+      "total": 354166.67
+    },
+    {
+      "address": "0x6e5f6a015cb1985ecb5a817712ded8e6727d461d",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -1950,13 +1998,13 @@
       "total": 350002.3
     },
     {
-      "address": "0xd6216fc19db775df9774a6e33526131da7d19a2c",
+      "address": "0x8455193b0490ad091819000b01cd9bb833ac974b",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 349731.71
+        "arbitrum": 347490.75
       },
-      "total": 349731.71
+      "total": 347490.75
     },
     {
       "address": "0x9197af56e392565eeacc0b19092a5497ac5242e8",
@@ -1986,13 +2034,14 @@
       "total": 332098.92
     },
     {
-      "address": "0x9b64203878f24eb0cdf55c8c6fa7d08ba0cf77e5",
+      "address": "0x1ab4973a48dc892cd9971ece8e01dcc7688f8f23",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 323290.36
+        "ethereum": 304970.31,
+        "arbitrum": 27063.75
       },
-      "total": 323290.36
+      "total": 332034.06
     },
     {
       "address": "0x55ab9e4758dd55f65824f0a8f37277d0a04154a9",
@@ -2058,6 +2107,15 @@
       "total": 300000.0
     },
     {
+      "address": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 294774.03
+      },
+      "total": 294774.03
+    },
+    {
       "address": "0x3e40c18dc04f6718e97b3633c5328b4c975545bd",
       "label": "",
       "type": "WALLET",
@@ -2085,6 +2143,15 @@
       "total": 278672.84
     },
     {
+      "address": "0x9036dd48f80c1015f63637bd76a44a0c22bbd042",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 275555.0
+      },
+      "total": 275555.0
+    },
+    {
       "address": "0x282da9b6a564f4bde9ba7c51650b3ca562994d63",
       "label": "",
       "type": "WALLET",
@@ -2094,13 +2161,13 @@
       "total": 275555.0
     },
     {
-      "address": "0x9036dd48f80c1015f63637bd76a44a0c22bbd042",
+      "address": "0x2f01b8fa3599410a57237afcbf7ebd25dd4fe182",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 275555.0
+        "arbitrum": 270222.12
       },
-      "total": 275555.0
+      "total": 270222.12
     },
     {
       "address": "0xf82a10332d5c3975f1a6acf8362fa73e077337f7",
@@ -2175,6 +2242,24 @@
       "total": 249586.95
     },
     {
+      "address": "0x3304e22ddaa22bcdc5fca2269b418046ae7b566a",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 247321.95
+      },
+      "total": 247321.95
+    },
+    {
+      "address": "0xab782bc7d4a2b306825de5a7730034f8f63ee1bc",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 246532.07
+      },
+      "total": 246532.07
+    },
+    {
       "address": "0x8325a046f03902b429ad67bb193fb8bb649eb39e",
       "label": "",
       "type": "WALLET",
@@ -2193,22 +2278,13 @@
       "total": 246166.62
     },
     {
-      "address": "0x25681ab599b4e2ceea31f8b498052c53fc2d74db",
+      "address": "0x4cef551255ec96d89fec975446301b5c4e164c59",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 245720.02
+        "arbitrum": 244065.25
       },
-      "total": 245720.02
-    },
-    {
-      "address": "0xab782bc7d4a2b306825de5a7730034f8f63ee1bc",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 245698.72
-      },
-      "total": 245698.72
+      "total": 244065.25
     },
     {
       "address": "0x0cc376fe0f99e22ba7d7257299ae24d8715429e0",
@@ -2220,6 +2296,16 @@
       "total": 239198.85
     },
     {
+      "address": "0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 195500.0,
+        "arbitrum": 42495.1
+      },
+      "total": 237995.1
+    },
+    {
       "address": "0x173d5192d08fe83d4dbca7bb00e64117794e06f2",
       "label": "",
       "type": "WALLET",
@@ -2227,6 +2313,15 @@
         "ethereum": 237454.2
       },
       "total": 237454.2
+    },
+    {
+      "address": "0x9b64203878f24eb0cdf55c8c6fa7d08ba0cf77e5",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 237347.99
+      },
+      "total": 237347.99
     },
     {
       "address": "0x355d8726e057fa3b02b14040a1e2d8bda88f0214",
@@ -2256,32 +2351,13 @@
       "total": 228799.62
     },
     {
-      "address": "0xc456e33ddf99c48e26e31120f32eae470e040ebd",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 227212.45
-      },
-      "total": 227212.45
-    },
-    {
       "address": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 226018.15
+        "ethereum": 226704.69
       },
-      "total": 226018.15
-    },
-    {
-      "address": "0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 195500.0,
-        "arbitrum": 29387.4
-      },
-      "total": 224887.4
+      "total": 226704.69
     },
     {
       "address": "0xb2152c5b6a4667d2e26abd0fc843ef920e758289",
@@ -2293,13 +2369,13 @@
       "total": 224749.12
     },
     {
-      "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
+      "address": "0xc456e33ddf99c48e26e31120f32eae470e040ebd",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 224351.0
+        "ethereum": 223312.35
       },
-      "total": 224351.0
+      "total": 223312.35
     },
     {
       "address": "0x56264e5ec5215c3974cfb550d3aefa6720f5ee9d",
@@ -2336,6 +2412,15 @@
         "ethereum": 218682.39
       },
       "total": 218682.39
+    },
+    {
+      "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 218560.8
+      },
+      "total": 218560.8
     },
     {
       "address": "0xac8e88d550fd8488487f847697ce389569236458",
@@ -2437,6 +2522,15 @@
       "total": 190941.69
     },
     {
+      "address": "0xb334a61a6209f14b5fa5f1684a4ed7621f66e1ef",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 188090.78
+      },
+      "total": 188090.78
+    },
+    {
       "address": "0xd03a136623a34cc475dcc412dcbe251c35bd874e",
       "label": "",
       "type": "WALLET",
@@ -2491,15 +2585,6 @@
       "total": 182598.13
     },
     {
-      "address": "0xb334a61a6209f14b5fa5f1684a4ed7621f66e1ef",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 181731.54
-      },
-      "total": 181731.54
-    },
-    {
       "address": "0x58f9b4f2866de84bdb9805112c1d79ebba90f4af",
       "label": "",
       "type": "WALLET",
@@ -2534,15 +2619,6 @@
         "ethereum": 180345.8
       },
       "total": 180345.8
-    },
-    {
-      "address": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 179823.94
-      },
-      "total": 179823.94
     },
     {
       "address": "0x2c6306952ac2d4c641cdbf1ed76e6af4b67108e5",
@@ -2662,6 +2738,16 @@
       "total": 162041.77
     },
     {
+      "address": "0x0e2366c4a41a8cde21d29ffbb997ac0748659166",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 130646.62,
+        "optimism": 31147.51
+      },
+      "total": 161794.13
+    },
+    {
       "address": "0xc803a66207ba9a417b1f344902b06461fe584bcf",
       "label": "",
       "type": "WALLET",
@@ -2699,15 +2785,6 @@
       "total": 148012.13
     },
     {
-      "address": "0x3931dab967c3e2dbb492fe12460a66d0fe4cc857",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 147308.58
-      },
-      "total": 147308.58
-    },
-    {
       "address": "0x28b3b33b6b3eb7afeca412235782355d1e24b769",
       "label": "",
       "type": "WALLET",
@@ -2715,15 +2792,6 @@
         "ethereum": 146049.2
       },
       "total": 146049.2
-    },
-    {
-      "address": "0xa4463789e8f3c6a599b3dfb608dde55513bcf289",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 144765.21
-      },
-      "total": 144765.21
     },
     {
       "address": "0x3f7435562e7b38efe92ed2ec3d506827ca627f44",
@@ -2753,15 +2821,6 @@
       "total": 139357.72
     },
     {
-      "address": "0x3304e22ddaa22bcdc5fca2269b418046ae7b566a",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 138151.54
-      },
-      "total": 138151.54
-    },
-    {
       "address": "0x93228d328c9c74c2bfe9f97638bbb5ef322f2bd5",
       "label": "",
       "type": "WALLET",
@@ -2784,9 +2843,9 @@
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 135442.2
+        "ethereum": 135335.99
       },
-      "total": 135442.2
+      "total": 135335.99
     },
     {
       "address": "0xd1bf0ce1f81464b49f5f62c94790c473a82cba9b",
@@ -2807,23 +2866,13 @@
       "total": 134166.39
     },
     {
-      "address": "0x073f564419b625a45d8aea3bb0de4d5647113ad7",
+      "address": "0xa4463789e8f3c6a599b3dfb608dde55513bcf289",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 133667.93
+        "base": 133537.28
       },
-      "total": 133667.93
-    },
-    {
-      "address": "0x51c72848c68a965f66fa7a88855f9f7784502a7f",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 101389.29,
-        "arbitrum": 30927.0
-      },
-      "total": 132316.29
+      "total": 133537.28
     },
     {
       "address": "0x2c0f0322756e038b86ca4e14d3db056ea8175ac9",
@@ -2842,15 +2891,6 @@
         "ethereum": 130660.27
       },
       "total": 130660.27
-    },
-    {
-      "address": "0x0e2366c4a41a8cde21d29ffbb997ac0748659166",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 130646.62
-      },
-      "total": 130646.62
     },
     {
       "address": "0x2e4fc8a2bbab4ec08ecbf85fcf41241269d30b5a",
@@ -2898,6 +2938,16 @@
       "total": 123343.74
     },
     {
+      "address": "0x51c72848c68a965f66fa7a88855f9f7784502a7f",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 101389.29,
+        "arbitrum": 21726.49
+      },
+      "total": 123115.78
+    },
+    {
       "address": "0x34a175853c62c60460059be615bf451176eec768",
       "label": "",
       "type": "WALLET",
@@ -2923,6 +2973,15 @@
         "ethereum": 120361.47
       },
       "total": 120361.47
+    },
+    {
+      "address": "0x4a4ae9522510413ddda01885f9e6549ae70e3eae",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 119999.9
+      },
+      "total": 119999.9
     },
     {
       "address": "0xaa272a2baf5418a32ee50ef8c18311477c8a2860",
@@ -2991,15 +3050,6 @@
       "total": 117015.81
     },
     {
-      "address": "0x16503510c58da73486950b72a12ead3d1d8355dd",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 114380.44
-      },
-      "total": 114380.44
-    },
-    {
       "address": "0xa0362ec98a113c476419e7563014094d923d6dc8",
       "label": "",
       "type": "WALLET",
@@ -3016,24 +3066,6 @@
         "arbitrum": 107800.97
       },
       "total": 107800.97
-    },
-    {
-      "address": "0x4cef551255ec96d89fec975446301b5c4e164c59",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 107658.75
-      },
-      "total": 107658.75
-    },
-    {
-      "address": "0x4ed1b7424de5cd307717878a1cad9c0a2b2c9ba6",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 106764.49
-      },
-      "total": 106764.49
     },
     {
       "address": "0xede7aa9de183dbc9bcc60221904815ce819e48e3",
@@ -3061,6 +3093,15 @@
         "ethereum": 101349.25
       },
       "total": 101349.25
+    },
+    {
+      "address": "0x9edc8149fcdc7a599433e1923cb82f7ca66db34a",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "optimism": 100570.9
+      },
+      "total": 100570.9
     },
     {
       "address": "0x699a2dab0a1fc2e4a8f7de0e55e6a57876507df9",
@@ -3108,15 +3149,6 @@
       "total": 100000.0
     },
     {
-      "address": "0x7120a4a55df33f7022bbb2cc0dee3eb936574ba4",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 100000.0
-      },
-      "total": 100000.0
-    },
-    {
       "address": "0x4aefa39caeadd662ae31ab0ce7c8c2c9c0a013e8",
       "label": "",
       "type": "WALLET",
@@ -3130,18 +3162,27 @@
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 98010.2
+        "ethereum": 99918.82
       },
-      "total": 98010.2
+      "total": 99918.82
     },
     {
-      "address": "0x6c230cb6135567bc4687d2a12e821ebc59004da2",
+      "address": "0xa2d4a8e00daad32acace1a0dd0905f6aaf57e84e",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 97995.21
+        "base": 99224.18
       },
-      "total": 97995.21
+      "total": 99224.18
+    },
+    {
+      "address": "0x7120a4a55df33f7022bbb2cc0dee3eb936574ba4",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 99175.0
+      },
+      "total": 99175.0
     },
     {
       "address": "0xebe19b12297671e8991f1e1aea38cdd9c491eaa6",
@@ -3160,6 +3201,24 @@
         "ethereum": 97995.21
       },
       "total": 97995.21
+    },
+    {
+      "address": "0x6c230cb6135567bc4687d2a12e821ebc59004da2",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 97995.21
+      },
+      "total": 97995.21
+    },
+    {
+      "address": "0x4bea6238e0b0f1fc40e2231b3093511c41f08585",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 97542.9
+      },
+      "total": 97542.9
     },
     {
       "address": "0xe5942fb584be194d48560e6dce6e6082ac8a1047",
@@ -3189,15 +3248,6 @@
       "total": 97057.91
     },
     {
-      "address": "0xa2d4a8e00daad32acace1a0dd0905f6aaf57e84e",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 95691.26
-      },
-      "total": 95691.26
-    },
-    {
       "address": "0xb8ba36e591facee901ffd3d5d82df491551ad7ef",
       "label": "",
       "type": "WALLET",
@@ -3205,15 +3255,6 @@
         "ethereum": 95142.59
       },
       "total": 95142.59
-    },
-    {
-      "address": "0x8455193b0490ad091819000b01cd9bb833ac974b",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 94060.15
-      },
-      "total": 94060.15
     },
     {
       "address": "0x5e7aa9449d0829b626bc805abd19e88447fe18de",
@@ -3225,7 +3266,7 @@
       "total": 92360.47
     },
     {
-      "address": "0xaaa05771c51e694304270667d891818f10ae59d0",
+      "address": "0x72c6a75bc54e161f91f940b21a347c8833363485",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -3234,7 +3275,7 @@
       "total": 91874.61
     },
     {
-      "address": "0x72c6a75bc54e161f91f940b21a347c8833363485",
+      "address": "0xaaa05771c51e694304270667d891818f10ae59d0",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -3259,15 +3300,6 @@
         "ethereum": 90277.83
       },
       "total": 90277.83
-    },
-    {
-      "address": "0x637b1189f9e3756c08867df64442ebbf47d13caf",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 89474.47
-      },
-      "total": 89474.47
     },
     {
       "address": "0x175ce6204bfda2a509c7e9c786b74407f569c9cc",
@@ -3295,6 +3327,15 @@
         "ethereum": 85253.68
       },
       "total": 85253.68
+    },
+    {
+      "address": "0x6636f59f7c7548b18eafb870f362d795e16a1f5c",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 85135.34
+      },
+      "total": 85135.34
     },
     {
       "address": "0x85ecc05c53e89d6a8d1586d6232bbdc2c4e74cc0",
@@ -3360,6 +3401,17 @@
       "total": 81662.7
     },
     {
+      "address": "0x4642938c939176b0a3abe0b0c59cc003782977eb",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 78946.19,
+        "arbitrum": 2390.8,
+        "polygon": 282.47
+      },
+      "total": 81619.46
+    },
+    {
       "address": "0x4245b0776b46b246bd1c6b5ec9a73d2172a80927",
       "label": "",
       "type": "WALLET",
@@ -3403,17 +3455,6 @@
         "ethereum": 80196.12
       },
       "total": 80196.12
-    },
-    {
-      "address": "0x4642938c939176b0a3abe0b0c59cc003782977eb",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 78946.19,
-        "arbitrum": 352.83,
-        "polygon": 282.47
-      },
-      "total": 79581.49
     },
     {
       "address": "0x2cb185e452d8248312d8f2617ccbafd0f3731d36",
@@ -3470,15 +3511,6 @@
       "total": 76100.0
     },
     {
-      "address": "0x03e6fa590cadcf15a38e86158e9b3d06ff3399ba",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 75893.53
-      },
-      "total": 75893.53
-    },
-    {
       "address": "0x2380642841a701663cbd27e351b4af92c0a6b9e2",
       "label": "",
       "type": "WALLET",
@@ -3533,13 +3565,13 @@
       "total": 74085.6
     },
     {
-      "address": "0x6d37817d118f72f362cf01e64d9454bdd8e8e92f",
+      "address": "0x073f564419b625a45d8aea3bb0de4d5647113ad7",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "optimism": 73269.01
+        "ethereum": 72432.79
       },
-      "total": 73269.01
+      "total": 72432.79
     },
     {
       "address": "0x18d131094c71e15807cfe903c1f73a3f0964b239",
@@ -3558,6 +3590,15 @@
         "ethereum": 71817.74
       },
       "total": 71817.74
+    },
+    {
+      "address": "0x17a30350771d02409046a683b18fe1c13ccfc4a8",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 70825.17
+      },
+      "total": 70825.17
     },
     {
       "address": "0x825f23921dcff36944d8b0b0ca23ac7d05fb86cb",
@@ -3650,15 +3691,6 @@
       "total": 67916.0
     },
     {
-      "address": "0x97b9d2102a9a65a26e1ee82d59e42d1b73b68689",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 67845.96
-      },
-      "total": 67845.96
-    },
-    {
       "address": "0xe9c7796d0b6281f4fe84b875d0deff26febbad26",
       "label": "",
       "type": "WALLET",
@@ -3704,6 +3736,15 @@
       "total": 66580.64
     },
     {
+      "address": "0x6c69fa64ec451b1bc5b5fbaa56cf648a281634be",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 65834.82
+      },
+      "total": 65834.82
+    },
+    {
       "address": "0x989969b98b7ce2d06a0ef31c56088cad8b0ce901",
       "label": "",
       "type": "WALLET",
@@ -3711,15 +3752,6 @@
         "ethereum": 65330.14
       },
       "total": 65330.14
-    },
-    {
-      "address": "0xeca770c95b901278ee944e0053972b6579c8d706",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 64692.62
-      },
-      "total": 64692.62
     },
     {
       "address": "0xd77ec5ba85742194487ac7218d2775b8b2da40ae",
@@ -3738,6 +3770,15 @@
         "ethereum": 64073.05
       },
       "total": 64073.05
+    },
+    {
+      "address": "0x05ba720fc96ea8969f86d7a0b0767bb8dc265232",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 64012.15
+      },
+      "total": 64012.15
     },
     {
       "address": "0xf00ba391c93873af0895184607c9396a56a38ef4",
@@ -3804,25 +3845,6 @@
       "total": 62496.0
     },
     {
-      "address": "0x63dfe4e34a3bfc00eb0220786238a7c6cef8ffc4",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 2639.96,
-        "arbitrum": 58631.9
-      },
-      "total": 61271.86
-    },
-    {
-      "address": "0x4b246d5e027ecaf2384123c6a873ce49bd07fc5c",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 60818.78
-      },
-      "total": 60818.78
-    },
-    {
       "address": "0x3a476cf731afab2ac4822a5b79f65151d13219af",
       "label": "",
       "type": "WALLET",
@@ -3841,7 +3863,7 @@
       "total": 60007.0
     },
     {
-      "address": "0x70dc5bfcc6bb5342bb26c2bcbff4e24d24b194ec",
+      "address": "0xde2a20c32f7ce30ab124c3a73a8b90b754214b23",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -3850,7 +3872,7 @@
       "total": 60000.0
     },
     {
-      "address": "0xde2a20c32f7ce30ab124c3a73a8b90b754214b23",
+      "address": "0x70dc5bfcc6bb5342bb26c2bcbff4e24d24b194ec",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -3884,6 +3906,24 @@
         "ethereum": 58008.39
       },
       "total": 58008.39
+    },
+    {
+      "address": "0x637b1189f9e3756c08867df64442ebbf47d13caf",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 57655.48
+      },
+      "total": 57655.48
+    },
+    {
+      "address": "0x756666fb415a26f75a4d9f2a83b9a427e77fc499",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 57263.18
+      },
+      "total": 57263.18
     },
     {
       "address": "0x8f6d920ee6e8b33524b28d8cd790154468c651da",
@@ -3949,6 +3989,15 @@
       "total": 53891.75
     },
     {
+      "address": "0x3a5cc8689d1b0cef2c317bc5c0ad6ce88b27d597",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 53580.46
+      },
+      "total": 53580.46
+    },
+    {
       "address": "0x1c727a55ea3c11b0ab7d3a361fe0f3c47ce6de5d",
       "label": "",
       "type": "WALLET",
@@ -3965,6 +4014,15 @@
         "ethereum": 53283.96
       },
       "total": 53283.96
+    },
+    {
+      "address": "0x105ba85d9047daf3f9fe941d8188d4b9a6900388",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 53187.05
+      },
+      "total": 53187.05
     },
     {
       "address": "0xdd78c5f0886ef4b32f4f53d44d0574ded031a6b6",
@@ -4012,13 +4070,32 @@
       "total": 50999.89
     },
     {
-      "address": "0x17a30350771d02409046a683b18fe1c13ccfc4a8",
+      "address": "0x03e6fa590cadcf15a38e86158e9b3d06ff3399ba",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 50258.53
+        "arbitrum": 50957.84
       },
-      "total": 50258.53
+      "total": 50957.84
+    },
+    {
+      "address": "0xd57b086df589055e8d11a5fe5460dc358f128f2c",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 779.0,
+        "base": 50000.0
+      },
+      "total": 50779.0
+    },
+    {
+      "address": "0x8cb78720f57d2c092944d5cff7cf95202a9dd997",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 50517.32
+      },
+      "total": 50517.32
     },
     {
       "address": "0x273d32ed2e3333b6a37153fe4e399b935742a189",
@@ -4030,25 +4107,16 @@
       "total": 50001.0
     },
     {
-      "address": "0xd032330880d8fc796c2fd9f56d845423767e4319",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 50000.0
-      },
-      "total": 50000.0
-    },
-    {
-      "address": "0x1e2caec667e402c8435a3690db805917e5823f10",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 50000.0
-      },
-      "total": 50000.0
-    },
-    {
       "address": "0xcff5be1cf3c7cfe073ade82d1dc27be33c998d6e",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 50000.0
+      },
+      "total": 50000.0
+    },
+    {
+      "address": "0xaa0d2c39a507abf56fdfed8609860312952f7d63",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -4066,7 +4134,16 @@
       "total": 50000.0
     },
     {
-      "address": "0xaa0d2c39a507abf56fdfed8609860312952f7d63",
+      "address": "0xd032330880d8fc796c2fd9f56d845423767e4319",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 50000.0
+      },
+      "total": 50000.0
+    },
+    {
+      "address": "0x1e2caec667e402c8435a3690db805917e5823f10",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -4120,7 +4197,16 @@
       "total": 49064.76
     },
     {
-      "address": "0xd0ad5188e0aeba28c447dc360d511383ec389722",
+      "address": "0x872d520ddff02b0e2aeacbdb2a9e0218938b2daa",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 49000.01
+      },
+      "total": 49000.01
+    },
+    {
+      "address": "0x803405cd699664414dfaa10bd7416d2c87e57d36",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -4129,7 +4215,7 @@
       "total": 48991.05
     },
     {
-      "address": "0x803405cd699664414dfaa10bd7416d2c87e57d36",
+      "address": "0xd0ad5188e0aeba28c447dc360d511383ec389722",
       "label": "",
       "type": "WALLET",
       "balances": {
@@ -4145,15 +4231,6 @@
         "arbitrum": 48737.1
       },
       "total": 48737.1
-    },
-    {
-      "address": "0x3a5cc8689d1b0cef2c317bc5c0ad6ce88b27d597",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 48696.36
-      },
-      "total": 48696.36
     },
     {
       "address": "0x4005437e31e310d2a7e760da8df18e64655d0e70",
@@ -4283,6 +4360,15 @@
       "total": 44005.0
     },
     {
+      "address": "0x33b6e60ed1ddddc91aa61ef6363ebed84b9ed3e0",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 44000.0
+      },
+      "total": 44000.0
+    },
+    {
       "address": "0xc1bea07c62b539b99bb86e1dcbb6150ba831d060",
       "label": "",
       "type": "WALLET",
@@ -4305,9 +4391,18 @@
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 42287.49
+        "arbitrum": 43029.12
       },
-      "total": 42287.49
+      "total": 43029.12
+    },
+    {
+      "address": "0xfa87f3ae8bf869d4f6138f47a5682dd9e4458ee3",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 42984.5
+      },
+      "total": 42984.5
     },
     {
       "address": "0x235a7af3a555c7c1e77f9c6a4930cdfb078a8582",
@@ -4400,15 +4495,6 @@
       "total": 40012.87
     },
     {
-      "address": "0xf90ac9a63549835345d47ece631ed6b403f83984",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 40000.64
-      },
-      "total": 40000.64
-    },
-    {
       "address": "0x77203801ef4249c2bfd5a6cfd0e35b1c18442f06",
       "label": "",
       "type": "WALLET",
@@ -4416,6 +4502,24 @@
         "ethereum": 40000.0
       },
       "total": 40000.0
+    },
+    {
+      "address": "0xbd8b3a345a2d64e1407e44e6cf322ee44260f74b",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 39999.9
+      },
+      "total": 39999.9
+    },
+    {
+      "address": "0x1797538dd80c041cc2f0c5901d5700868186a9a8",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 39875.68
+      },
+      "total": 39875.68
     },
     {
       "address": "0x113ab7d8dc57c2292c583aeea49ea734cb2bba6e",
@@ -4470,6 +4574,15 @@
         "bsc": 38306.74
       },
       "total": 38306.74
+    },
+    {
+      "address": "0x360acf12e72044ba3eaaa654e51e4725c699dcb1",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 37805.75
+      },
+      "total": 37805.75
     },
     {
       "address": "0x0973c87c2923d7489f5b26e60185fdd878bce174",
@@ -4535,15 +4648,6 @@
       "total": 36855.27
     },
     {
-      "address": "0xcc7135ec0d2f52f557b22069d3fde3cdd8b27165",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 36688.82
-      },
-      "total": 36688.82
-    },
-    {
       "address": "0xe9f13d3bddb0a219375b2e09abc85a832c74ac4b",
       "label": "",
       "type": "WALLET",
@@ -4569,15 +4673,6 @@
         "ethereum": 36399.78
       },
       "total": 36399.78
-    },
-    {
-      "address": "0xa8ac0cabb75a3842fb8cbbe18359f71711cf95b7",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 36399.12
-      },
-      "total": 36399.12
     },
     {
       "address": "0x02bd3c049503636bd690755d4ec67b027787950a",
@@ -4614,33 +4709,6 @@
         "ethereum": 36110.88
       },
       "total": 36110.88
-    },
-    {
-      "address": "0x2d722c96f79d149dd21e9ef36f93fc12906ce9f8",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 36062.09
-      },
-      "total": 36062.09
-    },
-    {
-      "address": "0xe11eb181b936b47e37b8e5bd2e65c79bd71ce86f",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 35611.18
-      },
-      "total": 35611.18
-    },
-    {
-      "address": "0xc0e17ad342afabd36b3971f8305ff147006962ae",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "optimism": 35362.77
-      },
-      "total": 35362.77
     },
     {
       "address": "0xfcb045b414d1897b8a087d646aa872b88f58da77",
@@ -4688,6 +4756,15 @@
       "total": 34768.69
     },
     {
+      "address": "0xe11eb181b936b47e37b8e5bd2e65c79bd71ce86f",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 34712.88
+      },
+      "total": 34712.88
+    },
+    {
       "address": "0xb38688311b64622c4bf07e9d3b1e72de05b23b44",
       "label": "",
       "type": "WALLET",
@@ -4695,15 +4772,6 @@
         "ethereum": 34710.2
       },
       "total": 34710.2
-    },
-    {
-      "address": "0x360acf12e72044ba3eaaa654e51e4725c699dcb1",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 34592.47
-      },
-      "total": 34592.47
     },
     {
       "address": "0x952e2a40b0aca04c59ac0812f93517b6fe947e5f",
@@ -4742,6 +4810,15 @@
       "total": 33586.37
     },
     {
+      "address": "0x46139c6b5cf640031647e2cc6e3df808c8f60d0d",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 33522.95
+      },
+      "total": 33522.95
+    },
+    {
       "address": "0x7d928181c5a106ecc9c2dab293fcaf8beb77f89f",
       "label": "",
       "type": "WALLET",
@@ -4778,15 +4855,22 @@
       "total": 32660.7
     },
     {
-      "address": "0x3947217dc84e655d42371683a5b80f461903b294",
+      "address": "0x8f60d79fe3df6cd0e3a44288ad2f41af134d813e",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 23074.91,
-        "arbitrum": 618.18,
-        "optimism": 8621.9
+        "arbitrum": 32000.0
       },
-      "total": 32314.99
+      "total": 32000.0
+    },
+    {
+      "address": "0xa8ac0cabb75a3842fb8cbbe18359f71711cf95b7",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 31973.01
+      },
+      "total": 31973.01
     },
     {
       "address": "0x58d2312db16affcada02a260820bb2bc2a5cdb33",
@@ -4861,6 +4945,24 @@
       "total": 30610.14
     },
     {
+      "address": "0x101ecf03d90452f5a6f54abafed3334a41434405",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 30500.0
+      },
+      "total": 30500.0
+    },
+    {
+      "address": "0xd9dd34576c7034beb0b11a99afffc49e91011235",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "optimism": 30488.64
+      },
+      "total": 30488.64
+    },
+    {
       "address": "0x27696666e2acb586a86cf223907ae579f62d0e1f",
       "label": "",
       "type": "WALLET",
@@ -4870,15 +4972,6 @@
       "total": 30450.44
     },
     {
-      "address": "0x9686d7a0d3c12db673bfa230de86d62525c3f6a6",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 30133.71
-      },
-      "total": 30133.71
-    },
-    {
       "address": "0x3c1a22884c64bf6f2f7ab38b99f5e32d420b65c9",
       "label": "",
       "type": "WALLET",
@@ -4886,6 +4979,15 @@
         "ethereum": 30000.01
       },
       "total": 30000.01
+    },
+    {
+      "address": "0x6e935d5f3f5980df518b0a1b9594dc8163cb4bb5",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 30000.0
+      },
+      "total": 30000.0
     },
     {
       "address": "0xecd828e41f0e5d8fd10a8074c25c385cfe60a925",
@@ -4933,15 +5035,6 @@
       "total": 29483.41
     },
     {
-      "address": "0x8f60d79fe3df6cd0e3a44288ad2f41af134d813e",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 29463.94
-      },
-      "total": 29463.94
-    },
-    {
       "address": "0x51e42ed53763e40ff6a6aa1913a64c83d241ba82",
       "label": "",
       "type": "WALLET",
@@ -4969,15 +5062,6 @@
       "total": 29088.02
     },
     {
-      "address": "0x6e935d5f3f5980df518b0a1b9594dc8163cb4bb5",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 29000.0
-      },
-      "total": 29000.0
-    },
-    {
       "address": "0x88bf5a2e82510847e5dcbf33f44a9f611f1c1df5",
       "label": "",
       "type": "WALLET",
@@ -4996,6 +5080,15 @@
       "total": 28718.1
     },
     {
+      "address": "0x9686d7a0d3c12db673bfa230de86d62525c3f6a6",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 28666.51
+      },
+      "total": 28666.51
+    },
+    {
       "address": "0x46340b20830761efd32832a74d7169b29feb9758",
       "label": "",
       "type": "WALLET",
@@ -5003,6 +5096,24 @@
         "ethereum": 28500.12
       },
       "total": 28500.12
+    },
+    {
+      "address": "0xf3d5e367ef463572fbd74eedcc69634e99e3b331",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 28478.0
+      },
+      "total": 28478.0
+    },
+    {
+      "address": "0xe9cfd9345d5a6c76f3f345dc030479a980b7f959",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 28375.11
+      },
+      "total": 28375.11
     },
     {
       "address": "0x728a1558135e210b9bf782015ed1cfd3c387f130",
@@ -5021,6 +5132,25 @@
         "ethereum": 28283.31
       },
       "total": 28283.31
+    },
+    {
+      "address": "0x045239a76f6a7cca8ebcda58af82be95b38adfd4",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 28277.67
+      },
+      "total": 28277.67
+    },
+    {
+      "address": "0xac90b681dd7ed3075dcb92b13a8591967670d624",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 26906.48,
+        "arbitrum": 1280.54
+      },
+      "total": 28187.02
     },
     {
       "address": "0xe0b13ef96e3cd2e24f4d19328e2392a3a3a4d62f",
@@ -5066,6 +5196,15 @@
         "ethereum": 27281.37
       },
       "total": 27281.37
+    },
+    {
+      "address": "0x0250f06fc76297fe28d0981f0566f1c0445b3cfe",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 27226.22
+      },
+      "total": 27226.22
     },
     {
       "address": "0x79f3d5f5589697daa10f77c03b7fd033857107ce",
@@ -5131,15 +5270,6 @@
       "total": 26940.64
     },
     {
-      "address": "0xac90b681dd7ed3075dcb92b13a8591967670d624",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 26906.48
-      },
-      "total": 26906.48
-    },
-    {
       "address": "0x1b23a4de95fd23fc2eeb423f2eed64b0ecc7dae6",
       "label": "",
       "type": "WALLET",
@@ -5156,15 +5286,6 @@
         "ethereum": 26564.01
       },
       "total": 26564.01
-    },
-    {
-      "address": "0x7a4b5b2820f12dac3ce2b00b731df74f19e73590",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 26467.07
-      },
-      "total": 26467.07
     },
     {
       "address": "0x79faaaab0a04818b5f139db424b00eadfbb45f65",
@@ -5185,14 +5306,19 @@
       "total": 26330.62
     },
     {
-      "address": "0x70b49e9242667645dce920f00e5849c6f4f03098",
+      "address": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "ethereum": 170.66,
-        "arbitrum": 26036.47
+        "ethereum": 1631.92,
+        "arbitrum": 17079.64,
+        "base": 3205.94,
+        "bsc": 1656.17,
+        "optimism": 2517.46,
+        "polygon": 105.98,
+        "avalanche": 102.21
       },
-      "total": 26207.13
+      "total": 26299.32
     },
     {
       "address": "0x57f247ad2166b478208b35a322e7afcc4e2361c3",
@@ -5222,6 +5348,15 @@
       "total": 25964.0
     },
     {
+      "address": "0x237b8fca9492fc6aa63a7d310109dd096491d83b",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 25944.43
+      },
+      "total": 25944.43
+    },
+    {
       "address": "0xd87a0e346651e35df11fd0005fa60ccc50e93134",
       "label": "",
       "type": "WALLET",
@@ -5229,15 +5364,6 @@
         "ethereum": 25808.97
       },
       "total": 25808.97
-    },
-    {
-      "address": "0x71a0b68ec6dc48e6df13784feffaaa4674ed311e",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 25696.78
-      },
-      "total": 25696.78
     },
     {
       "address": "0x099a2da6bb4f40ecaea36ad0abe32d09f98c2a0a",
@@ -5249,6 +5375,33 @@
       "total": 25154.4
     },
     {
+      "address": "0x000022b19efafd7786ec41f2b8609890451f0000",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 25000.0
+      },
+      "total": 25000.0
+    },
+    {
+      "address": "0xab96e23c395425599eb9e2f06b5396f7f8faf683",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 25000.0
+      },
+      "total": 25000.0
+    },
+    {
+      "address": "0x20e4c7ff5e5566e9d4563fc5f7daae9583ddfec8",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 25000.0
+      },
+      "total": 25000.0
+    },
+    {
       "address": "0x9dcf4fe46a4a1c7b48c174268bbc12a0e8e76632",
       "label": "",
       "type": "WALLET",
@@ -5258,6 +5411,24 @@
       "total": 24926.94
     },
     {
+      "address": "0x69ee9cd326e554cdd17b8b86fda441d0690418ea",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 24133.45
+      },
+      "total": 24133.45
+    },
+    {
+      "address": "0x1714400ff23db4af24f9fd64e7039e6597f18c2b",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 24023.88
+      },
+      "total": 24023.88
+    },
+    {
       "address": "0x4fbd1f5cd26fb82eff6770af5595aac81df70775",
       "label": "",
       "type": "WALLET",
@@ -5265,15 +5436,6 @@
         "arbitrum": 24003.04
       },
       "total": 24003.04
-    },
-    {
-      "address": "0x8cb78720f57d2c092944d5cff7cf95202a9dd997",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 23873.56
-      },
-      "total": 23873.56
     },
     {
       "address": "0xfb68149c04b3f68dbe3c73a4600a0eb873100705",
@@ -5303,16 +5465,6 @@
       "total": 23334.93
     },
     {
-      "address": "0xe0b2add5c2d094008d014369ab6bc5c42cf3acad",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 10001.06,
-        "arbitrum": 12717.27
-      },
-      "total": 22718.33
-    },
-    {
       "address": "0xe2fc31f816a9b94326492132018c3aecc4a93ae1",
       "label": "",
       "type": "WALLET",
@@ -5322,22 +5474,31 @@
       "total": 22318.73
     },
     {
-      "address": "0x9edc8149fcdc7a599433e1923cb82f7ca66db34a",
+      "address": "0x97b9d2102a9a65a26e1ee82d59e42d1b73b68689",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "optimism": 22242.63
+        "base": 22092.28
       },
-      "total": 22242.63
+      "total": 22092.28
     },
     {
-      "address": "0x6c69fa64ec451b1bc5b5fbaa56cf648a281634be",
+      "address": "0xbc4b38103cc7aa5cebf3e49f1d611ff4298eaaed",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 21973.98
+        "arbitrum": 21909.92
       },
-      "total": 21973.98
+      "total": 21909.92
+    },
+    {
+      "address": "0xbed01252c3542b02be6162c00ce636720d3c05bd",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 21842.12
+      },
+      "total": 21842.12
     },
     {
       "address": "0x4923b7a1b9dcfa631030615bb324dd00e64e2591",
@@ -5350,22 +5511,13 @@
       "total": 21620.05
     },
     {
-      "address": "0x7a457667f29e21666a82238ba48124984517ede6",
+      "address": "0xeca770c95b901278ee944e0053972b6579c8d706",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 21289.29
+        "arbitrum": 21447.8
       },
-      "total": 21289.29
-    },
-    {
-      "address": "0x50b48c165a84243ee428c87bb732a3a776735a50",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "optimism": 21200.04
-      },
-      "total": 21200.04
+      "total": 21447.8
     },
     {
       "address": "0x397a2ef7bdf58b51c113381055d1097efb7279c5",
@@ -5377,6 +5529,24 @@
       "total": 21061.97
     },
     {
+      "address": "0x28f32f696fa9420e65bf63d59760350ee88349a4",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 20832.85
+      },
+      "total": 20832.85
+    },
+    {
+      "address": "0xebb8d559b2acf465cf98b94039422869dbe8abe4",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 20625.51
+      },
+      "total": 20625.51
+    },
+    {
       "address": "0xdc3ebc0361711e57009f77b1cffb6575bf504e8a",
       "label": "",
       "type": "WALLET",
@@ -5384,21 +5554,6 @@
         "arbitrum": 20552.68
       },
       "total": 20552.68
-    },
-    {
-      "address": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 1631.92,
-        "arbitrum": 11725.56,
-        "base": 2669.51,
-        "bsc": 1656.17,
-        "optimism": 2517.46,
-        "polygon": 105.98,
-        "avalanche": 102.21
-      },
-      "total": 20408.81
     },
     {
       "address": "0x89cff61026f6743b8d25ae9b253582083136b1c4",
@@ -5419,14 +5574,58 @@
       "total": 20210.42
     },
     {
-      "address": "0x0b110b05cb14f834f4d0bbac3ca28bb3bb01a07d",
+      "address": "0xd958fb5496133159ef1896371734bc00931bbf2d",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 15703.53,
-        "base": 4154.92
+        "arbitrum": 20074.8
       },
-      "total": 19858.45
+      "total": 20074.8
+    },
+    {
+      "address": "0x4f2902f8fd19ce80495e20b912f090355c443fb7",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 20012.75
+      },
+      "total": 20012.75
+    },
+    {
+      "address": "0x50b48c165a84243ee428c87bb732a3a776735a50",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "optimism": 20000.04
+      },
+      "total": 20000.04
+    },
+    {
+      "address": "0xaa121f42c0c54330f21bc2bdbfceff529b82f232",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 20000.0
+      },
+      "total": 20000.0
+    },
+    {
+      "address": "0xa1c6eb5b6a1cf10980e992b47a5f7e036540222e",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 19930.93
+      },
+      "total": 19930.93
+    },
+    {
+      "address": "0x511f7143d3a73f677b50ffe84e2de610addc1726",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 19626.5
+      },
+      "total": 19626.5
     },
     {
       "address": "0x79f7769e25452c104a51d566eaf71b364893c221",
@@ -5436,24 +5635,6 @@
         "base": 19500.9
       },
       "total": 19500.9
-    },
-    {
-      "address": "0x44c6c4c7da174f47ac81e818d55c02600390e79d",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 19189.07
-      },
-      "total": 19189.07
-    },
-    {
-      "address": "0x05ba720fc96ea8969f86d7a0b0767bb8dc265232",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 18991.7
-      },
-      "total": 18991.7
     },
     {
       "address": "0x2f4006e8dd664a91522c8ceba413ac05ba208445",
@@ -5483,15 +5664,6 @@
         "arbitrum": 18640.81
       },
       "total": 18640.81
-    },
-    {
-      "address": "0x355f4d611eeb3770933c26f0213f7843350c90f8",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 18640.75
-      },
-      "total": 18640.75
     },
     {
       "address": "0x7da75de2880b5b7741b67f8f29217524fb572c3e",
@@ -5566,6 +5738,42 @@
       "total": 18055.57
     },
     {
+      "address": "0xc06e0513a150a021104fdcdd20ce362fa593ba1f",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 18050.71
+      },
+      "total": 18050.71
+    },
+    {
+      "address": "0x2d722c96f79d149dd21e9ef36f93fc12906ce9f8",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 17923.01
+      },
+      "total": 17923.01
+    },
+    {
+      "address": "0x61d93ed74f778654e93b96c611f9373966e7cb90",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 17878.77
+      },
+      "total": 17878.77
+    },
+    {
+      "address": "0x0e9d806e354eb4235958a294fdef09d18862c02c",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "arbitrum": 17502.89
+      },
+      "total": 17502.89
+    },
+    {
       "address": "0x047ce83bae76a69416a3a17401605265b661c8db",
       "label": "",
       "type": "WALLET",
@@ -5603,15 +5811,6 @@
       "total": 17001.42
     },
     {
-      "address": "0x105ba85d9047daf3f9fe941d8188d4b9a6900388",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 16896.93
-      },
-      "total": 16896.93
-    },
-    {
       "address": "0xcddc5d0ebeb71a08fff26909aa6c0d4e256b4fe1",
       "label": "",
       "type": "WALLET",
@@ -5621,31 +5820,13 @@
       "total": 16649.34
     },
     {
-      "address": "0xa838a2b863dfccf78f66fcd1db0ce8fb3572817f",
+      "address": "0x7a457667f29e21666a82238ba48124984517ede6",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 16288.81
+        "arbitrum": 16289.29
       },
-      "total": 16288.81
-    },
-    {
-      "address": "0x9494e491ef40c7a205a310f7a5f552876863ee47",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 15610.79
-      },
-      "total": 15610.79
-    },
-    {
-      "address": "0x96d76490ca7c18775db2e0b5e7ec7ca63e404e92",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 15496.8
-      },
-      "total": 15496.8
+      "total": 16289.29
     },
     {
       "address": "0x3be3b4a510b0b30c4990bf0aa505e3f78a9a1718",
@@ -5655,15 +5836,6 @@
         "base": 15264.69
       },
       "total": 15264.69
-    },
-    {
-      "address": "0x49c45b4db0e663c58e92016a7d4db78de0e1e26f",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 15000.09
-      },
-      "total": 15000.09
     },
     {
       "address": "0xda39b7e764a1c8ae2acab21c56db4822953823f9",
@@ -5693,22 +5865,31 @@
       "total": 14958.4
     },
     {
-      "address": "0x75e55076c6218bc9dc91899906acdc5421479bdf",
+      "address": "0x9edcb464c0afdd01a5ffbd09309b437c7dadeab3",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 14685.79
+        "base": 14930.11
       },
-      "total": 14685.79
+      "total": 14930.11
     },
     {
-      "address": "0x054b7db5f5ddbc9748d3e7d8ded296fe37b1fd46",
+      "address": "0xfa486353aaea2c700fc52a7687a2f0358fe7c27f",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 14639.78
+        "optimism": 14668.32
       },
-      "total": 14639.78
+      "total": 14668.32
+    },
+    {
+      "address": "0xc0e17ad342afabd36b3971f8305ff147006962ae",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "optimism": 14643.73
+      },
+      "total": 14643.73
     },
     {
       "address": "0xc241e8fb314bc3799be2db94dce4d070c29b425d",
@@ -5729,15 +5910,6 @@
       "total": 14512.96
     },
     {
-      "address": "0xf66c5bf3cc86a28f6b6c92ae3bbf11acad0463f4",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 14255.31
-      },
-      "total": 14255.31
-    },
-    {
       "address": "0xf1baa0ef51f4ce54a815aca353170181af6761c3",
       "label": "",
       "type": "WALLET",
@@ -5747,13 +5919,22 @@
       "total": 14140.24
     },
     {
-      "address": "0x157ed1edee1f1045b8a8dec7afe671ba6774ebb2",
+      "address": "0x6d37817d118f72f362cf01e64d9454bdd8e8e92f",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 13546.99
+        "optimism": 13847.57
       },
-      "total": 13546.99
+      "total": 13847.57
+    },
+    {
+      "address": "0x4b246d5e027ecaf2384123c6a873ce49bd07fc5c",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 13800.51
+      },
+      "total": 13800.51
     },
     {
       "address": "0x1f4bd9098f3e24c7a4a620d8c903282237596a11",
@@ -5765,25 +5946,6 @@
       "total": 13340.0
     },
     {
-      "address": "0x132a26c0e815704ce64283f4aab7333ccdc175dc",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 12996.75,
-        "bsc": 119.42
-      },
-      "total": 13116.17
-    },
-    {
-      "address": "0x19128699bb74d8117943b58bca0109dfd1e84f3f",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 12612.06
-      },
-      "total": 12612.06
-    },
-    {
       "address": "0x12db793a113b43e23f0b1961024efbdfc53e328d",
       "label": "",
       "type": "WALLET",
@@ -5791,24 +5953,6 @@
         "bsc": 12246.79
       },
       "total": 12246.79
-    },
-    {
-      "address": "0x34b68b86dfdb2bc111b20c9f88475218dced1653",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 12176.96
-      },
-      "total": 12176.96
-    },
-    {
-      "address": "0xcca2460dfedde54f05ff6c113fd99a083b7bca27",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 12158.65
-      },
-      "total": 12158.65
     },
     {
       "address": "0x1347378b1d0eb69d3462e09b3dfa2fe28ebe74ec",
@@ -5820,33 +5964,6 @@
       "total": 12127.68
     },
     {
-      "address": "0x7904a9dc4191d86665ddfdebcefc9d406b59f246",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 12078.38
-      },
-      "total": 12078.38
-    },
-    {
-      "address": "0xd8cbd7e0693af1022d1c080abea53f0c4c62e6c5",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 12021.39
-      },
-      "total": 12021.39
-    },
-    {
-      "address": "0x6f5140c4726fd01ffad3a8ed475d6b4d621ac84f",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 12000.12
-      },
-      "total": 12000.12
-    },
-    {
       "address": "0x6b6d4fe71622c74afd42187968be211d09b02f31",
       "label": "",
       "type": "WALLET",
@@ -5854,15 +5971,6 @@
         "bsc": 11988.27
       },
       "total": 11988.27
-    },
-    {
-      "address": "0x0303e4fe3d5a3d4f225e7690f038786648657b2b",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 11980.97
-      },
-      "total": 11980.97
     },
     {
       "address": "0x570b41f417483df6935e3bb4fab166a95435c393",
@@ -5874,31 +5982,23 @@
       "total": 11827.0
     },
     {
-      "address": "0x2bb52a6b655c8726a26db533ec00113b1ae16140",
+      "address": "0x0b110b05cb14f834f4d0bbac3ca28bb3bb01a07d",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 11440.92
+        "arbitrum": 7201.53,
+        "base": 4154.92
       },
-      "total": 11440.92
+      "total": 11356.45
     },
     {
-      "address": "0xd90507caa56d7d6d7aa49d129a2eceea0ed44b83",
+      "address": "0x4587df381022922f6622f9096c22e754bcf27b4f",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 11407.9
+        "base": 11325.64
       },
-      "total": 11407.9
-    },
-    {
-      "address": "0x5f0024177879d3e39a2d3a686d17295351a677f7",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 11344.73
-      },
-      "total": 11344.73
+      "total": 11325.64
     },
     {
       "address": "0x387d505a7f71d00e9d8a430ac69c5088f82ab239",
@@ -5908,15 +6008,6 @@
         "bsc": 11287.18
       },
       "total": 11287.18
-    },
-    {
-      "address": "0x3e331a7556d591dc76d93369eb209ee8ae6114a0",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 11172.11
-      },
-      "total": 11172.11
     },
     {
       "address": "0x8de135cd0b1508f2295fabfd2d11a3b55d225588",
@@ -5938,13 +6029,15 @@
       "total": 11089.2
     },
     {
-      "address": "0x0bda0f33311e65379461d0a555bbd7669c0eaa22",
+      "address": "0xa311f7ca3eb2fb98123a807f9b8e4bbbdbdcb2ee",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 11073.39
+        "arbitrum": 3348.84,
+        "base": 3300.0,
+        "optimism": 4432.79
       },
-      "total": 11073.39
+      "total": 11081.63
     },
     {
       "address": "0xf6f48e0b9c24e6a343bef4ca577919513c445657",
@@ -5956,54 +6049,22 @@
       "total": 11018.02
     },
     {
-      "address": "0x0aebaf5e3d4207d71474cfa3f654ec0743183619",
+      "address": "0x33fbc37431bfad6288035c72e4e80ff70fa771b6",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 10835.11
+        "base": 11000.0
       },
-      "total": 10835.11
+      "total": 11000.0
     },
     {
-      "address": "0x9d0f03b7654876b8932b13e7a39ebcfb6e846a36",
+      "address": "0xcc7135ec0d2f52f557b22069d3fde3cdd8b27165",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "arbitrum": 10577.57,
-        "optimism": 255.4
+        "base": 10905.19
       },
-      "total": 10832.97
-    },
-    {
-      "address": "0xa311f7ca3eb2fb98123a807f9b8e4bbbdbdcb2ee",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 3348.84,
-        "base": 3300.0,
-        "optimism": 4137.41
-      },
-      "total": 10786.25
-    },
-    {
-      "address": "0xf1f0603ecef9faa2374194fd6fdd854081f59734",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 10691.65
-      },
-      "total": 10691.65
-    },
-    {
-      "address": "0xfe744aef67324ccb15819206c3d91f2e58d53e4e",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "ethereum": 5102.39,
-        "arbitrum": 478.21,
-        "optimism": 5102.39
-      },
-      "total": 10682.99
+      "total": 10905.19
     },
     {
       "address": "0x3debc3e0e1326a3d87cdd9965c6cc4deee94c6f7",
@@ -6016,24 +6077,6 @@
       "total": 10665.3
     },
     {
-      "address": "0x050f7cbe91f4ba3af844ac807c86ae0f38a28974",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 10611.81
-      },
-      "total": 10611.81
-    },
-    {
-      "address": "0x5b3a8113ce5f56bb02dda078e53ea47cc5254b2d",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 10579.26
-      },
-      "total": 10579.26
-    },
-    {
       "address": "0x3448be47560790524c36274c211dcd0e4c4ed31b",
       "label": "",
       "type": "WALLET",
@@ -6042,33 +6085,6 @@
         "optimism": 9917.84
       },
       "total": 10522.77
-    },
-    {
-      "address": "0xcaeedd8f1acf55f2df259afc090d519069f72a2b",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 10520.11
-      },
-      "total": 10520.11
-    },
-    {
-      "address": "0xff8ba4d1fc3762f6154cc942ccf30049a2a0cec6",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 10403.81
-      },
-      "total": 10403.81
-    },
-    {
-      "address": "0xd9dd34576c7034beb0b11a99afffc49e91011235",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "optimism": 10215.66
-      },
-      "total": 10215.66
     },
     {
       "address": "0xdccf0347aa0c5ff352e7c55c68cbc66cd5c727ca",
@@ -6080,24 +6096,6 @@
       "total": 10170.97
     },
     {
-      "address": "0x1075dbde7a18d722dd72dc10a288e84ed870d27e",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 10159.11
-      },
-      "total": 10159.11
-    },
-    {
-      "address": "0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "polygon": 10073.83
-      },
-      "total": 10073.83
-    },
-    {
       "address": "0x1c768f9c263f85cac55846011cc4a194fea5ff11",
       "label": "",
       "type": "WALLET",
@@ -6105,6 +6103,15 @@
         "base": 10030.8
       },
       "total": 10030.8
+    },
+    {
+      "address": "0xe7804c37c13166ff0b37f5ae0bb07a3aebb6e245",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "polygon": 10012.11
+      },
+      "total": 10012.11
     },
     {
       "address": "0xb0cd1dff28634765336b3aa30ae9113467595efc",
@@ -6134,6 +6141,15 @@
       "total": 10000.0
     },
     {
+      "address": "0xcaeedd8f1acf55f2df259afc090d519069f72a2b",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 9782.32
+      },
+      "total": 9782.32
+    },
+    {
       "address": "0xf2f3b0e1a1965db3a5cf5c99459ade7321b4d289",
       "label": "",
       "type": "WALLET",
@@ -6141,24 +6157,6 @@
         "bsc": 9766.3
       },
       "total": 9766.3
-    },
-    {
-      "address": "0x41fd11e5997fbc144418fd2f1b5d9d9b45a94e32",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 9679.4
-      },
-      "total": 9679.4
-    },
-    {
-      "address": "0x451de2e25209ebb9f6fe23f3b6ada81367ff335c",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 9246.03
-      },
-      "total": 9246.03
     },
     {
       "address": "0x5197df5e822a35acb4e01dcb8b38cc212bbe1aa3",
@@ -6170,6 +6168,15 @@
       "total": 9004.89
     },
     {
+      "address": "0xbee435c7ff6cb814124281c4c2532476a094ac87",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 8868.93
+      },
+      "total": 8868.93
+    },
+    {
       "address": "0xa85c29b94f8a22a7268facee89ef4eca051be2ce",
       "label": "",
       "type": "WALLET",
@@ -6179,13 +6186,22 @@
       "total": 8768.59
     },
     {
-      "address": "0xd159b134db0bfab64536d860417b329739816fe3",
+      "address": "0x41fd11e5997fbc144418fd2f1b5d9d9b45a94e32",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "optimism": 8171.63
+        "base": 8464.28
       },
-      "total": 8171.63
+      "total": 8464.28
+    },
+    {
+      "address": "0x2e8098078fc33e9b152650ae4c615c6a2b8acc70",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 8314.61
+      },
+      "total": 8314.61
     },
     {
       "address": "0x224fd2a8079b6c14c8eb708c4ab1c4999ce9afcc",
@@ -6251,13 +6267,13 @@
       "total": 7224.98
     },
     {
-      "address": "0xfa486353aaea2c700fc52a7687a2f0358fe7c27f",
+      "address": "0x87dddd2e152bf1955e7e03d9f23a9dcc163eebf6",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "optimism": 6836.17
+        "optimism": 7167.19
       },
-      "total": 6836.17
+      "total": 7167.19
     },
     {
       "address": "0x6f907bc91cac5ebbfee975aa01f2ab184ee7b71f",
@@ -6278,15 +6294,6 @@
       "total": 6799.97
     },
     {
-      "address": "0x6647b8cc5a0749adc92b8956d34c03a3e3343360",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 6792.33
-      },
-      "total": 6792.33
-    },
-    {
       "address": "0x7dbb223ceaaac2dccea3489a39330c60d9a3cba4",
       "label": "",
       "type": "WALLET",
@@ -6294,15 +6301,6 @@
         "bsc": 6779.61
       },
       "total": 6779.61
-    },
-    {
-      "address": "0xfcb7edb8561822e2f2f4f6af5239de5e25b6dc86",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 6761.41
-      },
-      "total": 6761.41
     },
     {
       "address": "0xde0ed312c2a3f9a105a00a2c65d4487be7249e18",
@@ -6313,15 +6311,6 @@
         "avalanche": 1717.75
       },
       "total": 6760.91
-    },
-    {
-      "address": "0x4587df381022922f6622f9096c22e754bcf27b4f",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 6732.7
-      },
-      "total": 6732.7
     },
     {
       "address": "0xe197f452cab3ba2bebd0ab359a4a0d2a6327bd22",
@@ -6369,24 +6358,6 @@
       "total": 6529.19
     },
     {
-      "address": "0xbee435c7ff6cb814124281c4c2532476a094ac87",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 6498.13
-      },
-      "total": 6498.13
-    },
-    {
-      "address": "0x87dddd2e152bf1955e7e03d9f23a9dcc163eebf6",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "optimism": 6496.4
-      },
-      "total": 6496.4
-    },
-    {
       "address": "0x8678f58ac6c4748b5289d0db70e627eef395dead",
       "label": "",
       "type": "WALLET",
@@ -6405,13 +6376,13 @@
       "total": 6442.03
     },
     {
-      "address": "0x5cc688704bd00fac6e9081cbc011810adfcced02",
+      "address": "0x451de2e25209ebb9f6fe23f3b6ada81367ff335c",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "base": 6436.3
+        "base": 6425.3
       },
-      "total": 6436.3
+      "total": 6425.3
     },
     {
       "address": "0xf21b72da8b92e44aaa0c8f358271c7ab4e994241",
@@ -6477,15 +6448,6 @@
       "total": 6057.82
     },
     {
-      "address": "0x54f316dc112eb4533a19fa3acb008a7f3342ce25",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "optimism": 6014.61
-      },
-      "total": 6014.61
-    },
-    {
       "address": "0x01ec10cc930d80d591b63062873ac8b9bf674a0b",
       "label": "",
       "type": "WALLET",
@@ -6502,6 +6464,15 @@
         "bsc": 5989.13
       },
       "total": 5989.13
+    },
+    {
+      "address": "0x54f316dc112eb4533a19fa3acb008a7f3342ce25",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "optimism": 5964.61
+      },
+      "total": 5964.61
     },
     {
       "address": "0xa129bd19ae11faf8c870188402a34d0dada9d92d",
@@ -6547,6 +6518,15 @@
         "bsc": 5769.34
       },
       "total": 5769.34
+    },
+    {
+      "address": "0xf8c4e23cf5a9d021bff2288eff67dde2967f6e78",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 5746.21
+      },
+      "total": 5746.21
     },
     {
       "address": "0x64f0ad3385fc8747eb3a7931696980419821b0e5",
@@ -6631,6 +6611,15 @@
       "total": 5082.48
     },
     {
+      "address": "0x3f7c0e6396a99fbeedc2052555081d544a8f6c21",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 5046.42
+      },
+      "total": 5046.42
+    },
+    {
       "address": "0x0511c4fd80f33ac74c9f39e491b086cc2a2304ae",
       "label": "",
       "type": "WALLET",
@@ -6694,6 +6683,15 @@
       "total": 5000.87
     },
     {
+      "address": "0x285076b12efd407377af179edfecf3f371274844",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 5000.15
+      },
+      "total": 5000.15
+    },
+    {
       "address": "0x85df77f56d4852bd9470feec9ca89c44be06b5d8",
       "label": "",
       "type": "WALLET",
@@ -6732,15 +6730,6 @@
       "total": 4855.42
     },
     {
-      "address": "0x802b65b5d9016621e66003aed0b16615093f328b",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 4831.32
-      },
-      "total": 4831.32
-    },
-    {
       "address": "0x00000076979b971f4fd8aa66fbef3f5532a7dead",
       "label": "",
       "type": "WALLET",
@@ -6748,15 +6737,6 @@
         "base": 4804.08
       },
       "total": 4804.08
-    },
-    {
-      "address": "0xab96e23c395425599eb9e2f06b5396f7f8faf683",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 4804.06
-      },
-      "total": 4804.06
     },
     {
       "address": "0x978b21a854dbefcd6d51dfd269875d158046240b",
@@ -6777,13 +6757,31 @@
       "total": 4753.76
     },
     {
-      "address": "0xe74e5554b6942d51e85ff463a5c464b2c5e24b0e",
+      "address": "0xdeac3451b21038b89476ea60c8bb21bdfe97995e",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "base": 4700.79
+        "base": 4723.65
       },
-      "total": 4700.79
+      "total": 4723.65
+    },
+    {
+      "address": "0x45f1410c0716a5658525498721c981d251ed1a21",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 4704.31
+      },
+      "total": 4704.31
+    },
+    {
+      "address": "0xc562ba9951f9e3a2c25ee4cc7a47bf44df56b8de",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 4664.14
+      },
+      "total": 4664.14
     },
     {
       "address": "0x736e71a7d64b8ae9cd0a4d7b8550aa6947890a65",
@@ -6813,31 +6811,13 @@
       "total": 4482.71
     },
     {
-      "address": "0x44425a7d00d8b4cd9850c67cfa4d42c1543b9798",
+      "address": "0xb55f252876225c2fb433c32e863d6b5d447fce5c",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "base": 4359.67
+        "base": 4388.41
       },
-      "total": 4359.67
-    },
-    {
-      "address": "0x8db0f952b8b6a462445c732c41ec2937bcae9c35",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 4318.95
-      },
-      "total": 4318.95
-    },
-    {
-      "address": "0x0041efae248241066f78b62ffef4ad5183cc97f5",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 4215.2
-      },
-      "total": 4215.2
+      "total": 4388.41
     },
     {
       "address": "0x3926f5278d78ebb5ced39efce11c4c77804e177f",
@@ -6849,6 +6829,15 @@
       "total": 4169.11
     },
     {
+      "address": "0x15c15a7b8dc806dd4aa9e18b0b3b502787fd721d",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "optimism": 3996.99
+      },
+      "total": 3996.99
+    },
+    {
       "address": "0x621eac54009a9f1160777eccaa46af747cf11bbd",
       "label": "",
       "type": "WALLET",
@@ -6858,31 +6847,40 @@
       "total": 3932.9
     },
     {
-      "address": "0xcef24b7a9b549cd1298c572a810ba4098bd68e0c",
+      "address": "0x9b0079c77ed5f98f6c20242fc7bb6ba374448376",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "base": 3692.74
+        "base": 3927.89
       },
-      "total": 3692.74
+      "total": 3927.89
     },
     {
-      "address": "0x010ebca73343c0b8049628065ad4e74024e3de22",
+      "address": "0x37fec36965a9179be09d5417bb3318764a06cb08",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "base": 3691.74
+        "base": 3893.7
       },
-      "total": 3691.74
+      "total": 3893.7
     },
     {
-      "address": "0x735d9b6454457a21cb69032e5a48173c2f0304ab",
+      "address": "0xd97a7e4465d31bee84c463dbcc0d1e2c32fb7cdb",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "base": 3656.39
+        "base": 3811.71
       },
-      "total": 3656.39
+      "total": 3811.71
+    },
+    {
+      "address": "0x68814e30b9fa80dbfd53e01f80d8157adf5b228a",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 3794.9
+      },
+      "total": 3794.9
     },
     {
       "address": "0xec8619d2e9e7395814261bb607447503f8e86901",
@@ -6894,41 +6892,13 @@
       "total": 3513.7
     },
     {
-      "address": "0xe8cbf796ca41699c4726563ae808a09f2bc0181b",
+      "address": "0xb169e92990b3499e15c3892327c701fc0a2a9346",
       "label": "",
       "type": "WALLET",
       "balances": {
-        "base": 3498.0
+        "optimism": 3202.0
       },
-      "total": 3498.0
-    },
-    {
-      "address": "0x66efbc5452175b6365062962df7e2a3ee56168c6",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 3450.88
-      },
-      "total": 3450.88
-    },
-    {
-      "address": "0xcaecc0fde6f11537b11b75c6bfc7d24951824c40",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "base": 3400.1
-      },
-      "total": 3400.1
-    },
-    {
-      "address": "0xccb1e7a7e4b56cfcd08125ffd8458fabf1509b59",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "arbitrum": 32.58,
-        "base": 3304.48
-      },
-      "total": 3337.06
+      "total": 3202.0
     },
     {
       "address": "0x9e0facf0ff7311a441de25952a667b4b33288b5f",
@@ -6976,6 +6946,15 @@
       "total": 2457.0
     },
     {
+      "address": "0x52c3dbd8f9f689315d39d8627f378bc3af4b2b3f",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "polygon": 2392.32
+      },
+      "total": 2392.32
+    },
+    {
       "address": "0xb0705001a29d78777213ee4668d778fb5b48bd29",
       "label": "",
       "type": "WALLET",
@@ -6983,15 +6962,6 @@
         "avalanche": 2381.7
       },
       "total": 2381.7
-    },
-    {
-      "address": "0x52c3dbd8f9f689315d39d8627f378bc3af4b2b3f",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "polygon": 2319.42
-      },
-      "total": 2319.42
     },
     {
       "address": "0xa6aced84e768e1712d2f621896714925e9e45e91",
@@ -7082,6 +7052,15 @@
         "avalanche": 1852.37
       },
       "total": 1852.37
+    },
+    {
+      "address": "0xff8a035ea6c80673f741c2265985ed976a40d390",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "ethereum": 1837.23
+      },
+      "total": 1837.23
     },
     {
       "address": "0x844afc92715fc04d0dc920b0ca2f31b9963af6aa",
@@ -7256,6 +7235,16 @@
         "avalanche": 1083.7
       },
       "total": 1083.7
+    },
+    {
+      "address": "0x24d2603ab09d57b1e98c433b0022dd5d21073c60",
+      "label": "",
+      "type": "WALLET",
+      "balances": {
+        "base": 317.98,
+        "polygon": 730.45
+      },
+      "total": 1048.43
     },
     {
       "address": "0x040c795be9ebf3b561abcd7fbc1d0b1445020b99",
@@ -7445,15 +7434,6 @@
         "polygon": 757.37
       },
       "total": 757.37
-    },
-    {
-      "address": "0x24d2603ab09d57b1e98c433b0022dd5d21073c60",
-      "label": "",
-      "type": "WALLET",
-      "balances": {
-        "polygon": 730.45
-      },
-      "total": 730.45
     },
     {
       "address": "0xaa12035d31cff79f93b4a0e6863305e89df40a8c",
