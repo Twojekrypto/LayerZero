@@ -362,6 +362,8 @@ test('holders_multichain stays aligned with snapshot metadata for tracked holder
 });
 
 test('github workflows normalize snapshots after mutating dashboard data', () => {
+  assert.match(fullWorkflow, /Set up Node\.js/);
+  assert.match(fullWorkflow, /actions\/setup-node@v4/);
   assert.match(fullWorkflow, /Backfill fresh wallet metadata/);
   assert.match(fullWorkflow, /Normalize dashboard snapshot/);
   assert.match(fullWorkflow, /python sanitize_zro_data\.py --fail-on-anomaly/);
@@ -369,6 +371,8 @@ test('github workflows normalize snapshots after mutating dashboard data', () =>
   assert.match(fullWorkflow, /python verify_palace_rules\.py/);
   assert.match(fullWorkflow, /Run dashboard smoke tests/);
   assert.match(fullWorkflow, /npm test/);
+  assert.match(hourlyWorkflow, /Set up Node\.js/);
+  assert.match(hourlyWorkflow, /actions\/setup-node@v4/);
   assert.match(hourlyWorkflow, /Backfill fresh metadata/);
   assert.match(hourlyWorkflow, /Normalize dashboard snapshot/);
   assert.match(hourlyWorkflow, /python sanitize_zro_data\.py --fail-on-anomaly/);
@@ -378,6 +382,13 @@ test('github workflows normalize snapshots after mutating dashboard data', () =>
   assert.match(hourlyWorkflow, /npm test/);
   assert.match(hourlyWorkflow, /git diff --quiet zro_data\.json holders_multichain\.json/);
   assert.match(hourlyWorkflow, /git add zro_data\.json holders_multichain\.json/);
+});
+
+test('sanitize fail-on-anomaly only fails on remaining integrity issues', () => {
+  assert.match(sanitizeEntrypoint, /remaining_integrity_issues/);
+  assert.match(sanitizeEntrypoint, /fresh_wallets_missing_created/);
+  assert.match(sanitizeEntrypoint, /fresh_wallets_missing_last_flow/);
+  assert.doesNotMatch(sanitizeEntrypoint, /if args\.fail_on_anomaly and \(duplicate_records_removed > 0 or anomaly_count > 0\)/);
 });
 
 test('app.js anchors relative filters and labels to the snapshot timestamp', () => {

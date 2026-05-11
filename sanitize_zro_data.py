@@ -789,7 +789,13 @@ def main():
         sync_holders_multichain_snapshot(data, normalized_at)
         print(f"   Saved: {DATA_PATH}")
 
-    if args.fail_on_anomaly and (duplicate_records_removed > 0 or anomaly_count > 0):
+    remaining_integrity_issues = (
+        anomaly_count > 0
+        or integrity["fresh_wallets_missing_created"] > 0
+        or integrity["fresh_wallets_missing_last_flow"] > 0
+    )
+
+    if args.fail_on_anomaly and remaining_integrity_issues:
         return 1
     return 0
 
