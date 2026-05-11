@@ -364,10 +364,20 @@ test('holders_multichain stays aligned with snapshot metadata for tracked holder
 test('github workflows normalize snapshots after mutating dashboard data', () => {
   assert.match(fullWorkflow, /Backfill fresh wallet metadata/);
   assert.match(fullWorkflow, /Normalize dashboard snapshot/);
-  assert.match(fullWorkflow, /python sanitize_zro_data\.py/);
+  assert.match(fullWorkflow, /python sanitize_zro_data\.py --fail-on-anomaly/);
+  assert.match(fullWorkflow, /Verify normalized snapshot/);
+  assert.match(fullWorkflow, /python verify_palace_rules\.py/);
+  assert.match(fullWorkflow, /Run dashboard smoke tests/);
+  assert.match(fullWorkflow, /npm test/);
   assert.match(hourlyWorkflow, /Backfill fresh metadata/);
   assert.match(hourlyWorkflow, /Normalize dashboard snapshot/);
-  assert.match(hourlyWorkflow, /python sanitize_zro_data\.py/);
+  assert.match(hourlyWorkflow, /python sanitize_zro_data\.py --fail-on-anomaly/);
+  assert.match(hourlyWorkflow, /Verify normalized snapshot/);
+  assert.match(hourlyWorkflow, /python verify_palace_rules\.py/);
+  assert.match(hourlyWorkflow, /Run dashboard smoke tests/);
+  assert.match(hourlyWorkflow, /npm test/);
+  assert.match(hourlyWorkflow, /git diff --quiet zro_data\.json holders_multichain\.json/);
+  assert.match(hourlyWorkflow, /git add zro_data\.json holders_multichain\.json/);
 });
 
 test('app.js anchors relative filters and labels to the snapshot timestamp', () => {

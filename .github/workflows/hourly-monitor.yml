@@ -72,13 +72,19 @@ jobs:
         run: python monitor_whale_transfers.py
 
       - name: Normalize dashboard snapshot
-        run: python sanitize_zro_data.py
+        run: python sanitize_zro_data.py --fail-on-anomaly
+
+      - name: Verify normalized snapshot
+        run: python verify_palace_rules.py
+
+      - name: Run dashboard smoke tests
+        run: npm test
 
       # --- Commit all changes in one push ---
       - name: Check for changes
         id: changes
         run: |
-          git diff --quiet zro_data.json cb_monitor_state.json fresh_cache.json whale_monitor_state.json 2>/dev/null && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
+          git diff --quiet zro_data.json holders_multichain.json cb_monitor_state.json fresh_cache.json whale_monitor_state.json 2>/dev/null && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Commit and push
         if: steps.changes.outputs.changed == 'true'
@@ -86,7 +92,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git fetch origin master
-          git add zro_data.json cb_monitor_state.json fresh_cache.json whale_monitor_state.json
+          git add zro_data.json holders_multichain.json cb_monitor_state.json fresh_cache.json whale_monitor_state.json
           git diff --cached --quiet && echo "No staged changes after refresh" && exit 0
           git commit -m "🔄 Hourly monitor $(date -u +'%Y-%m-%d %H:%M UTC')"
           git rebase -X theirs origin/master

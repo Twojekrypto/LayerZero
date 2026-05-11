@@ -79,7 +79,13 @@ jobs:
         run: python auto_label.py
 
       - name: Normalize dashboard snapshot
-        run: python sanitize_zro_data.py
+        run: python sanitize_zro_data.py --fail-on-anomaly
+
+      - name: Verify normalized snapshot
+        run: python verify_palace_rules.py
+
+      - name: Run dashboard smoke tests
+        run: npm test
 
       - name: Check for changes
         id: changes
