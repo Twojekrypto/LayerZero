@@ -8,6 +8,7 @@ const indexHtml = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
 const appJs = fs.readFileSync(path.join(rootDir, 'app.js'), 'utf8');
 const styleCss = fs.readFileSync(path.join(rootDir, 'style.css'), 'utf8');
 const dashboardData = JSON.parse(fs.readFileSync(path.join(rootDir, 'zro_data.json'), 'utf8'));
+const holdersMultichain = JSON.parse(fs.readFileSync(path.join(rootDir, 'holders_multichain.json'), 'utf8'));
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
 const refreshEntrypoint = fs.readFileSync(path.join(rootDir, 'refresh_dashboard_data.py'), 'utf8');
 const sanitizeEntrypoint = fs.readFileSync(path.join(rootDir, 'sanitize_zro_data.py'), 'utf8');
@@ -20,6 +21,8 @@ const cexRegistry = fs.readFileSync(path.join(rootDir, 'cex_addresses.py'), 'utf
 const autoLabelEntrypoint = fs.readFileSync(path.join(rootDir, 'auto_label.py'), 'utf8');
 const cbMonitorEntrypoint = fs.readFileSync(path.join(rootDir, 'monitor_cb_prime.py'), 'utf8');
 const whaleMonitorEntrypoint = fs.readFileSync(path.join(rootDir, 'monitor_whale_transfers.py'), 'utf8');
+const hourlyWorkflow = fs.readFileSync(path.join(rootDir, '.github/workflows/hourly-monitor.yml'), 'utf8');
+const fullWorkflow = fs.readFileSync(path.join(rootDir, '.github/workflows/update-data.yml'), 'utf8');
 
 function extractIds(html) {
   const ids = [];
@@ -73,6 +76,7 @@ test('repo exposes one-command local refresh entrypoints', () => {
   assert.match(sanitizeEntrypoint, /duplicate_holder_records_removed/);
   assert.match(sanitizeEntrypoint, /chain_balance_anomalies/);
   assert.match(updateDataEntrypoint, /sync_chain_snapshot_supply/);
+  assert.match(updateDataEntrypoint, /sync_holders_multichain_metadata/);
   assert.match(updateDataEntrypoint, /supply_source/);
   assert.match(updateDataEntrypoint, /indexed_holder_snapshot/);
 });
@@ -293,6 +297,22 @@ test('snapshot data remains internally consistent', () => {
     assert.ok(dashboardData.flows[period], `missing flow period ${period}`);
     assert.ok(Array.isArray(dashboardData.flows[period].accumulators), `missing accumulators for ${period}`);
     assert.ok(Array.isArray(dashboardData.flows[period].sellers), `missing sellers for ${period}`);
+    const diagnostics = dashboardData.meta.integrity.flow_diagnostics?.[period];
+    assert.ok(diagnostics, `missing flow diagnostics for ${period}`);
+    const unresolvedRows =
+      dashboardData.flows[period].accumulators.filter((item) => item.chain_unresolved).length +
+      dashboardData.flows[period].sellers.filter((item) => item.chain_unresolved).length;
+    assert.equal(unresolvedRows, diagnostics.chain_unresolved_rows, `flow diagnostics should match unresolved row count in ${period}`);
+    assert.equal(
+      dashboardData.flows[period].accumulators.length,
+      diagnostics.normalized_accumulators,
+      `flow diagnostics should match accumulator count in ${period}`,
+    );
+    assert.equal(
+      dashboardData.flows[period].sellers.length,
+      diagnostics.normalized_sellers,
+      `flow diagnostics should match seller count in ${period}`,
+    );
     for (const item of dashboardData.flows[period].accumulators) {
       assert.ok(typeof item.address === 'string' && item.address.startsWith('0x'), `accumulator should expose address in ${period}`);
       assert.ok(Number(item.net_flow || 0) > 0, `accumulator should keep positive net flow in ${period}`);
@@ -311,6 +331,11 @@ test('snapshot data remains internally consistent', () => {
   }
 
   const whaleEventIds = new Set();
+  assert.equal(
+    dashboardData.whale_transfers.length,
+    dashboardData.meta.integrity.whale_transfer_diagnostics.normalized_rows,
+    'whale transfer diagnostics should match the visible whale row count',
+  );
   for (const transfer of dashboardData.whale_transfers) {
     assert.ok(Number(transfer.value) >= 100000, 'whale transfers should stay above the minimum threshold');
     const eventId = transfer.event_id || `${transfer.tx_hash}:${transfer.from}:${transfer.to}:${transfer.timestamp}:${transfer.type}`;
@@ -320,6 +345,29 @@ test('snapshot data remains internally consistent', () => {
       assert.notEqual(transfer.from_label, transfer.to_label, 'CEX withdrawal rows should not be pure CEX-to-CEX relabels');
     }
   }
+});
+
+test('holders_multichain stays aligned with snapshot metadata for tracked holders', () => {
+  const sourceMap = new Map(
+    holdersMultichain.holders.map((holder) => [holder.address.toLowerCase(), holder]),
+  );
+
+  for (const holder of dashboardData.top_holders) {
+    const sourceHolder = sourceMap.get(holder.address.toLowerCase());
+    assert.ok(sourceHolder, `holders_multichain should include tracked holder ${holder.address}`);
+    assert.equal(sourceHolder.label || '', holder.label || '', `source label should match snapshot for ${holder.address}`);
+    assert.equal(sourceHolder.type || '', holder.type || '', `source type should match snapshot for ${holder.address}`);
+    assert.equal(Boolean(sourceHolder.label_manual), Boolean(holder.label_manual), `source manual label flag should match snapshot for ${holder.address}`);
+  }
+});
+
+test('github workflows normalize snapshots after mutating dashboard data', () => {
+  assert.match(fullWorkflow, /Backfill fresh wallet metadata/);
+  assert.match(fullWorkflow, /Normalize dashboard snapshot/);
+  assert.match(fullWorkflow, /python sanitize_zro_data\.py/);
+  assert.match(hourlyWorkflow, /Backfill fresh metadata/);
+  assert.match(hourlyWorkflow, /Normalize dashboard snapshot/);
+  assert.match(hourlyWorkflow, /python sanitize_zro_data\.py/);
 });
 
 test('app.js anchors relative filters and labels to the snapshot timestamp', () => {

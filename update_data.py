@@ -30,7 +30,8 @@ def sync_chain_snapshot_supply(existing, chain_stats, holders, synced_at):
     holder_totals = compute_holder_chain_balances(holders)
     chains = existing.get("chains", {})
     for chain_key, chain_config in chains.items():
-        tracked_supply = float((chain_stats.get(chain_key) or {}).get("tracked_balance_gt10") or holder_totals.get(chain_key) or 0)
+        stats_tracked_supply = float((chain_stats.get(chain_key) or {}).get("tracked_balance_gt10") or 0)
+        tracked_supply = max(stats_tracked_supply, float(holder_totals.get(chain_key) or 0))
         if chain_config.get("reference_supply") in (None, "") and chain_config.get("supply") not in (None, ""):
             chain_config["reference_supply"] = chain_config.get("supply")
         if chain_config.get("reference_verified_date") in (None, "") and chain_config.get("verified_date"):
@@ -89,6 +90,62 @@ def apply_preserved_metadata(entry, preserved):
         entry["type"] = "FRESH"
         entry["fresh"] = True
         entry["label_manual"] = True
+
+
+def sync_holders_multichain_metadata(source_data, snapshot_holders):
+    """Keep holders_multichain.json aligned with the canonical dashboard snapshot metadata."""
+    holder_map = {holder["address"].lower(): holder for holder in snapshot_holders}
+    synced = 0
+
+    for holder in source_data.get("holders", []):
+        addr = holder.get("address", "").lower()
+        if not addr or addr not in holder_map:
+            continue
+
+        snapshot_holder = holder_map[addr]
+        holder["label"] = snapshot_holder.get("label", "") or ""
+        holder["type"] = snapshot_holder.get("type", "") or "WALLET"
+
+        for key in (
+            "funded_by",
+            "fresh",
+            "label_manual",
+            "fresh_profile",
+            "fresh_profile_label",
+            "fresh_profile_reason",
+            "fresh_signal",
+            "fresh_signal_label",
+            "fresh_signal_score",
+            "fresh_retention_ratio",
+            "fresh_net_accumulation",
+            "fresh_total_in_value",
+            "fresh_total_out_value",
+            "fresh_total_in_count",
+            "fresh_total_out_count",
+            "fresh_outbound_counterparties",
+            "fresh_outbound_ratio",
+            "fresh_cex_outbound_ratio",
+            "fresh_cex_score",
+            "fresh_cex_in_count",
+            "fresh_cex_out_count",
+            "fresh_cex_touch_count",
+            "fresh_cex_in_value",
+            "fresh_cex_out_value",
+            "wallet_created",
+            "last_flow",
+            "last_flow_amount",
+            "cb_first_funded",
+            "cb_last_funded",
+            "cb_total_received",
+            "cb_last_flow_amount",
+        ):
+            if snapshot_holder.get(key) is not None:
+                holder[key] = snapshot_holder[key]
+            elif key in holder:
+                holder.pop(key, None)
+        synced += 1
+
+    return synced
 
 def main():
     holders_path = os.path.join(DIR, "holders_multichain.json")
@@ -283,10 +340,13 @@ def main():
             return
 
     save_json(data_path, existing)
+    synced_count = sync_holders_multichain_metadata(fresh, new_holders)
+    save_json(holders_path, fresh)
 
     print(f"✅ Updated zro_data.json")
     print(f"   Holders: {len(new_holders)}")
     print(f"   Labeled: {new_labeled}")
+    print(f"   Synced source metadata: {synced_count}")
     print(f"   Generated: {existing['meta']['generated']}")
     if not warnings and not errors:
         print(f"   ✅ All validation checks passed")

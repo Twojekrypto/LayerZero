@@ -5,17 +5,25 @@ Shared utilities for ZRO Dashboard scripts.
 - Common HTTP fetch with retry
 - Etherscan API key management with automatic fallback
 """
-import json, os, re, time
+import json, os, re, tempfile, time
 from urllib.request import urlopen, Request
 
 
 def atomic_json_dump(data, path, indent=2):
     """Write JSON atomically: write to .tmp then rename.
     If process crashes mid-write, the original file stays intact."""
-    tmp_path = path + ".tmp"
-    with open(tmp_path, "w") as f:
-        json.dump(data, f, indent=indent)
-    os.replace(tmp_path, path)
+    path = os.fspath(path)
+    dir_path = os.path.dirname(path) or "."
+    fd, tmp_path = tempfile.mkstemp(prefix=".tmp-json-", suffix=".json", dir=dir_path)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=indent)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp_path, path)
+    finally:
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
 
 
 # --- Etherscan API key fallback ---

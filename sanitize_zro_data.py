@@ -24,6 +24,7 @@ from utils import atomic_json_dump
 DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(DIR, "zro_data.json")
 FRESH_CACHE_PATH = os.path.join(DIR, "fresh_cache.json")
+HOLDERS_PATH = os.path.join(DIR, "holders_multichain.json")
 
 METADATA_KEYS = (
     "label",
@@ -691,6 +692,51 @@ def build_integrity_report(data, duplicate_records_removed, flow_summary, whale_
     return integrity
 
 
+def sync_chain_snapshot_supply(data, synced_at):
+    chain_totals = {chain: 0 for chain in data.get("chains", {})}
+    for holder in data.get("top_holders", []):
+        for chain, value in (holder.get("balances") or {}).items():
+            if chain in chain_totals:
+                chain_totals[chain] += float(value or 0)
+
+    for chain_key, tracked_total in chain_totals.items():
+        if tracked_total <= 0:
+            continue
+        chain_config = data.get("chains", {}).get(chain_key)
+        if not chain_config:
+            continue
+        if chain_config.get("reference_supply") in (None, "") and chain_config.get("supply") not in (None, ""):
+            chain_config["reference_supply"] = chain_config.get("supply")
+        if chain_config.get("reference_verified_date") in (None, "") and chain_config.get("verified_date"):
+            chain_config["reference_verified_date"] = chain_config.get("verified_date")
+        chain_config["supply"] = round(tracked_total, 2)
+        chain_config["supply_source"] = "indexed_holder_snapshot"
+        chain_config["supply_synced_at"] = synced_at
+
+
+def sync_holders_multichain_snapshot(data, synced_at):
+    source_data = load_json(HOLDERS_PATH) if os.path.exists(HOLDERS_PATH) else {}
+    source_data["generated"] = synced_at
+    source_data["total_holders"] = len(data.get("top_holders", []))
+    source_data["holders"] = []
+
+    for holder in data.get("top_holders", []):
+        entry = {
+            "address": holder["address"].lower(),
+            "label": holder.get("label", "") or "",
+            "type": holder.get("type", "") or "",
+            "balances": holder.get("balances", {}),
+            "total": round(holder_total(holder), 2),
+        }
+        for key in METADATA_KEYS:
+            if holder.get(key) is not None:
+                entry[key] = holder[key]
+        source_data["holders"].append(entry)
+
+    source_data["holders"].sort(key=lambda holder: float(holder.get("total") or 0), reverse=True)
+    atomic_json_dump(source_data, HOLDERS_PATH)
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Normalize local zro_data.json.")
     parser.add_argument("--check", action="store_true", help="Validate and print diagnostics without writing the file.")
@@ -706,9 +752,11 @@ def main():
     args = parse_args()
     data = load_json(DATA_PATH)
     fresh_cache = load_json(FRESH_CACHE_PATH) if os.path.exists(FRESH_CACHE_PATH) else {}
+    normalized_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
     deduped_holders, duplicate_records_removed = normalize_holders(data, fresh_cache)
     data["top_holders"] = deduped_holders
+    sync_chain_snapshot_supply(data, normalized_at)
     flow_summary = normalize_flows(data)
     whale_summary = normalize_whale_transfers(data)
     data.setdefault("meta", {})
@@ -738,6 +786,7 @@ def main():
 
     if not args.check:
         atomic_json_dump(data, DATA_PATH)
+        sync_holders_multichain_snapshot(data, normalized_at)
         print(f"   Saved: {DATA_PATH}")
 
     if args.fail_on_anomaly and (duplicate_records_removed > 0 or anomaly_count > 0):
