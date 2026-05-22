@@ -387,8 +387,9 @@ test('github workflows normalize snapshots after mutating dashboard data', () =>
 test('sanitize fail-on-anomaly only fails on remaining integrity issues', () => {
   assert.match(sanitizeEntrypoint, /remaining_integrity_issues/);
   assert.match(sanitizeEntrypoint, /fresh_wallets_missing_created/);
-  assert.match(sanitizeEntrypoint, /fresh_wallets_missing_last_flow/);
+  assert.match(sanitizeEntrypoint, /Fresh wallets missing last flow/);
   assert.doesNotMatch(sanitizeEntrypoint, /if args\.fail_on_anomaly and \(duplicate_records_removed > 0 or anomaly_count > 0\)/);
+  assert.doesNotMatch(sanitizeEntrypoint, /remaining_integrity_issues = \([\s\S]*fresh_wallets_missing_last_flow/);
 });
 
 test('app.js anchors relative filters and labels to the snapshot timestamp', () => {

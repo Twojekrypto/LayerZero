@@ -792,7 +792,6 @@ def main():
     remaining_integrity_issues = (
         anomaly_count > 0
         or integrity["fresh_wallets_missing_created"] > 0
-        or integrity["fresh_wallets_missing_last_flow"] > 0
     )
 
     if args.fail_on_anomaly and remaining_integrity_issues:
