@@ -17,14 +17,14 @@
     "cross_chain_stablecoin_share": 71,
     "oft_count": 750,
     "integrity": {
-      "normalized_at": "2026-05-22T21:53:38Z",
+      "normalized_at": "2026-05-23T06:54:23Z",
       "duplicate_holder_records_removed": 0,
       "fresh_wallets_missing_created": 0,
       "fresh_wallets_missing_last_flow": 1,
       "tracked_chain_balances": {
-        "ethereum": 939484875.9799997,
-        "arbitrum": 18254793.14,
-        "base": 5154850.73,
+        "ethereum": 938098289.9799997,
+        "arbitrum": 18253295.85000001,
+        "base": 5151779.42,
         "bsc": 4945228.06,
         "optimism": 3453090.63,
         "polygon": 2356948.86,
@@ -33,85 +33,85 @@
       "chain_balance_anomalies": [],
       "flow_diagnostics": {
         "1d": {
-          "raw_accumulators": 9,
-          "raw_sellers": 15,
+          "raw_accumulators": 8,
+          "raw_sellers": 13,
           "excluded_untracked": 0,
           "excluded_infrastructure": 0,
           "excluded_zero_balance": 0,
           "excluded_low_retention": 0,
           "excluded_low_signal": 0,
           "chain_unresolved_rows": 0,
-          "normalized_accumulators": 9,
-          "normalized_sellers": 15
+          "normalized_accumulators": 8,
+          "normalized_sellers": 13
         },
         "7d": {
-          "raw_accumulators": 38,
-          "raw_sellers": 34,
+          "raw_accumulators": 37,
+          "raw_sellers": 32,
           "excluded_untracked": 0,
           "excluded_infrastructure": 0,
           "excluded_zero_balance": 0,
           "excluded_low_retention": 0,
           "excluded_low_signal": 0,
           "chain_unresolved_rows": 0,
-          "normalized_accumulators": 38,
-          "normalized_sellers": 34
+          "normalized_accumulators": 37,
+          "normalized_sellers": 32
         },
         "30d": {
-          "raw_accumulators": 79,
-          "raw_sellers": 54,
+          "raw_accumulators": 78,
+          "raw_sellers": 52,
           "excluded_untracked": 0,
           "excluded_infrastructure": 0,
           "excluded_zero_balance": 0,
           "excluded_low_retention": 0,
           "excluded_low_signal": 0,
           "chain_unresolved_rows": 0,
-          "normalized_accumulators": 79,
-          "normalized_sellers": 54
+          "normalized_accumulators": 78,
+          "normalized_sellers": 52
         },
         "90d": {
-          "raw_accumulators": 136,
-          "raw_sellers": 74,
+          "raw_accumulators": 135,
+          "raw_sellers": 72,
           "excluded_untracked": 0,
           "excluded_infrastructure": 0,
           "excluded_zero_balance": 0,
           "excluded_low_retention": 0,
           "excluded_low_signal": 0,
           "chain_unresolved_rows": 44,
-          "normalized_accumulators": 136,
-          "normalized_sellers": 74
+          "normalized_accumulators": 135,
+          "normalized_sellers": 72
         },
         "180d": {
-          "raw_accumulators": 185,
-          "raw_sellers": 89,
+          "raw_accumulators": 183,
+          "raw_sellers": 88,
           "excluded_untracked": 0,
           "excluded_infrastructure": 0,
           "excluded_zero_balance": 0,
           "excluded_low_retention": 0,
           "excluded_low_signal": 0,
           "chain_unresolved_rows": 94,
-          "normalized_accumulators": 184,
-          "normalized_sellers": 90
+          "normalized_accumulators": 183,
+          "normalized_sellers": 88
         },
         "all": {
-          "raw_accumulators": 330,
+          "raw_accumulators": 326,
           "raw_sellers": 46,
-          "excluded_untracked": 1,
+          "excluded_untracked": 0,
           "excluded_infrastructure": 0,
           "excluded_zero_balance": 0,
           "excluded_low_retention": 0,
           "excluded_low_signal": 0,
-          "chain_unresolved_rows": 190,
-          "normalized_accumulators": 329,
+          "chain_unresolved_rows": 189,
+          "normalized_accumulators": 326,
           "normalized_sellers": 46
         }
       },
       "whale_transfer_diagnostics": {
         "raw_rows": 199,
         "deduplicated_rows": 0,
-        "removed_cex_to_cex": 0,
-        "reclassified_rows": 0,
+        "removed_cex_to_cex": 5,
+        "reclassified_rows": 27,
         "removed_below_threshold": 0,
-        "normalized_rows": 199
+        "normalized_rows": 194
       }
     }
   },
@@ -380,7 +380,7 @@
       "name": "Ethereum",
       "short": "ETH",
       "color": "#627EEA",
-      "supply": 939484875.98,
+      "supply": 938098289.98,
       "holders": 697,
       "explorer": "https://etherscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
@@ -388,13 +388,13 @@
       "reference_supply": 950798277,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-05-22T21:53:37Z"
+      "supply_synced_at": "2026-05-23T06:54:23Z"
     },
     "arbitrum": {
       "name": "Arbitrum",
       "short": "ARB",
       "color": "#28A0F0",
-      "supply": 18254793.14,
+      "supply": 18253295.85,
       "holders": 400,
       "explorer": "https://arbiscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
@@ -402,7 +402,7 @@
       "reference_supply": 28465056,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-05-22T21:53:37Z"
+      "supply_synced_at": "2026-05-23T06:54:23Z"
     },
     "base": {
       "name": "Base",
@@ -416,7 +416,7 @@
       "reference_supply": 6496063,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-05-22T21:53:37Z"
+      "supply_synced_at": "2026-05-23T06:54:23Z"
     },
     "bsc": {
       "name": "BNB Chain",
@@ -430,7 +430,7 @@
       "reference_supply": 5721542,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-05-22T21:53:37Z"
+      "supply_synced_at": "2026-05-23T06:54:23Z"
     },
     "optimism": {
       "name": "Optimism",
@@ -444,7 +444,7 @@
       "reference_supply": 4956100,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-05-22T21:53:37Z"
+      "supply_synced_at": "2026-05-23T06:54:23Z"
     },
     "polygon": {
       "name": "Polygon",
@@ -458,7 +458,7 @@
       "reference_supply": 2487403,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-05-22T21:53:37Z"
+      "supply_synced_at": "2026-05-23T06:54:23Z"
     },
     "avalanche": {
       "name": "Avalanche",
@@ -472,7 +472,7 @@
       "reference_supply": 1075559,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-05-22T21:53:37Z"
+      "supply_synced_at": "2026-05-23T06:54:23Z"
     }
   },
   "top_holders": [
@@ -557,14 +557,6 @@
         "ethereum": 22500000.0
       },
       "label": "ZRO Multisig",
-      "type": "MULTISIG"
-    },
-    {
-      "address": "0x806f68bb6ce8f3100d4745c8b13b36e4f40d8431",
-      "balances": {
-        "ethereum": 22500000.0
-      },
-      "label": "LayerZero: ZRO Multisig",
       "type": "MULTISIG"
     },
     {
@@ -7901,25 +7893,6 @@
           "flow_score": 17347.52
         },
         {
-          "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-          "label": "",
-          "type": "",
-          "net_flow": 6811,
-          "balance": 258211,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 26852,
-          "total_out": 20041,
-          "retention_ratio": 9.6161,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "accumulation_source": "external_inflow",
-          "accumulation_source_label": "External inflow",
-          "flow_score": 12978.03
-        },
-        {
           "address": "0x2b3bf74b29f59fb8dda41cf3d6a8da28cf8e7921",
           "label": "",
           "type": "",
@@ -8016,26 +7989,6 @@
           "flow_score": 393485.28
         },
         {
-          "address": "0xac18bca318291672b8b1eef53ffb1cec1051839c",
-          "label": "",
-          "type": "",
-          "net_flow": -40693,
-          "balance": 40693,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 40693,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 95628.55,
-          "flow_score": 95628.55
-        },
-        {
           "address": "0x9686d7a0d3c12db673bfa230de86d62525c3f6a6",
           "label": "",
           "type": "",
@@ -8054,26 +8007,6 @@
           "external_outflow_ratio": 0.0,
           "sell_pressure_score": 86664.5,
           "flow_score": 86664.5
-        },
-        {
-          "address": "0x9a3a033006972558d5adcf52fa3b7156298bcb14",
-          "label": "",
-          "type": "",
-          "net_flow": -41667,
-          "balance": 541666,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 41667,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 69071.18,
-          "flow_score": 69071.18
         },
         {
           "address": "0x0b620452265442831bf05051b742249d67d59d01",
@@ -8299,16 +8232,16 @@
         }
       ],
       "meta": {
-        "raw_accumulators": 9,
-        "raw_sellers": 15,
+        "raw_accumulators": 8,
+        "raw_sellers": 13,
         "excluded_untracked": 0,
         "excluded_infrastructure": 0,
         "excluded_zero_balance": 0,
         "excluded_low_retention": 0,
         "excluded_low_signal": 0,
         "chain_unresolved_rows": 0,
-        "normalized_accumulators": 9,
-        "normalized_sellers": 15
+        "normalized_accumulators": 8,
+        "normalized_sellers": 13
       }
     },
     "7d": {
@@ -8410,25 +8343,6 @@
           "accumulation_source": "coinbase_funded",
           "accumulation_source_label": "Coinbase funded",
           "flow_score": 377993.85
-        },
-        {
-          "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-          "label": "",
-          "type": "",
-          "net_flow": 108753,
-          "balance": 258211,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 341595,
-          "total_out": 232842,
-          "retention_ratio": 0.7559,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "accumulation_source": "external_inflow",
-          "accumulation_source_label": "External inflow",
-          "flow_score": 224538.79
         },
         {
           "address": "0x8325a046f03902b429ad67bb193fb8bb649eb39e",
@@ -9124,26 +9038,6 @@
           "flow_score": 105631.9
         },
         {
-          "address": "0xac18bca318291672b8b1eef53ffb1cec1051839c",
-          "label": "",
-          "type": "",
-          "net_flow": -40693,
-          "balance": 40693,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 40693,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 95628.55,
-          "flow_score": 95628.55
-        },
-        {
           "address": "0xc456e33ddf99c48e26e31120f32eae470e040ebd",
           "label": "",
           "type": "",
@@ -9164,26 +9058,6 @@
           "external_outflow_ratio": 0.9147,
           "sell_pressure_score": 70062.21,
           "flow_score": 70062.21
-        },
-        {
-          "address": "0x9a3a033006972558d5adcf52fa3b7156298bcb14",
-          "label": "",
-          "type": "",
-          "net_flow": -41667,
-          "balance": 541666,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 41667,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 69071.18,
-          "flow_score": 69071.18
         },
         {
           "address": "0xed75a50dbec8e459e1ca581a5b309bdee505ad2c",
@@ -9717,16 +9591,16 @@
         }
       ],
       "meta": {
-        "raw_accumulators": 38,
-        "raw_sellers": 34,
+        "raw_accumulators": 37,
+        "raw_sellers": 32,
         "excluded_untracked": 0,
         "excluded_infrastructure": 0,
         "excluded_zero_balance": 0,
         "excluded_low_retention": 0,
         "excluded_low_signal": 0,
         "chain_unresolved_rows": 0,
-        "normalized_accumulators": 38,
-        "normalized_sellers": 34
+        "normalized_accumulators": 37,
+        "normalized_sellers": 32
       }
     },
     "30d": {
@@ -10290,25 +10164,6 @@
           "accumulation_source": "external_inflow",
           "accumulation_source_label": "External inflow",
           "flow_score": 94249.93
-        },
-        {
-          "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-          "label": "",
-          "type": "",
-          "net_flow": 55804,
-          "balance": 258211,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 1630001,
-          "total_out": 1574197,
-          "retention_ratio": 0.1584,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "accumulation_source": "mixed_inflow",
-          "accumulation_source_label": "Mixed inflow",
-          "flow_score": 92889.34
         },
         {
           "address": "0x39511b204d02022b53a27fad6c83f0cf0f473b50",
@@ -11351,26 +11206,6 @@
           "flow_score": 267647.57
         },
         {
-          "address": "0x9a3a033006972558d5adcf52fa3b7156298bcb14",
-          "label": "",
-          "type": "",
-          "net_flow": -84000,
-          "balance": 541666,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 84000,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 165505.91,
-          "flow_score": 165505.91
-        },
-        {
           "address": "0xb2152c5b6a4667d2e26abd0fc843ef920e758289",
           "label": "",
           "type": "",
@@ -11453,26 +11288,6 @@
           "external_outflow_ratio": 0.0,
           "sell_pressure_score": 111856.8,
           "flow_score": 111856.8
-        },
-        {
-          "address": "0xac18bca318291672b8b1eef53ffb1cec1051839c",
-          "label": "",
-          "type": "",
-          "net_flow": -40693,
-          "balance": 40693,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 40693,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 95628.55,
-          "flow_score": 95628.55
         },
         {
           "address": "0xed75a50dbec8e459e1ca581a5b309bdee505ad2c",
@@ -12363,16 +12178,16 @@
         }
       ],
       "meta": {
-        "raw_accumulators": 79,
-        "raw_sellers": 54,
+        "raw_accumulators": 78,
+        "raw_sellers": 52,
         "excluded_untracked": 0,
         "excluded_infrastructure": 0,
         "excluded_zero_balance": 0,
         "excluded_low_retention": 0,
         "excluded_low_signal": 0,
         "chain_unresolved_rows": 0,
-        "normalized_accumulators": 79,
-        "normalized_sellers": 54
+        "normalized_accumulators": 78,
+        "normalized_sellers": 52
       }
     },
     "90d": {
@@ -13661,25 +13476,6 @@
           "accumulation_source": "cex_funded",
           "accumulation_source_label": "CEX funded",
           "flow_score": 118779.95
-        },
-        {
-          "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-          "label": "",
-          "type": "",
-          "net_flow": 72052,
-          "balance": 258211,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 9109251,
-          "total_out": 9037199,
-          "retention_ratio": 0.0283,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "accumulation_source": "external_inflow",
-          "accumulation_source_label": "External inflow",
-          "flow_score": 118111.63
         },
         {
           "address": "0x643a940bfa7e72a4734f1abff393ffaa9ae7de43",
@@ -15019,26 +14815,6 @@
           "flow_score": 392360.31
         },
         {
-          "address": "0x9a3a033006972558d5adcf52fa3b7156298bcb14",
-          "label": "",
-          "type": "",
-          "net_flow": -166667,
-          "balance": 541666,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 166667,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 391667.45,
-          "flow_score": 391667.45
-        },
-        {
           "address": "0xe5b4fa5c585549a0eeaacdbcb9e0ed0873d27f81",
           "label": "",
           "type": "",
@@ -15508,26 +15284,6 @@
           "external_outflow_ratio": 1.0,
           "sell_pressure_score": 96350.0,
           "flow_score": 96350.0
-        },
-        {
-          "address": "0xac18bca318291672b8b1eef53ffb1cec1051839c",
-          "label": "",
-          "type": "",
-          "net_flow": -40693,
-          "balance": 40693,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 40693,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 95628.55,
-          "flow_score": 95628.55
         },
         {
           "address": "0xde2a20c32f7ce30ab124c3a73a8b90b754214b23",
@@ -16314,16 +16070,16 @@
         }
       ],
       "meta": {
-        "raw_accumulators": 136,
-        "raw_sellers": 74,
+        "raw_accumulators": 135,
+        "raw_sellers": 72,
         "excluded_untracked": 0,
         "excluded_infrastructure": 0,
         "excluded_zero_balance": 0,
         "excluded_low_retention": 0,
         "excluded_low_signal": 0,
         "chain_unresolved_rows": 44,
-        "normalized_accumulators": 136,
-        "normalized_sellers": 74
+        "normalized_accumulators": 135,
+        "normalized_sellers": 72
       }
     },
     "180d": {
@@ -17499,25 +17255,6 @@
           "accumulation_source": "external_inflow",
           "accumulation_source_label": "External inflow",
           "flow_score": 253820.64
-        },
-        {
-          "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-          "label": "",
-          "type": "",
-          "net_flow": 149396,
-          "balance": 258211,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 24155163,
-          "total_out": 24005767,
-          "retention_ratio": 0.0107,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "accumulation_source": "external_inflow",
-          "accumulation_source_label": "External inflow",
-          "flow_score": 243836.18
         },
         {
           "address": "0xede7aa9de183dbc9bcc60221904815ce819e48e3",
@@ -19695,26 +19432,6 @@
           "flow_score": 1217802.9
         },
         {
-          "address": "0x9a3a033006972558d5adcf52fa3b7156298bcb14",
-          "label": "",
-          "type": "",
-          "net_flow": -250000,
-          "balance": 541666,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 250000,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 587500.0,
-          "flow_score": 587500.0
-        },
-        {
           "address": "0xe5b4fa5c585549a0eeaacdbcb9e0ed0873d27f81",
           "label": "",
           "type": "",
@@ -20582,26 +20299,6 @@
           "flow_score": 97912.75
         },
         {
-          "address": "0xac18bca318291672b8b1eef53ffb1cec1051839c",
-          "label": "",
-          "type": "",
-          "net_flow": -40693,
-          "balance": 40693,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 40693,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 95628.55,
-          "flow_score": 95628.55
-        },
-        {
           "address": "0xb228b184846c1893559fb692bfe67c5960e4925a",
           "label": "",
           "type": "",
@@ -21337,16 +21034,16 @@
         }
       ],
       "meta": {
-        "raw_accumulators": 185,
-        "raw_sellers": 89,
+        "raw_accumulators": 183,
+        "raw_sellers": 88,
         "excluded_untracked": 0,
         "excluded_infrastructure": 0,
         "excluded_zero_balance": 0,
         "excluded_low_retention": 0,
         "excluded_low_signal": 0,
         "chain_unresolved_rows": 94,
-        "normalized_accumulators": 184,
-        "normalized_sellers": 90
+        "normalized_accumulators": 183,
+        "normalized_sellers": 88
       }
     },
     "all": {
@@ -22377,25 +22074,6 @@
           "accumulation_source": "cex_funded",
           "accumulation_source_label": "CEX funded",
           "flow_score": 1238429.18
-        },
-        {
-          "address": "0x9a3a033006972558d5adcf52fa3b7156298bcb14",
-          "label": "",
-          "type": "",
-          "net_flow": 541667,
-          "balance": 541666,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 1000000,
-          "total_out": 458333,
-          "retention_ratio": 0.5417,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "accumulation_source": "strategic_inflow",
-          "accumulation_source_label": "Strategic inflow",
-          "flow_score": 1171361.31
         },
         {
           "address": "0x89f7fa8b22b09dd00ed7e221ba2e90e14b8531cf",
@@ -23792,25 +23470,6 @@
           "accumulation_source": "holder_built",
           "accumulation_source_label": "Holder-built",
           "flow_score": 249372.97
-        },
-        {
-          "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-          "label": "",
-          "type": "",
-          "net_flow": 149396,
-          "balance": 258211,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 24155163,
-          "total_out": 24005767,
-          "retention_ratio": 0.0107,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "accumulation_source": "external_inflow",
-          "accumulation_source_label": "External inflow",
-          "flow_score": 243836.18
         },
         {
           "address": "0x5ac8b49a6505a681c6d5896c96515ee67ee27e73",
@@ -27858,15 +27517,15 @@
         }
       ],
       "meta": {
-        "raw_accumulators": 330,
+        "raw_accumulators": 326,
         "raw_sellers": 46,
-        "excluded_untracked": 1,
+        "excluded_untracked": 0,
         "excluded_infrastructure": 0,
         "excluded_zero_balance": 0,
         "excluded_low_retention": 0,
         "excluded_low_signal": 0,
-        "chain_unresolved_rows": 190,
-        "normalized_accumulators": 329,
+        "chain_unresolved_rows": 189,
+        "normalized_accumulators": 326,
         "normalized_sellers": 46
       }
     }
@@ -33274,7 +32933,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 669810.65,
       "timestamp": 1774391831,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xbd6b155f0315bd9498b5098e39588732d441c003e57d2fcea730e985a87632f3:0x8fda775a324a0970135b054a7df649342a9a7f17:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:1774391831:CEX_DEPOSIT"
@@ -33379,17 +33038,6 @@
       "event_id": "0xa91825549a9df43aaf236873622631e492c26aef75b2d2ba7950350653f5bfab:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xc456e33ddf99c48e26e31120f32eae470e040ebd:1774508555:CEX_WITHDRAWAL"
     },
     {
-      "tx_hash": "0x9c91b4d5c66e79c0999abbc7728306f02afbf0bfeb0de9004e9919b804390356",
-      "from": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
-      "to": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-      "value": 150000.0,
-      "timestamp": 1774508567,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Upbit",
-      "to_label": "0xf375\u20269d59",
-      "event_id": "0x9c91b4d5c66e79c0999abbc7728306f02afbf0bfeb0de9004e9919b804390356:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xf37594875f33a004df690bcbb65ee432b0959d59:1774508567:CEX_WITHDRAWAL"
-    },
-    {
       "tx_hash": "0x101d118d7008049772a09b998ba7650c26a33ef86c3320bfc25b196520469571",
       "from": "0x5dc96a992cc2314361a56e2c6e378bb76a0430c3",
       "to": "0x116611c49540883503e113337dd0f78333caea0d",
@@ -33483,7 +33131,7 @@
       "to": "0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2",
       "value": 268062.0,
       "timestamp": 1774903931,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0x84b3\u2026da15",
       "to_label": "Exchange/Bot",
       "event_id": "0x5c111696b687f52c45da12677f91bba63fa3775388879bc92ddba5ead1b24655:0x84b38bc60f3bd82640ecefa320dab2be62e2da15:0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2:1774903931:TRANSFER"
@@ -33604,7 +33252,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 100958.23,
       "timestamp": 1775399591,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x5004083cb88d5b946d2045826591edfde1280289b4caefcd944cb03de98414a5:0x8fda775a324a0970135b054a7df649342a9a7f17:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:1775399591:CEX_DEPOSIT"
@@ -33720,17 +33368,6 @@
       "event_id": "0x5a90a05c506e19bd49a5ba1954fde08bd7ae258527e8bcaab2372475630d63b5:0x58edf78281334335effa23101bbe3371b6a36a51:0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23:1776556139:CEX_DEPOSIT"
     },
     {
-      "tx_hash": "0x75ef9cba1df3c34d184496f1d1dd606e57e9788c72eb27ee01f1511ea88817c8",
-      "from": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-      "to": "0x63be42b40816eb08f6ea480e5875e6f4668da379",
-      "value": 454969.28,
-      "timestamp": 1776569135,
-      "type": "CEX_DEPOSIT",
-      "from_label": "0xf375\u20269d59",
-      "to_label": "Upbit",
-      "event_id": "0x75ef9cba1df3c34d184496f1d1dd606e57e9788c72eb27ee01f1511ea88817c8:0xf37594875f33a004df690bcbb65ee432b0959d59:0x63be42b40816eb08f6ea480e5875e6f4668da379:1776569135:CEX_DEPOSIT"
-    },
-    {
       "tx_hash": "0xa68214f6db5e1ead5485f3782c9e51e3e88b1c91e21ef7596a0174a2accaa17e",
       "from": "0xc456e33ddf99c48e26e31120f32eae470e040ebd",
       "to": "0x63be42b40816eb08f6ea480e5875e6f4668da379",
@@ -33747,7 +33384,7 @@
       "to": "0x5c4c6c6d0358baf2ade28ffb1723e70139cd534d",
       "value": 140399.31,
       "timestamp": 1776584423,
-      "type": "TRANSFER",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "0x5c4c\u2026534d",
       "event_id": "0x030ac1d4d5f5eb892ff3aed0664ebe7a36041dc841d00ad48cb8b1319a01527b:0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2:0x5c4c6c6d0358baf2ade28ffb1723e70139cd534d:1776584423:TRANSFER"
@@ -33786,17 +33423,6 @@
       "event_id": "0x911e8102b4ded78ab90aeeaee1088bbe0419bd1301f0df0edea2f71d6146af23:0x4186b115a33cd1dd34a909fd7eaaac2096c3621b:0x28c6c06298d514db089934071355e5743bf21d60:1776592391:CEX_DEPOSIT"
     },
     {
-      "tx_hash": "0xe8931507a7fdf1397296959bd5f6a126c6cccf5422664bf22323545f80997d75",
-      "from": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
-      "to": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-      "value": 176666.67,
-      "timestamp": 1776596903,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Upbit",
-      "to_label": "0xf375\u20269d59",
-      "event_id": "0xe8931507a7fdf1397296959bd5f6a126c6cccf5422664bf22323545f80997d75:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xf37594875f33a004df690bcbb65ee432b0959d59:1776596903:CEX_WITHDRAWAL"
-    },
-    {
       "tx_hash": "0x3bbb3ca22199336bd80c9c79f714e7474efd39ec968cce2a5abcc689ecad7952",
       "from": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
       "to": "0xc456e33ddf99c48e26e31120f32eae470e040ebd",
@@ -33813,7 +33439,7 @@
       "to": "0x1b1a4fb64b5bb26dbd5a4b8a291e4de1bd5d58f9",
       "value": 129182.79,
       "timestamp": 1776598667,
-      "type": "TRANSFER",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "0x1b1a\u202658f9",
       "event_id": "0x8da28d15a100784c52f0f709c9408f154f331e30e263223d3eba9489ee98869d:0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2:0x1b1a4fb64b5bb26dbd5a4b8a291e4de1bd5d58f9:1776598667:TRANSFER"
@@ -33868,7 +33494,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 134314.05,
       "timestamp": 1776640415,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x14c1ca7686a3a4ebf9c12168566f4a7b542e63d72e978c96c30311716509119d:0x8fda775a324a0970135b054a7df649342a9a7f17:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:1776640415:CEX_DEPOSIT"
@@ -33912,7 +33538,7 @@
       "to": "0x9e17093991868768613dae0e857437076eef0ee9",
       "value": 147723.65,
       "timestamp": 1776641807,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0x7c87\u2026b102",
       "to_label": "Coinbase Prime",
       "event_id": "0xfaa5083989fad893179272eccb0b601e5de09bd11636761119cbcb62446bc37b:0x7c876bdaa5c038e19f633714f622f6def949b102:0x9e17093991868768613dae0e857437076eef0ee9:1776641807:TRANSFER"
@@ -34083,17 +33709,6 @@
       "event_id": "0xbd548e4ecd4e5c63eb7a1999c2268cc705292db9bd87b50a32a9fb188659f83c:0xeae7380dd4cef6fbd1144f49e4d1e6964258a4f4:0x28c6c06298d514db089934071355e5743bf21d60:1776694391:CEX_DEPOSIT"
     },
     {
-      "tx_hash": "0x81da8c9397501565c9b3865203da0bc1368c6eb962cfd2caaf70c9d48bd41de3",
-      "from": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
-      "to": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-      "value": 110000.0,
-      "timestamp": 1776697259,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Upbit",
-      "to_label": "0xf375\u20269d59",
-      "event_id": "0x81da8c9397501565c9b3865203da0bc1368c6eb962cfd2caaf70c9d48bd41de3:0x6540f4a2f4c4fbac288fa738a249924a636020d0:0xf37594875f33a004df690bcbb65ee432b0959d59:1776697259:CEX_WITHDRAWAL"
-    },
-    {
       "tx_hash": "0xccbe740940b1fd7b61b77aa25e727a8710d1f46b7c577b79ae7c385c15b2e693",
       "from": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
       "to": "0xc456e33ddf99c48e26e31120f32eae470e040ebd",
@@ -34143,7 +33758,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 166373.83,
       "timestamp": 1776718451,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x6b574919abfdb2c448a20a8af0cfedd2065e9813978d9b02f0af0e837996c499:0x8fda775a324a0970135b054a7df649342a9a7f17:0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43:1776718451:CEX_DEPOSIT"
@@ -34253,7 +33868,7 @@
       "to": "0x7dafba1d69f6c01ae7567ffd7b046ca03b706f83",
       "value": 298296.11,
       "timestamp": 1776859571,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "Kraken",
       "event_id": "0xc2bcf1c348e9997670143063398cc759b9fad46eae0d33d37278171b07735912"
@@ -34506,7 +34121,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 217777.36,
       "timestamp": 1777666271,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x63928acbdec508042bb8d1a9b1bef885dc19c7e2d1289d52dd4c8e3ea029bb38"
@@ -34539,7 +34154,7 @@
       "to": "0x9e17093991868768613dae0e857437076eef0ee9",
       "value": 221952.0,
       "timestamp": 1777669763,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0x7c87\u2026b102",
       "to_label": "Coinbase Prime",
       "event_id": "0xa336d56013724b89c84b3ff24105b33286811014e55297cae8d5999081a59c02"
@@ -34594,7 +34209,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 249977.84,
       "timestamp": 1777839131,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x0d28409f5b41c0098fbe88e5c9d974d2608242b6fcf39a4c89d3142f99c7a074"
@@ -34627,7 +34242,7 @@
       "to": "0x9e17093991868768613dae0e857437076eef0ee9",
       "value": 137551.75,
       "timestamp": 1777840463,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0x7c87\u2026b102",
       "to_label": "Coinbase Prime",
       "event_id": "0x70461f30b87a08af3c8eb1847ebf3c3e74a8c91ef384558107659b9c8cb4af83"
@@ -34671,7 +34286,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 136698.8,
       "timestamp": 1777946831,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x1479efcfb9f093e2206ed85e8daa5f3ab37112ee3191d9e95d249e2e1efc0e52"
@@ -34770,7 +34385,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 127918.74,
       "timestamp": 1778114951,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xc89acccd025ff1117287260f1f7c416d52dfe8994f7bc04a0d90b71d5177823a"
@@ -34858,7 +34473,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 128304.98,
       "timestamp": 1778274131,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xcef9f3b3ddb5e57107d3922bd06718bba02fd5eeb097b5852a3d4b1d3226a235"
@@ -34869,7 +34484,7 @@
       "to": "0x51c72848c68a965f66fa7a88855f9f7784502a7f",
       "value": 178739.56,
       "timestamp": 1778286503,
-      "type": "TRANSFER",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "0x51c7\u20262a7f",
       "event_id": "0xf18c10cbc6bb87141517a986cc06c6f1aaa06c7482c6ef821d4856440c13745c"
@@ -34880,7 +34495,7 @@
       "to": "0x6455327f820edd69c4cd665b995e0fec679d7f9e",
       "value": 114904.56,
       "timestamp": 1778286503,
-      "type": "TRANSFER",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "0x6455\u20267f9e",
       "event_id": "0x800e08d4ba8f7311f5663a690aebe74b81acf7801544cb8c79d76a5338d79586"
@@ -35034,7 +34649,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 123402.95,
       "timestamp": 1778632511,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x287ac1ee49108eae5dd1234502306851600ad92509e49705c946d3a254916b70"
@@ -35045,7 +34660,7 @@
       "to": "0xcc282e2004428939ee5149a9e7872f0b4d5d5ec7",
       "value": 1847226.58,
       "timestamp": 1778673983,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "Kraken",
       "event_id": "0xe0400a8917ecf95b05cd3e639739770102afe0e8f263d26e33e5fd145f61f452"
@@ -35067,7 +34682,7 @@
       "to": "0xe92e65049b3c2ca12806e9567b08895118c5a03f",
       "value": 2000000.0,
       "timestamp": 1778709347,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0xfe7b\u20267fa9",
       "to_label": "Exchange/Bot",
       "event_id": "0x3bf3f81dcc9f3c907925e98b94d2948cdc0d9104198a23dff5c7c682378e212d"
@@ -35078,7 +34693,7 @@
       "to": "0xb06cf21bb0a6d0de5304827b8176e884f635b7c0",
       "value": 2000000.0,
       "timestamp": 1778709551,
-      "type": "TRANSFER",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "MultiSig/Contract",
       "event_id": "0x8386f637628e48656f576884963c33b0a9ac512a1ca793dbfdfb852dbd8efc81"
@@ -35183,17 +34798,6 @@
       "event_id": "0x18381dc619710c8fcbc227266d6a3224646e994107022bd583f0c920310a4abf"
     },
     {
-      "tx_hash": "0x1772ea32f5a2883b7f3a38d8fcc8253224e25b03ea3c007d54742c4856600b02",
-      "from": "0xf37594875f33a004df690bcbb65ee432b0959d59",
-      "to": "0x63be42b40816eb08f6ea480e5875e6f4668da379",
-      "value": 135819.46,
-      "timestamp": 1778860619,
-      "type": "CEX_DEPOSIT",
-      "from_label": "0xf375\u20269d59",
-      "to_label": "Upbit",
-      "event_id": "0x1772ea32f5a2883b7f3a38d8fcc8253224e25b03ea3c007d54742c4856600b02"
-    },
-    {
       "tx_hash": "0xa6a978705a172c9efacd06159540031510a0f62f3ef54c9675d97488584846d0",
       "from": "0xbc8a0f5e41857292d12ef620e2a5895ce65a5ce0",
       "to": "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
@@ -35221,7 +34825,7 @@
       "to": "0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2",
       "value": 174510.0,
       "timestamp": 1779062195,
-      "type": "TRANSFER",
+      "type": "CEX_DEPOSIT",
       "from_label": "0x84b3\u2026da15",
       "to_label": "Exchange/Bot",
       "event_id": "0x847fd24b500f41570618be280b937e3e21efbd788d9804468daf9a74741456ba"
@@ -35243,7 +34847,7 @@
       "to": "0x1b1a4fb64b5bb26dbd5a4b8a291e4de1bd5d58f9",
       "value": 157566.07,
       "timestamp": 1779079595,
-      "type": "TRANSFER",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "0x1b1a\u202658f9",
       "event_id": "0x5089271b95bdfa558fd05eae1d48f8b917408720f520b2beb10ab8fa536c2d78"
@@ -35254,7 +34858,7 @@
       "to": "0xd2dd7b597fd2435b6db61ddf48544fd931e6869f",
       "value": 168816.76,
       "timestamp": 1779105899,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "Exchange/Bot",
       "to_label": "Kraken",
       "event_id": "0x608ea92de562f96193ed5cf8c6d539049ffed61a51e9d1a60005a6510c57b411"
@@ -35276,7 +34880,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 157574.07,
       "timestamp": 1779146051,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x8a0b4120d930f22e22a115dfae53a0a59fd1778f747461ef02d412515c2962dd"
@@ -35364,7 +34968,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 145049.07,
       "timestamp": 1779308075,
-      "type": "CEX_DEPOSIT",
+      "type": "CEX_WITHDRAWAL",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x4ed23ca0b778991cf1b4b9f56ad8692ad57cf4904fadcfb7e4febf9b4999dc95"

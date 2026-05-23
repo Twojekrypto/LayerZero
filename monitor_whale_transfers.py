@@ -91,6 +91,21 @@ def short_addr(addr):
     return addr[:6] + "…" + addr[-4:]
 
 
+def get_canonical_cex_label(address, holder=None, fallback_label=""):
+    address = (address or "").lower()
+    holder = holder or {}
+    if address in KNOWN_CEX:
+        return KNOWN_CEX[address]
+    holder_label = (holder.get("label") or "").strip()
+    holder_type = (holder.get("type") or "").upper()
+    if holder_type == "CEX" and holder_label:
+        return holder_label
+    fallback_label = (fallback_label or "").strip()
+    if holder_type == "CEX" and fallback_label:
+        return fallback_label
+    return ""
+
+
 def get_transfer_event_id(tx_hash, log_index):
     if log_index in (None, ""):
         return tx_hash
@@ -208,15 +223,19 @@ def main():
             continue
 
         # Classify transfer
-        from_is_cex = from_addr in KNOWN_CEX
-        to_is_cex = to_addr in KNOWN_CEX
+        from_holder = existing_addrs.get(from_addr, {})
+        to_holder = existing_addrs.get(to_addr, {})
         from_label = label_map.get(from_addr, "")
         to_label = label_map.get(to_addr, "")
+        from_cex_label = get_canonical_cex_label(from_addr, from_holder, from_label)
+        to_cex_label = get_canonical_cex_label(to_addr, to_holder, to_label)
+        from_is_cex = bool(from_cex_label)
+        to_is_cex = bool(to_cex_label)
 
-        # Skip internal CEX-to-CEX transfers (e.g. Binance 14 → Binance 15)
-        if from_is_cex and to_is_cex:
+        # Skip internal CEX-to-CEX transfers, including labeled same-entity CEX proxy wallets.
+        if from_is_cex and to_is_cex and from_cex_label == to_cex_label:
             mark_seen(seen, tx_hash, log_index)
-            print(f"  ⏭️ Skip CEX→CEX: {KNOWN_CEX[from_addr]} → {KNOWN_CEX[to_addr]} ({fmt(value)} ZRO)")
+            print(f"  ⏭️ Skip CEX→CEX: {from_cex_label} → {to_cex_label} ({fmt(value)} ZRO)")
             continue
 
         if from_is_cex:
@@ -331,15 +350,16 @@ def main():
             title = f"🐋 Whale Withdrawal: +{fmt(value)} ZRO"
             desc = (
                 f"**From:** {from_label} (CEX)\n"
+                f"**Entity:** {from_cex_label}\n"
                 f"**To:** `{to_addr[:14]}…`\n"
                 f"**{wallet_info}**" if wallet_info else ""
             )
         elif transfer_type == "CEX_DEPOSIT":
             color = 0xf87171  # red
-            title = f"🐋 Whale Deposit: {fmt(value)} ZRO → {KNOWN_CEX.get(to_addr, 'CEX')}"
+            title = f"🐋 Whale Deposit: {fmt(value)} ZRO → {to_cex_label or KNOWN_CEX.get(to_addr, 'CEX')}"
             desc = (
                 f"**From:** `{from_addr[:14]}…` ({from_label or 'Unknown'})\n"
-                f"**To:** {KNOWN_CEX.get(to_addr, 'CEX')}"
+                f"**To:** {to_cex_label or KNOWN_CEX.get(to_addr, 'CEX')}"
             )
         else:
             color = 0x60a5fa  # blue

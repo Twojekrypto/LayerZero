@@ -272,6 +272,21 @@ def derive_flow_cohort(label, flow_type, address=""):
     return "organic"
 
 
+def get_canonical_cex_label(address, holder=None, raw_label=""):
+    address = (address or "").lower()
+    holder = holder or {}
+    if address in KNOWN_CEX_ADDRESSES:
+        return KNOWN_CEX_ADDRESSES[address]
+    holder_label = (holder.get("label") or "").strip()
+    holder_type = (holder.get("type") or "").upper()
+    if holder_type == "CEX" and holder_label:
+        return holder_label
+    raw_label = (raw_label or "").strip()
+    if raw_label and holder_type == "CEX":
+        return raw_label
+    return ""
+
+
 def get_flow_net_retention_ratio(item):
     total_in = float(item.get("total_in") or 0)
     if total_in <= 0:
@@ -615,9 +630,13 @@ def normalize_whale_transfers(data):
             summary["removed_below_threshold"] += 1
             continue
 
-        from_is_cex = from_addr in KNOWN_CEX_ADDRESSES
-        to_is_cex = to_addr in KNOWN_CEX_ADDRESSES
-        if from_is_cex and to_is_cex:
+        from_holder = holder_map.get(from_addr, {})
+        to_holder = holder_map.get(to_addr, {})
+        from_cex_label = get_canonical_cex_label(from_addr, from_holder, raw_item.get("from_label"))
+        to_cex_label = get_canonical_cex_label(to_addr, to_holder, raw_item.get("to_label"))
+        from_is_cex = bool(from_cex_label)
+        to_is_cex = bool(to_cex_label)
+        if from_is_cex and to_is_cex and from_cex_label == to_cex_label:
             summary["removed_cex_to_cex"] += 1
             continue
 
@@ -632,12 +651,12 @@ def normalize_whale_transfers(data):
             "value": value,
             "timestamp": int(raw_item.get("timestamp") or 0),
             "type": transfer_type,
-            "from_label": KNOWN_CEX_ADDRESSES.get(from_addr)
-            or holder_map.get(from_addr, {}).get("label")
+            "from_label": from_cex_label
+            or from_holder.get("label")
             or raw_item.get("from_label")
             or from_addr,
-            "to_label": KNOWN_CEX_ADDRESSES.get(to_addr)
-            or holder_map.get(to_addr, {}).get("label")
+            "to_label": to_cex_label
+            or to_holder.get("label")
             or raw_item.get("to_label")
             or to_addr,
         }
