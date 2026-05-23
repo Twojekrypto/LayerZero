@@ -21,6 +21,7 @@ const cexRegistry = fs.readFileSync(path.join(rootDir, 'cex_addresses.py'), 'utf
 const autoLabelEntrypoint = fs.readFileSync(path.join(rootDir, 'auto_label.py'), 'utf8');
 const cbMonitorEntrypoint = fs.readFileSync(path.join(rootDir, 'monitor_cb_prime.py'), 'utf8');
 const whaleMonitorEntrypoint = fs.readFileSync(path.join(rootDir, 'monitor_whale_transfers.py'), 'utf8');
+const verifyPalaceEntrypoint = fs.readFileSync(path.join(rootDir, 'verify_palace_rules.py'), 'utf8');
 const hourlyWorkflow = fs.readFileSync(path.join(rootDir, '.github/workflows/hourly-monitor.yml'), 'utf8');
 const fullWorkflow = fs.readFileSync(path.join(rootDir, '.github/workflows/update-data.yml'), 'utf8');
 
@@ -390,6 +391,12 @@ test('sanitize fail-on-anomaly only fails on remaining integrity issues', () => 
   assert.match(sanitizeEntrypoint, /Fresh wallets missing last flow/);
   assert.doesNotMatch(sanitizeEntrypoint, /if args\.fail_on_anomaly and \(duplicate_records_removed > 0 or anomaly_count > 0\)/);
   assert.doesNotMatch(sanitizeEntrypoint, /remaining_integrity_issues = \([\s\S]*fresh_wallets_missing_last_flow/);
+});
+
+test('verify palace rules skips optional local brain data gracefully in CI', () => {
+  assert.match(verifyPalaceEntrypoint, /MemPalace skipped in CI/);
+  assert.match(verifyPalaceEntrypoint, /os\.environ\.get\("CI", ""\)\.lower\(\) == "true"/);
+  assert.match(verifyPalaceEntrypoint, /sys\.exit\(verify_palace_rules\(\)\)/);
 });
 
 test('app.js anchors relative filters and labels to the snapshot timestamp', () => {

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import sys
 
 # MemPalace: Contradiction Detection Script
 # Sprawdza czy nasze lokalne bazy danych nie naruszają zakodowanej wiedzy w mózgu .mempalace-brain.yaml
@@ -23,8 +24,12 @@ def verify_palace_rules():
     print("🏰 MemPalace: Inicjalizacja skanera sprzeczności dla ZRO Dashboard...")
     
     if not os.path.exists(MEM_PALACE_FILE):
-        print(f"❌ BLĄD: Nie znaleziono pliku mózgu {MEM_PALACE_FILE}")
-        return
+        in_ci = os.environ.get("CI", "").lower() == "true" or os.environ.get("GITHUB_ACTIONS", "").lower() == "true"
+        if in_ci:
+            print(f"⚠️ MemPalace skipped in CI: optional brain file missing at {MEM_PALACE_FILE}")
+        else:
+            print(f"⚠️ Pomijam MemPalace verification - brak pliku mózgu {MEM_PALACE_FILE}")
+        return 0
 
     with open(MEM_PALACE_FILE, "r") as f:
         brain_data = f.read()
@@ -50,7 +55,7 @@ def verify_palace_rules():
             zro_data = json.load(f)
         except json.JSONDecodeError:
             print(f"❌ BLĄD: Nie można sparsować {ZRO_DATA_FILE}")
-            return
+            return 1
 
     contradictions_found = 0
     print("🛡️ Skanowanie sprzeczności (Contradiction Detection)...")
@@ -68,8 +73,10 @@ def verify_palace_rules():
 
     if contradictions_found == 0:
         print("✅ Pomyślnie zweryfikowano: Żadne reguły biznesowe MemPalace nie wykluczają się z plikami bazy danych ZRO.")
+        return 0
     else:
         print(f"🔥 Wykryto {contradictions_found} sprzeczności! Należy poprawić etykiety.")
+        return 1
 
 if __name__ == "__main__":
-    verify_palace_rules()
+    sys.exit(verify_palace_rules())
