@@ -979,7 +979,7 @@ function applyStateFromUrl() {
     cbPage = parsePositiveInt(params.get('cbPage'), 1);
 
     cbtSearchQuery = params.get('cbtSearch')?.trim() || '';
-    cbtTypeFilter = pickAllowedValue(params.get('cbtType'), ['ALL', 'BUY', 'SELL', 'TRANSFER', 'OUTFLOW', 'INFLOW'], 'ALL');
+    cbtTypeFilter = pickAllowedValue(params.get('cbtType'), ['ALL', 'BUY', 'SELL', 'TRANSFER', 'OUTFLOW', 'INFLOW', 'DISTRIBUTION', 'INTERNAL'], 'ALL');
     cbtPeriodDays = Number.parseInt(pickAllowedValue(params.get('cbtPeriod'), ['0', '1', '7', '30', '90', '180'], '0'), 10);
     const rawCbtSort = params.get('cbtSort');
     if (['0', '1', '2'].includes(rawCbtSort)) {
@@ -1970,8 +1970,8 @@ function initCbPeriodPills() {
 // ── Coinbase Prime Transfers ──
 let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0, cbtSearchQuery='', cbtSortKey='date', cbtSortDir='desc';
 const CBT_PER_PAGE=20;
-const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395', DISTRIBUTION:'#A78BFA'};
-const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢', DISTRIBUTION:'🟣'};
+const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395', DISTRIBUTION:'#A78BFA', INTERNAL:'#6B7280'};
+const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢', DISTRIBUTION:'🟣', INTERNAL:'🔇'};
 
 function cbtAddrCell(addr, label) {
     const short = addr.slice(0,6)+'…'+addr.slice(-4);
