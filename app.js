@@ -1402,6 +1402,7 @@ function rerenderPriceSensitiveViews() {
     renderFlows();
     renderWhaleTransfers();
     renderVesting();
+    renderInvestors();
 }
 
 function renderNetworkStats() {
@@ -2419,6 +2420,14 @@ function renderVesting() {
     const now=new Date(), start=new Date(v.cliff_end), end=new Date(v.vesting_end);
     const totalMs=end-start, elapsedMs=now-start, pct=Math.min(100,Math.max(0,(elapsedMs/totalMs)*100));
     const monthsLeft=Math.max(0,Math.ceil((end-now)/(30*24*60*60*1000)));
+    const livePrice=DATA.meta.price_usd||0;
+    const monthlyUsd=livePrice?v.monthly_unlock_total*livePrice:v.monthly_unlock_usd;
+    const realMonthlyUsd=livePrice&&v.total_remaining?(v.real_remaining/v.total_remaining)*monthlyUsd:v.real_monthly_usd;
+    // Auto-roll next unlock to the upcoming 20th if the stored date has passed
+    let nextUnlock=new Date(v.next_unlock.date+'T00:00:00Z');
+    while(nextUnlock<now&&nextUnlock<end){nextUnlock=new Date(Date.UTC(nextUnlock.getUTCFullYear(),nextUnlock.getUTCMonth()+1,20));}
+    const nextUnlockDate=nextUnlock.toISOString().slice(0,10);
+    const daysToUnlock=Math.max(0,Math.ceil((nextUnlock-now)/(24*60*60*1000)));
     const cliffLabel = start.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
     const endLabel = end.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
     el.innerHTML=`
@@ -2427,11 +2436,11 @@ function renderVesting() {
         <div class="vest-labels"><span>Cliff End: ${cliffLabel}</span><span>Now</span><span>Vesting End: ${endLabel}</span></div></div>
         <div class="vest-grid">
             <div class="vest-card"><div class="vest-card-label">Monthly Unlock</div><div class="vest-card-val" style="color:var(--accent-amber)">~${fmt(v.monthly_unlock_total)}</div><div class="vest-card-sub">ZRO / month (20th)</div></div>
-            <div class="vest-card"><div class="vest-card-label">Next Unlock</div><div class="vest-card-val" style="color:var(--accent-rose)">${v.next_unlock.date}</div><div class="vest-card-sub">~${fmt(v.next_unlock.amount)} ZRO</div></div>
+            <div class="vest-card"><div class="vest-card-label">Next Unlock</div><div class="vest-card-val" style="color:var(--accent-rose)">${nextUnlockDate}</div><div class="vest-card-sub">~${fmt(v.next_unlock.amount)} ZRO · in ${daysToUnlock}d${livePrice?` · ${fmtUSD(v.next_unlock.amount*livePrice)}`:''}</div></div>
             <div class="vest-card"><div class="vest-card-label">Months Remaining</div><div class="vest-card-val">${monthsLeft}</div><div class="vest-card-sub">until full unlock</div></div>
         </div>
         ${v.schedule.map(s=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px"><span style="color:var(--text-secondary)">${s.period}</span><span style="color:var(--text-primary);font-weight:600">${fmt(s.tokens)} ZRO</span><span style="color:var(--text-muted)">${fmtUSD(s.tokens*DATA.meta.price_usd)}</span></div>`).join('')}
-        <div class="vest-correction"><div class="vest-correction-title">🚨 CEO Correction (19.77% supply repurchased)</div><div class="vest-correction-text">Bryan Pellegrino (Feb 2026): "Most public dashboards overstate unlock pressure by almost 2x." Real remaining pressure: <strong style="color:var(--accent-purple)">~${fmt(v.real_remaining)} ZRO</strong> (~${fmtUSD(v.real_monthly_usd)}/mo) vs dashboard's ~${fmt(v.total_remaining)} ZRO (~${fmtUSD(v.monthly_unlock_usd)}/mo).</div></div>`;
+        <div class="vest-correction"><div class="vest-correction-title">🚨 CEO Correction (19.77% supply repurchased)</div><div class="vest-correction-text">Bryan Pellegrino (Feb 2026): "Most public dashboards overstate unlock pressure by almost 2x." Real remaining pressure: <strong style="color:var(--accent-purple)">~${fmt(v.real_remaining)} ZRO</strong> (~${fmtUSD(realMonthlyUsd)}/mo) vs dashboard's ~${fmt(v.total_remaining)} ZRO (~${fmtUSD(monthlyUsd)}/mo).</div></div>`;
 }
 
 function renderBuybacks() {
@@ -2445,22 +2454,29 @@ function renderBuybacks() {
         </div>
         <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;font-weight:600">Monthly Stargate Buybacks</div>
         ${b.stargate_monthly.map(m=>`<div class="bb-bar-row"><div class="bb-bar-label">${m.month}</div><div class="bb-bar-track"><div class="bb-bar-fill" style="width:${(m.usd/maxUSD*100).toFixed(0)}%">${fmt(m.tokens)}</div></div><div class="bb-bar-val">${fmtUSD(m.usd)}</div></div>`).join('')}
-        <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">Foundation Buyback: ${fmt(b.foundation_buyback_tokens)} ZRO (5% supply) · Labs Discretionary: ${fmtUSD(b.labs_discretionary_usd)}</div>`;
+        <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">Foundation Buyback: ${fmt(b.foundation_buyback_tokens)} ZRO (5% supply) · Labs Discretionary: ${fmtUSD(b.labs_discretionary_usd)}</div>
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">ℹ️ Since Mar 2026, 100% of Stargate revenue funds ZRO buybacks (Sep 2025–Feb 2026 was split 50/50 with veSTG holders).</div>`;
 }
 
 function renderInvestors() {
     const tbody=document.getElementById('investor-tbody');
     const riskMap={high:'risk-high',medium:'risk-medium',low:'risk-low',locked:'risk-locked',strategic:'risk-strategic'};
     const riskLabel={high:'🔴 High',medium:'🟡 Medium',low:'🟢 Low',locked:'⚪ Locked',strategic:'🔵 Strategic'};
-    tbody.innerHTML=DATA.investors.map(inv=>`<tr>
+    const livePrice=DATA.meta.price_usd||0;
+    const roiFor=inv=>{
+        if(!inv.price_est||!livePrice) return {label:inv.roi||'—',num:inv.roi?parseFloat(inv.roi):null};
+        const r=livePrice/inv.price_est;
+        return {label:(r>=10?r.toFixed(0):r>=1?r.toFixed(1):r.toFixed(2))+'x',num:r};
+    };
+    tbody.innerHTML=DATA.investors.map(inv=>{const roi=roiFor(inv);return `<tr>
         <td${dataLabelAttr('Round')} style="font-weight:600;color:var(--text-primary)">${inv.round}</td>
         <td${dataLabelAttr('Date')} style="color:var(--text-muted);font-size:11px">${inv.date}</td>
         <td${dataLabelAttr('Raised')} style="font-variant-numeric:tabular-nums">${inv.raised?fmtUSD(inv.raised):'<span style="color:var(--text-muted)">Undisclosed</span>'}</td>
         <td${dataLabelAttr('Est. Price')} style="font-variant-numeric:tabular-nums">${inv.price_est?'$'+inv.price_est.toFixed(2):'<span style="color:var(--text-muted)">—</span>'}</td>
-        <td${dataLabelAttr('ROI Today')} style="font-weight:600;${inv.roi&&parseFloat(inv.roi)>1?'color:var(--accent-green)':inv.roi&&parseFloat(inv.roi)<1?'color:var(--accent-rose)':'color:var(--text-muted)'}">${inv.roi||'—'}</td>
+        <td${dataLabelAttr('ROI Today')} style="font-weight:600;${roi.num!=null&&roi.num>1?'color:var(--accent-green)':roi.num!=null&&roi.num<1?'color:var(--accent-rose)':'color:var(--text-muted)'}">${roi.label}</td>
         <td${dataLabelAttr('Sell Risk')}><span class="${riskMap[inv.risk]||''}" style="font-size:11px">${riskLabel[inv.risk]||inv.risk}</span></td>
         <td${dataLabelAttr('Investors')} style="font-size:10px;color:var(--text-muted);line-height:1.4">${inv.investors}</td>
-    </tr>`).join('');
+    </tr>`;}).join('');
 }
 
 function renderValueStreams() {
