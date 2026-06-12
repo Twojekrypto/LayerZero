@@ -24,46 +24,68 @@ PRIMARY_CEX_CHAINS = (
     (42161, "Arbitrum"),
 )
 
+# Map between balance keys in zro_data.json and Etherscan chain ids
+CHAIN_KEY_TO_ID = {
+    "ethereum": 1,
+    "arbitrum": 42161,
+    "base": 8453,
+    "bsc": 56,
+    "optimism": 10,
+    "polygon": 137,
+    "avalanche": 43114,
+}
 
-def get_first_activity_timestamp_multichain(address, api_key):
-    """Return the oldest on-chain activity timestamp across supported chains."""
+
+def _earliest_action_ts(address, api_key, chain_id, action):
+    """Return the timestamp of the earliest record for one Etherscan account action."""
+    url = (
+        f"https://api.etherscan.io/v2/api?chainid={chain_id}"
+        f"&module=account&action={action}"
+        f"&address={address}"
+        f"&startblock=0&endblock=99999999"
+        f"&page=1&offset=1&sort=asc"
+        f"&apikey={api_key}"
+    )
+    data = fetch_json(url)
+    if data and data.get("status") == "1" and data.get("result"):
+        return int(data["result"][0].get("timeStamp", 0))
+    return 0
+
+
+def get_first_activity_timestamp_multichain(address, api_key, verify_age_days=None):
+    """Return the oldest on-chain activity timestamp across supported chains.
+
+    Pass 1 checks normal txs (txlist) with a tokentx fallback per chain.
+    Pass 2 (txlistinternal) runs only when it can change the verdict:
+    when the wallet looks fresh (earliest activity within `verify_age_days`)
+    or when no activity was found at all. Internal-only funding (e.g. from a
+    distribution contract) would otherwise make a wallet look younger than it is.
+    """
     earliest_ts = None
     address = address.lower()
 
     for chain_id, _chain_name in SUPPORTED_CHAINS:
-        url = (
-            f"https://api.etherscan.io/v2/api?chainid={chain_id}"
-            f"&module=account&action=txlist"
-            f"&address={address}"
-            f"&startblock=0&endblock=99999999"
-            f"&page=1&offset=1&sort=asc"
-            f"&apikey={api_key}"
-        )
-        data = fetch_json(url)
-        if data and data.get("status") == "1" and data.get("result"):
-            ts = int(data["result"][0].get("timeStamp", 0))
-            if ts and (earliest_ts is None or ts < earliest_ts):
-                earliest_ts = ts
+        ts = _earliest_action_ts(address, api_key, chain_id, "txlist")
+        time.sleep(0.22)
+        if not ts:
+            ts = _earliest_action_ts(address, api_key, chain_id, "tokentx")
             time.sleep(0.22)
-            continue
+        if ts and (earliest_ts is None or ts < earliest_ts):
+            earliest_ts = ts
 
-        time.sleep(0.22)
-
-        url2 = (
-            f"https://api.etherscan.io/v2/api?chainid={chain_id}"
-            f"&module=account&action=tokentx"
-            f"&address={address}"
-            f"&startblock=0&endblock=99999999"
-            f"&page=1&offset=1&sort=asc"
-            f"&apikey={api_key}"
-        )
-        data2 = fetch_json(url2)
-        if data2 and data2.get("status") == "1" and data2.get("result"):
-            ts = int(data2["result"][0].get("timeStamp", 0))
+    # Deep pass: internal transactions. Only worth the extra requests when the
+    # wallet currently looks fresh (an older internal tx could flip it to OLD)
+    # or when nothing was found yet.
+    now = int(time.time())
+    looks_fresh = bool(
+        earliest_ts and verify_age_days and (now - earliest_ts) <= verify_age_days * 86400
+    )
+    if looks_fresh or not earliest_ts:
+        for chain_id, _chain_name in SUPPORTED_CHAINS:
+            ts = _earliest_action_ts(address, api_key, chain_id, "txlistinternal")
+            time.sleep(0.22)
             if ts and (earliest_ts is None or ts < earliest_ts):
                 earliest_ts = ts
-
-        time.sleep(0.22)
 
     return earliest_ts or 0
 

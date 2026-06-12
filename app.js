@@ -438,6 +438,8 @@ function mergeDuplicateHolders(records) {
     });
 
     if (ranked.some(record => record.label_manual)) merged.label_manual = true;
+    const mergedLabelSource = ranked.map(record => record.label_source).find(Boolean);
+    if (mergedLabelSource) merged.label_source = mergedLabelSource;
 
     const walletCreatedValues = ranked.map(record => record.wallet_created).filter(Boolean);
     if (walletCreatedValues.length) merged.wallet_created = Math.min(...walletCreatedValues);

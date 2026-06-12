@@ -32,6 +32,7 @@ METADATA_KEYS = (
     "funded_by",
     "fresh",
     "label_manual",
+    "label_source",
     "fresh_profile",
     "fresh_profile_label",
     "fresh_profile_reason",

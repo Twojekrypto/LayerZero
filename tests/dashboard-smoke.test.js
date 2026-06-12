@@ -155,13 +155,14 @@ test('flow generation keeps chain context and focuses rankings on tracked holder
   assert.match(indexHtml, /Tracked holders only/);
 });
 
-test('fresh wallet labels stay sticky across the pipeline', () => {
-  assert.match(updateDataEntrypoint, /label_manual/);
+test('fresh wallet labels survive merges but expire after the TTL', () => {
+  assert.match(updateDataEntrypoint, /label_source/);
   assert.match(updateDataEntrypoint, /fresh/);
   assert.match(detectFreshEntrypoint, /def apply_fresh_wallet_label\(/);
-  assert.match(detectFreshEntrypoint, /Fresh Wallet stays sticky/);
+  assert.match(detectFreshEntrypoint, /FRESH_LABEL_TTL_DAYS/);
+  assert.match(detectFreshEntrypoint, /FRESH expired/);
   assert.match(detectFreshEntrypoint, /Preserve Fresh/);
-  assert.match(whaleMonitorEntrypoint, /"label_manual": True/);
+  assert.match(whaleMonitorEntrypoint, /"label_source": "auto_fresh"/);
 });
 
 test('fresh wallet heuristics use shared multi-chain helpers', () => {
@@ -288,7 +289,10 @@ test('snapshot data remains internally consistent', () => {
   for (const holder of freshWallets) {
     assert.equal(holder.label, 'Fresh Wallet', 'fresh wallets should keep the canonical label');
     assert.equal(holder.type, 'FRESH', 'fresh wallets should keep the canonical type');
-    assert.equal(holder.label_manual, true, 'fresh wallets should be sticky in the pipeline');
+    assert.ok(
+      holder.label_manual === true || holder.label_source === 'auto_fresh',
+      'fresh wallets should carry a label provenance flag (legacy label_manual or label_source)'
+    );
     if (holder.fresh_profile_label) {
       assert.equal(typeof holder.fresh_profile_label, 'string');
     }

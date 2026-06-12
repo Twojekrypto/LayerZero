@@ -16,6 +16,8 @@ import json, os, time
 from urllib.request import urlopen, Request
 from cex_addresses import KNOWN_CEX_ADDRESSES, KNOWN_COINBASE_ADDRESSES
 from fresh_wallet_utils import (
+    CHAIN_KEY_TO_ID,
+    SUPPORTED_CHAINS,
     analyze_cex_interactions,
     apply_fresh_profile,
     get_first_activity_timestamp_multichain,
@@ -27,6 +29,7 @@ API_KEY = get_api_key()
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 MIN_BALANCE_FOR_CHECK = 10_000  # Only check wallets with >10K ZRO
 FRESH_AGE_DAYS = 30  # Wallet younger than this = FRESH
+FRESH_LABEL_TTL_DAYS = 60  # FRESH label expires this many days after wallet creation
 
 # Known multi-sig deployers — wallets created by these are institutional
 KNOWN_DEPLOYERS = {
@@ -79,11 +82,28 @@ def is_fresh_wallet(holder):
     return holder.get("type") == "FRESH" or holder.get("label") == "Fresh Wallet" or holder.get("fresh") is True
 
 
+# Every holder field owned by the fresh-wallet pipeline; removed on expiry.
+FRESH_METADATA_KEYS = (
+    "label", "type", "fresh", "label_manual", "label_source", "funded_by",
+    "fresh_profile", "fresh_profile_label", "fresh_profile_reason",
+    "fresh_signal", "fresh_signal_label", "fresh_signal_score",
+    "fresh_retention_ratio", "fresh_net_accumulation",
+    "fresh_total_in_value", "fresh_total_out_value",
+    "fresh_total_in_count", "fresh_total_out_count",
+    "fresh_outbound_counterparties", "fresh_outbound_ratio",
+    "fresh_cex_outbound_ratio", "fresh_cex_score",
+    "fresh_cex_in_count", "fresh_cex_out_count", "fresh_cex_touch_count",
+    "fresh_cex_in_value", "fresh_cex_out_value",
+)
+
+
 def apply_fresh_wallet_label(holder, created_ts=None):
     holder["label"] = "Fresh Wallet"
     holder["type"] = "FRESH"
     holder["fresh"] = True
-    holder["label_manual"] = True
+    # Auto-applied label: survives merges via the preserve pipeline but stays
+    # eligible for aging. Only label_source == "manual" is exempt from expiry.
+    holder["label_source"] = "auto_fresh"
     holder.setdefault("fresh_profile", "independent")
     holder.setdefault("fresh_profile_label", "Independent")
     holder.setdefault("fresh_profile_reason", "independent")
@@ -104,10 +124,9 @@ def get_funding_source(address, label_map):
     return best, last_flow_ts, last_flow_amount
 
 
-def is_contract(address):
-    """Check if an address is a contract (has code) via Etherscan."""
+def _has_code_on_chain(address, chain_id):
     url = (
-        f"https://api.etherscan.io/v2/api?chainid=1"
+        f"https://api.etherscan.io/v2/api?chainid={chain_id}"
         f"&module=proxy&action=eth_getCode"
         f"&address={address}&tag=latest"
         f"&apikey={API_KEY}"
@@ -119,11 +138,30 @@ def is_contract(address):
     return False
 
 
-def get_contract_creation_timestamp(address):
-    """Get the contract creation timestamp.
+def is_contract(address, balances=None):
+    """Check if an address is a contract on any chain where it holds ZRO.
+
+    Safes/multisigs deployed on L2s have no code on Ethereum, so checking
+    chainid=1 only would misclassify them as EOAs. Returns
+    (is_contract, chain_id_where_code_found).
+    """
+    chain_ids = [1]
+    for key, bal in (balances or {}).items():
+        cid = CHAIN_KEY_TO_ID.get(key)
+        if cid and cid != 1 and (bal or 0) > 0:
+            chain_ids.append(cid)
+    for cid in chain_ids:
+        if _has_code_on_chain(address, cid):
+            return True, cid
+        time.sleep(0.22)
+    return False, None
+
+
+def get_contract_creation_timestamp(address, chain_id=1):
+    """Get the contract creation timestamp on the given chain.
     Uses the contract creation TX to determine when the contract was deployed."""
     url = (
-        f"https://api.etherscan.io/v2/api?chainid=1"
+        f"https://api.etherscan.io/v2/api?chainid={chain_id}"
         f"&module=contract&action=getcontractcreation"
         f"&contractaddresses={address}"
         f"&apikey={API_KEY}"
@@ -134,29 +172,21 @@ def get_contract_creation_timestamp(address):
         deployer = result.get("contractCreator", "").lower()
         tx_hash = result.get("txHash", "")
 
-        # Get the TX timestamp
+        # Get the TX timestamp: block number from tx, then block timestamp
         if tx_hash:
             tx_url = (
-                f"https://api.etherscan.io/v2/api?chainid=1"
+                f"https://api.etherscan.io/v2/api?chainid={chain_id}"
                 f"&module=proxy&action=eth_getTransactionByHash"
                 f"&txhash={tx_hash}"
                 f"&apikey={API_KEY}"
             )
-            # Use block receipt for timestamp
-            receipt_url = (
-                f"https://api.etherscan.io/v2/api?chainid=1"
-                f"&module=transaction&action=gettxreceiptstatus"
-                f"&txhash={tx_hash}"
-                f"&apikey={API_KEY}"
-            )
-            # Better: get the block number from tx and then block timestamp
             tx_data = fetch_json(tx_url)
             if tx_data and tx_data.get("result"):
                 block_hex = tx_data["result"].get("blockNumber", "0x0")
                 block_num = int(block_hex, 16)
                 time.sleep(0.25)
                 block_url = (
-                    f"https://api.etherscan.io/v2/api?chainid=1"
+                    f"https://api.etherscan.io/v2/api?chainid={chain_id}"
                     f"&module=block&action=getblockreward"
                     f"&blockno={block_num}"
                     f"&apikey={API_KEY}"
@@ -172,13 +202,18 @@ KNOWN_CEX_HOT_WALLETS = set(KNOWN_CEX_ADDRESSES)
 
 
 def get_first_tx_timestamp_multichain(address):
-    """Get the EARLIEST first transaction across ALL supported chains."""
-    return get_first_activity_timestamp_multichain(address, API_KEY)
+    """Get the EARLIEST first activity across ALL supported chains.
+    Internal txs are double-checked when the wallet looks fresh."""
+    return get_first_activity_timestamp_multichain(address, API_KEY, verify_age_days=FRESH_AGE_DAYS)
 
 
 def has_cex_interaction(address):
-    """Return a structured anti-CEX decision for Fresh Wallet screening."""
-    return analyze_cex_interactions(address, KNOWN_CEX_HOT_WALLETS, ZRO_CONTRACT, API_KEY, max_per_chain=80)
+    """Return a structured anti-CEX decision for Fresh Wallet screening.
+    Scans all supported chains so recycling via L2s/BSC is not missed."""
+    return analyze_cex_interactions(
+        address, KNOWN_CEX_HOT_WALLETS, ZRO_CONTRACT, API_KEY,
+        max_per_chain=80, chains=SUPPORTED_CHAINS,
+    )
 
 
 def has_coinbase_roundtrip(address, cache=None):
@@ -395,7 +430,9 @@ def main():
         if lbl:
             label_map[h["address"].lower()] = lbl
 
-    # ── Phase 0: Age out expired NEW_INST labels (Fresh Wallet stays sticky) ──
+    # ── Phase 0: Age out expired NEW_INST and FRESH labels (separate pass,
+    # runs over ALL holders — labeled wallets are skipped by the candidate
+    # loop, so expiry must happen here) ──
     cache = load_cache()
     now = int(time.time())
     cutoff = now - (FRESH_AGE_DAYS * 86400)
@@ -412,8 +449,21 @@ def main():
                 cache[addr] = {"result": "OLD", "checked": now}
                 aged_out += 1
                 print(f"  ⏰ Aged out: {addr[:14]}... (was: {old_label})")
+        elif h.get("type") == "FRESH" or h.get("fresh") is True:
+            # Explicit human labels are exempt; legacy auto labels carried
+            # label_manual=True by mistake, so that flag is NOT honored here.
+            if h.get("label_source") == "manual":
+                continue
+            created = h.get("wallet_created") or cache.get(addr, {}).get("first_ts", 0)
+            if created and (now - created) > (FRESH_LABEL_TTL_DAYS * 86400):
+                age_days = (now - created) // 86400
+                for key in FRESH_METADATA_KEYS:
+                    h.pop(key, None)
+                cache[addr] = {"result": "OLD", "first_ts": created, "checked": now}
+                aged_out += 1
+                print(f"  ⏰ FRESH expired: {addr[:14]}... (wallet {age_days}d old > TTL {FRESH_LABEL_TTL_DAYS}d)")
     if aged_out:
-        print(f"   Expired {aged_out} institutional labels")
+        print(f"   Expired {aged_out} labels")
     print()
 
     # Phase 1: Coinbase Prime detection (before fresh wallet scan)
@@ -476,6 +526,11 @@ def main():
                 continue
             if result == "FRESH":
                 first_ts = cached.get("first_ts", 0)
+                # Past TTL: do NOT re-apply the label — flip cache to OLD
+                if first_ts and (now_ts - first_ts) > (FRESH_LABEL_TTL_DAYS * 86400):
+                    cache[addr] = {"result": "OLD", "first_ts": first_ts, "checked": now_ts}
+                    cache_hits += 1
+                    continue
                 apply_fresh_wallet_label(h, first_ts)
                 profile = has_cex_interaction(addr)
                 apply_fresh_profile(h, profile)
@@ -530,13 +585,13 @@ def main():
                 continue
 
         try:
-            # Step 1: Check if it's a contract
-            contract = is_contract(addr)
+            # Step 1: Check if it's a contract on any chain where it holds ZRO
+            contract, contract_chain = is_contract(addr, h.get("balances"))
             time.sleep(0.25)
 
             if contract:
-                # For contracts: check creation date and deployer
-                creation_ts, deployer = get_contract_creation_timestamp(addr)
+                # For contracts: check creation date and deployer (on the chain with code)
+                creation_ts, deployer = get_contract_creation_timestamp(addr, contract_chain or 1)
                 time.sleep(0.25)
 
                 if creation_ts and creation_ts > cutoff:

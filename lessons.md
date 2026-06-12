@@ -23,6 +23,13 @@
 
 ## Fresh Wallet Detection
 
+- **FRESH label ma TTL (60 dni od wallet_created).** Phase 0 w `detect_fresh.py` wygasza FRESH i NEW_INST jako osobny pass. Cache FRESH też respektuje TTL — inaczej cached wynik reaplikowałby label po wygaśnięciu. Czyszczenie 06.2026 usunęło 12 stale labeli, w tym wallet 877-dniowy (zaszłość sprzed multichain-checku).
+- **`label_manual` znaczy "ustawione ręcznie" — auto-labele używają `label_source: "auto_fresh"`.** Wcześniej apply_fresh_wallet_label kłamliwie ustawiał label_manual=True, przez co nic nigdy nie wygasało. Tylko `label_source: "manual"` jest wyłączone z agingu.
+- **`is_contract()` musi sprawdzać chainy z saldem, nie tylko ETH.** Safe deployowany na Arbitrum/Base ma kod tylko na L2 — check chainid=1 klasyfikował go jako EOA → fałszywy FRESH zamiast MULTISIG.
+- **First activity sprawdza też `txlistinternal`, ale tylko gdy wallet wygląda na fresh** (albo brak jakiejkolwiek aktywności). Internal-only funding zaniżał wiek; warunkowy deep-pass oszczędza requesty na walletach i tak starych.
+- **Profil CEX skanuje wszystkie 7 chainów** (koszt: ~7 req jednorazowo per nowy kandydat, pomijalne przy limicie 100K/dzień) — recykler przez Base/BSC nie dostanie już czystego profilu "Independent".
+
+
 - **`detect_fresh.py` skanuje TYLKO wallety które JUŻ SĄ w `zro_data.json`.** Jeśli wallet nie jest w danych, nie zostanie sprawdzony. Dlatego `fetch_holders.py` musi znaleźć nowe wallety NAJPIERW.
 - **EOA bez ETH (tylko ZRO):** `detect_fresh.py` ma fallback z `txlist` na `tokentx` — złapie także wallety zasilone wyłącznie tokenami.
 - **"Fresh" = pierwsza transakcja <30 dni, nie "kiedy dostał ZRO".** Stary wallet z 2022 który dopiero teraz kupił ZRO NIE jest fresh.

@@ -53,6 +53,7 @@ def apply_preserved_metadata(entry, preserved):
         "funded_by",
         "fresh",
         "label_manual",
+        "label_source",
         "fresh_profile",
         "fresh_profile_label",
         "fresh_profile_reason",
@@ -89,7 +90,8 @@ def apply_preserved_metadata(entry, preserved):
         entry["label"] = "Fresh Wallet"
         entry["type"] = "FRESH"
         entry["fresh"] = True
-        entry["label_manual"] = True
+        # Auto label provenance; aging in detect_fresh.py removes it after TTL
+        entry.setdefault("label_source", "auto_fresh")
 
 
 def sync_holders_multichain_metadata(source_data, snapshot_holders):
@@ -110,6 +112,7 @@ def sync_holders_multichain_metadata(source_data, snapshot_holders):
             "funded_by",
             "fresh",
             "label_manual",
+            "label_source",
             "fresh_profile",
             "fresh_profile_label",
             "fresh_profile_reason",
@@ -243,7 +246,7 @@ def main():
             h["label"] = "Fresh Wallet"
             h["type"] = "FRESH"
             h["fresh"] = True
-            h["label_manual"] = True
+            h.setdefault("label_source", "auto_fresh")
             continue
 
         # Enforce known CEX

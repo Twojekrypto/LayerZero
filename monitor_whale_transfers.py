@@ -262,7 +262,7 @@ def main():
                     "label": "Fresh Wallet",
                     "type": "FRESH",
                     "fresh": True,
-                    "label_manual": True,
+                    "label_source": "auto_fresh",
                     "wallet_created": creation_ts,
                     "last_flow": timestamp,
                     "last_flow_amount": value,
