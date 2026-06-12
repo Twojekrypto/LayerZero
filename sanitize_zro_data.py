@@ -61,6 +61,7 @@ METADATA_KEYS = (
     "cb_last_funded",
     "cb_total_received",
     "cb_last_flow_amount",
+    "cb_funded",
 )
 FLOW_INFRA_TYPES = {"CEX", "DEX", "PROTOCOL", "TEAM", "MULTISIG", "CUSTODY", "MM", "UNLOCK"}
 FLOW_MIN_RETENTION = 0.25

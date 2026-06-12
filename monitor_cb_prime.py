@@ -23,6 +23,11 @@ KNOWN_CEX = KNOWN_CEX_ADDRESSES
 
 MIN_ALERT_AMOUNT = 50_000  # Only alert for transfers >= 50K ZRO
 
+# Known DEX/protocol contracts seen as transfer counterparties
+KNOWN_CONTRACTS = {
+    "0x9008d19f58aabd9ed0d60971565aa8510560ab41": "CoW Swap",
+}
+
 # Known internal/rebalancing wallets — no Discord alerts, type=INTERNAL
 EXCLUDE_ADDRS = {
     "0x26cc9d27b6dfa373a7a470839e4cf5220a22be02",  # Internal rebalancing
@@ -109,7 +114,7 @@ def main():
     cb_addrs = set()
     cb_balances = {}
     for h in data["top_holders"]:
-        if h.get("label") == "Coinbase Prime Investor":
+        if h.get("label") == "Coinbase Prime Investor" or h.get("cb_funded"):
             addr = h["address"].lower()
             cb_addrs.add(addr)
             cb_balances[addr] = sum(h.get("balances", {}).values())
@@ -195,6 +200,8 @@ def main():
     label_map[COINBASE_PRIME_HUB] = "Coinbase Prime"
     for cex_addr, cex_name in KNOWN_CEX.items():
         label_map[cex_addr] = cex_name
+    for contract_addr, contract_name in KNOWN_CONTRACTS.items():
+        label_map[contract_addr] = contract_name
 
     new_transfers = []  # Accumulate for persistence
 
@@ -280,8 +287,22 @@ def main():
                 {"name": "Amount", "value": f"**-{fmt(value)} ZRO**\n({usd_val})" if usd_val else f"**-{fmt(value)} ZRO**", "inline": True},
                 {"name": "To", "value": f"[`{short_addr(to_addr)}`](https://etherscan.io/address/{to_addr})", "inline": True},
             ]
-        elif (to_is_cb and (from_is_cex or from_is_hub)) or (from_is_hub and not from_is_cb):
-            # Buy — CB Prime receives from CEX or hub
+        elif from_is_hub and not to_is_cb:
+            # Hub sends to an address that is NOT a tracked investor — this is a
+            # distribution to an unknown/new recipient, not an investor BUY.
+            alert_type = "TRANSFER"
+            transfer_type = "DISTRIBUTION"
+            color = 0xA78BFA
+            title = "🟣 Coinbase Prime — DISTRIBUTION"
+            desc = "CB Prime hub **sent ZRO to an untracked address** (possible new investor)"
+            footer = "ZRO Coinbase Prime Alert • Hub Distribution"
+            fields = [
+                {"name": "From", "value": f"[`{short_addr(from_addr)}`](https://etherscan.io/address/{from_addr})\nCB Prime Hub", "inline": True},
+                {"name": "Amount", "value": f"**{fmt(value)} ZRO**\n({usd_val})" if usd_val else f"**{fmt(value)} ZRO**", "inline": True},
+                {"name": "To", "value": f"[`{short_addr(to_addr)}`](https://etherscan.io/address/{to_addr})", "inline": True},
+            ]
+        elif to_is_cb and (from_is_cex or from_is_hub):
+            # Buy — CB Prime investor receives from CEX or hub
             source_name = KNOWN_CEX.get(from_addr, "Coinbase Prime 1" if from_is_hub else "Unknown")
             alert_type = "BUY"
             transfer_type = "BUY"
@@ -298,17 +319,18 @@ def main():
                 {"name": "Source", "value": f"[`{source_name}`](https://etherscan.io/address/{from_addr})", "inline": True},
             ]
         elif to_is_cb:
-            # Inflow from unknown
+            # Inflow from unknown / DEX
+            source_label = label_map.get(from_addr, "")
             alert_type = "BUY"
             transfer_type = "INFLOW"
             color = 0x00D395
             title = "🟢 Coinbase Prime — INFLOW"
-            desc = "CB Prime wallet **received ZRO**"
+            desc = f"CB Prime wallet **received ZRO**{f' via {source_label}' if source_label else ''}"
             footer = "ZRO Coinbase Prime Alert • Institutional Flow Monitor"
             fields = [
                 {"name": "Wallet", "value": f"[`{short_addr(to_addr)}`](https://etherscan.io/address/{to_addr})", "inline": True},
                 {"name": "Amount", "value": f"**+{fmt(value)} ZRO**\n({usd_val})" if usd_val else f"**+{fmt(value)} ZRO**", "inline": True},
-                {"name": "From", "value": f"[`{short_addr(from_addr)}`](https://etherscan.io/address/{from_addr})", "inline": True},
+                {"name": "From", "value": f"[`{short_addr(from_addr)}`](https://etherscan.io/address/{from_addr})" + (f"\n{source_label}" if source_label else ""), "inline": True},
             ]
         else:
             continue  # Not relevant

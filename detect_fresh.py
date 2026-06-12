@@ -216,6 +216,24 @@ def has_cex_interaction(address):
     )
 
 
+def get_zro_balance(address):
+    """Current ZRO balance on Ethereum, or None on API failure."""
+    url = (
+        f"https://api.etherscan.io/v2/api?chainid=1"
+        f"&module=account&action=tokenbalance"
+        f"&contractaddress={ZRO_CONTRACT}"
+        f"&address={address}&tag=latest"
+        f"&apikey={API_KEY}"
+    )
+    data = fetch_json(url)
+    if data and data.get("status") == "1" and data.get("result") is not None:
+        try:
+            return int(data["result"]) / 1e18
+        except (ValueError, TypeError):
+            return None
+    return None
+
+
 def has_coinbase_roundtrip(address, cache=None):
     """Check if a wallet has frequent ZRO transfers TO Coinbase hot wallets or CB Prime.
     If a wallet sends ZRO back to Coinbase addresses frequently, it's an internal wallet,
@@ -237,7 +255,8 @@ def has_coinbase_roundtrip(address, cache=None):
     )
     data = fetch_json(url)
     if not data or data.get("status") != "1" or not data.get("result"):
-        return False
+        # Unknown — API failed; caller must NOT label based on this
+        return None
 
     cb_transfers = 0
     total_out = 0
@@ -337,12 +356,12 @@ def detect_coinbase_prime(data, cache=None):
 
     print(f"   Outgoing transfers to {len(all_recipients)} unique recipients")
 
-    # Update timestamps for ALL existing CB Prime wallets (even already labeled)
+    # Update timestamps for ALL existing CB Prime wallets (labeled or cb_funded)
     cb_updated = 0
     for h in data["top_holders"]:
         addr = h["address"].lower()
         info = all_recipients.get(addr)
-        if info and h.get("label") == "Coinbase Prime Investor":
+        if info and (h.get("label") == "Coinbase Prime Investor" or h.get("cb_funded")):
             h["cb_first_funded"] = info["first_ts"]
             h["cb_last_funded"] = info["last_ts"]
             h["cb_total_received"] = round(info["total"])
@@ -377,14 +396,27 @@ def detect_coinbase_prime(data, cache=None):
             preserved_fresh += 1
             print(f"  🔒 Preserve Fresh: {addr[:14]}... ({balance:,.0f} ZRO)")
             continue
-        # Skip wallets with non-Fresh manual labels (BitGo, CEX, etc.)
+        # Wallets with other labels (BitGo, Token Millionaire, etc.): keep their
+        # label but flag them as CB-funded so the CB Prime view includes them.
         existing_label = h.get("label", "")
         existing_type = h.get("type", "")
         if existing_label and existing_type not in ("FRESH", ""):
+            if addr not in COINBASE_INTERNAL_EXCLUDE and not h.get("cb_funded"):
+                h["cb_funded"] = True
+                h["cb_first_funded"] = info["first_ts"]
+                h["cb_last_funded"] = info["last_ts"]
+                h["cb_total_received"] = round(info["total"])
+                h["cb_last_flow_amount"] = round(info.get("last_amount", 0))
+                cb_updated += 1
+                print(f"  🏷️ CB-funded (label kept: {existing_label}): {addr[:14]}... received {info['total']:,.0f}")
             continue
         # Auto-filter: skip if wallet has frequent round-trip transfers with Coinbase
         time.sleep(0.25)
-        if has_coinbase_roundtrip(addr, cache):
+        roundtrip = has_coinbase_roundtrip(addr, cache)
+        if roundtrip is None:
+            print(f"  ⚠️ Roundtrip check failed (API): {addr[:14]}... — skipping this run")
+            continue
+        if roundtrip:
             print(f"  ⛔ Filtered (CB roundtrip): {addr[:14]}... ({balance:,.0f} ZRO)")
             continue
         old_label = existing_label or "(none)"
@@ -401,6 +433,48 @@ def detect_coinbase_prime(data, cache=None):
             new_labeled += 1
             print(f"  🆕 CB Prime:  {addr[:14]}... ({balance:,.0f} ZRO, received {info['total']:,.0f})")
         new_cb_wallets.append({"address": addr, "balance": balance, "type": "CB_PRIME"})
+
+    # Recipients that are NOT tracked holders yet: fetch balance and add them,
+    # otherwise hub recipients outside the snapshot stay invisible forever.
+    holder_addrs = {h["address"].lower() for h in data["top_holders"]}
+    added_external = 0
+    for addr, info in all_recipients.items():
+        if info["total"] < CB_MIN_RECEIVED or addr in holder_addrs:
+            continue
+        if (addr in COINBASE_INTERNAL_EXCLUDE or addr in KNOWN_COINBASE_WALLETS
+                or addr in KNOWN_CEX_ADDRESSES or addr == ZRO_CONTRACT):
+            continue
+        skip_meta = (cache or {}).get(addr, {}).get("cb_recipient_skip")
+        if skip_meta and (int(time.time()) - skip_meta) < 7 * 86400:
+            continue  # re-check balance weekly at most
+        balance = get_zro_balance(addr)
+        time.sleep(0.25)
+        if balance is None:
+            continue  # API failed — retry next run
+        if balance < CB_MIN_BALANCE:
+            if cache is not None:
+                cache.setdefault(addr, {})["cb_recipient_skip"] = int(time.time())
+            continue
+        roundtrip = has_coinbase_roundtrip(addr, cache)
+        time.sleep(0.25)
+        if roundtrip is None or roundtrip:
+            continue
+        data["top_holders"].append({
+            "address": addr,
+            "balances": {"ethereum": round(balance, 2)},
+            "label": "Coinbase Prime Investor",
+            "type": "INST",
+            "cb_first_funded": info["first_ts"],
+            "cb_last_funded": info["last_ts"],
+            "cb_total_received": round(info["total"]),
+            "cb_last_flow_amount": round(info.get("last_amount", 0)),
+        })
+        added_external += 1
+        new_labeled += 1
+        new_cb_wallets.append({"address": addr, "balance": balance, "type": "CB_PRIME"})
+        print(f"  ➕ CB Prime (added to holders): {addr[:14]}... ({balance:,.0f} ZRO, received {info['total']:,.0f})")
+    if added_external:
+        print(f"   Added {added_external} previously untracked hub recipients")
 
     total_cb = sum(1 for h in data["top_holders"] if h.get("label") == "Coinbase Prime Investor")
     print(f"   Total CB Prime wallets: {total_cb} (new: {new_labeled}, relabeled: {relabeled})")

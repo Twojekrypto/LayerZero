@@ -21,6 +21,14 @@
 - **Nie auto-labeluj bez weryfikacji.** Wallet z Token Unlocks nie jest automatycznie "Fresh" — może to być stary portfel. Labeling powinien przechodzić przez `detect_fresh.py`.
 - **Aging labels musi być OSOBNYM passem.** Jeśli aging code jest wewnątrz pętli "candidates" (walletów bez label), to labeled wallety są pomijane → nigdy nie expire.
 
+## Coinbase Prime Detection
+
+- **`cb_funded: true` = wallet zasilony z hubu CB Prime, który zachowuje własny label.** Reguła "nie nadpisuj labeli" ukrywała ~25M ZRO custody (Token Millionaire z 22M received nie był w tabeli CB). Tabela CB Prime pokazuje label=="Coinbase Prime Investor" LUB cb_funded.
+- **Hub→nieznany adres to DISTRIBUTION, nie BUY.** Warunek `from_is_hub and not from_is_cb` liczył każdy transfer z hubu jako BUY (26/95 szło do nie-investorów). BUY tylko gdy odbiorca jest śledzony.
+- **Odbiorcy hubu spoza top_holders są auto-dodawani** (received ≥50K, balans ≥100K po fetcher tokenbalance, z filtrem roundtrip). Wcześniej byli niewidzialni.
+- **0x9008d19f... = CoW Swap (GPv2Settlement)** — investorzy CB Prime dokupują przez CoW; label w KNOWN_CONTRACTS, żeby INFLOW pokazywał źródło.
+- **`has_coinbase_roundtrip` zwraca None przy błędzie API** — caller pomija labelowanie w tym runie zamiast ryzykować fałszywy label przy flaky request.
+
 ## Fresh Wallet Detection
 
 - **FRESH label ma TTL (60 dni od wallet_created).** Phase 0 w `detect_fresh.py` wygasza FRESH i NEW_INST jako osobny pass. Cache FRESH też respektuje TTL — inaczej cached wynik reaplikowałby label po wygaśnięciu. Czyszczenie 06.2026 usunęło 12 stale labeli, w tym wallet 877-dniowy (zaszłość sprzed multichain-checku).

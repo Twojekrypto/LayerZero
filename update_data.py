@@ -82,6 +82,7 @@ def apply_preserved_metadata(entry, preserved):
         "cb_last_funded",
         "cb_total_received",
         "cb_last_flow_amount",
+        "cb_funded",
     ):
         if preserved.get(key) is not None:
             entry[key] = preserved[key]
@@ -141,6 +142,7 @@ def sync_holders_multichain_metadata(source_data, snapshot_holders):
             "cb_last_funded",
             "cb_total_received",
             "cb_last_flow_amount",
+            "cb_funded",
         ):
             if snapshot_holder.get(key) is not None:
                 holder[key] = snapshot_holder[key]
@@ -200,6 +202,7 @@ def main():
                 "cb_last_funded": h.get("cb_last_funded"),
                 "cb_total_received": h.get("cb_total_received"),
                 "cb_last_flow_amount": h.get("cb_last_flow_amount"),
+                "cb_funded": h.get("cb_funded"),
             }
 
     # Build new top_holders from fresh data, preserving labels

@@ -1819,7 +1819,7 @@ let cbPage=1, cbSearchQuery='', cbPeriodDays=0, cbSortKey='balance', cbSortDir='
 const CB_PER_PAGE=15;
 function getCoinbasePrimeHolders(includeSearch=true) {
     const nowSec = getSnapshotReferenceSec();
-    let items = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor');
+    let items = DATA.top_holders.filter(h => h.label === 'Coinbase Prime Investor' || h.cb_funded === true);
     if(cbPeriodDays > 0) {
         const cutoff = nowSec - (cbPeriodDays * 86400);
         items = items.filter(h => {
@@ -1888,7 +1888,10 @@ function renderCoinbasePrime() {
         const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
         const fundedDate = h.cb_first_funded ? new Date(h.cb_first_funded * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : '—';
         const fundedAge = formatDaysAgoFromSnapshot(h.cb_first_funded);
-        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">Coinbase Prime</a><span class="h-badge h-badge-inst">INST</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButtonHTML(h.address)}${dbIcon}${explorerIcon}</div></div>`;
+        const isDirectInvestor = h.label === 'Coinbase Prime Investor';
+        const rowLabel = isDirectInvestor ? 'Coinbase Prime' : (h.label || 'Coinbase Prime');
+        const cbBadges = `<span class="h-badge h-badge-inst">INST</span>${isDirectInvestor ? '' : '<span class="h-badge h-badge-custody" title="Funded by CB Prime hub, keeps its own label">CB-FUNDED</span>'}`;
+        const addrTd = `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${escapeHtml(rowLabel)}</a>${cbBadges}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButtonHTML(h.address)}${dbIcon}${explorerIcon}</div></div>`;
         const lastFundedDate = h.cb_last_funded ? new Date(h.cb_last_funded * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
         const lastFundedAge = formatDaysAgoFromSnapshot(h.cb_last_funded);
         const lastFlowAmt = h.cb_last_flow_amount || h.cb_total_received;
@@ -1896,7 +1899,7 @@ function renderCoinbasePrime() {
         const cbDetailKey = `cb:${h.address}`;
         const cbDetailPayload = buildWalletDrawerPayload(h, {
             eyebrow: `Coinbase Prime wallet #${rank}`,
-            title: 'Coinbase Prime',
+            title: rowLabel,
             metrics: [
                 { value: `${fmt(bal)} ZRO`, label: 'Custodied balance', sub: price ? fmtUSD(bal * price) : 'Live price unavailable' },
                 { value: fundedDate, label: 'First funded', sub: fundedAge || 'Indexed age' },
@@ -1967,8 +1970,8 @@ function initCbPeriodPills() {
 // ── Coinbase Prime Transfers ──
 let cbtPage=1, cbtTypeFilter='ALL', cbtPeriodDays=0, cbtSearchQuery='', cbtSortKey='date', cbtSortDir='desc';
 const CBT_PER_PAGE=20;
-const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395'};
-const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢'};
+const CBT_TYPE_COLORS = {BUY:'#00D395', SELL:'#FF4444', TRANSFER:'#0052FF', OUTFLOW:'#FFA500', INFLOW:'#00D395', DISTRIBUTION:'#A78BFA'};
+const CBT_TYPE_ICONS = {BUY:'🟢', SELL:'🔴', TRANSFER:'🔄', OUTFLOW:'🟠', INFLOW:'🟢', DISTRIBUTION:'🟣'};
 
 function cbtAddrCell(addr, label) {
     const short = addr.slice(0,6)+'…'+addr.slice(-4);
