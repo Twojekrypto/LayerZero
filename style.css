@@ -2743,3 +2743,44 @@ body.drawer-open { overflow:hidden; }
         padding:16px 18px;
     }
 }
+
+/* ── Governance: Fee Switch Referendums ── */
+#netflow-section .fresh-stats { margin:0 0 10px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.gov-next { display:flex; justify-content:space-between; align-items:center; background:rgba(167,139,250,0.06); border:1px solid rgba(167,139,250,0.18); border-radius:var(--radius-md); padding:14px 16px; margin-bottom:14px; }
+.gov-next-label { font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); }
+.gov-next-val { font-size:18px; font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+.gov-next-sub { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+.gov-next-count { text-align:center; }
+.gov-next-days { display:block; font-size:26px; font-weight:800; color:var(--accent-purple); font-variant-numeric:tabular-nums; line-height:1; }
+.gov-next-days-lbl { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; }
+.gov-list { display:flex; flex-direction:column; gap:8px; }
+.gov-row { display:flex; align-items:center; gap:12px; padding:10px 12px; background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-md); }
+.gov-row-num { font-size:14px; font-weight:700; color:var(--text-muted); min-width:28px; }
+.gov-row-main { flex:1; min-width:0; }
+.gov-row-dates { font-size:12px; font-weight:600; color:var(--text-primary); font-variant-numeric:tabular-nums; }
+.gov-row-meta { font-size:11px; color:var(--text-muted); margin:2px 0 4px; }
+.gov-bar-track { height:4px; background:rgba(255,255,255,0.06); border-radius:2px; overflow:hidden; max-width:280px; }
+.gov-bar-fill { height:100%; background:var(--accent-amber); border-radius:2px; }
+.gov-bar-lbl { font-size:10px; color:var(--text-muted); }
+.gov-row-result { flex-shrink:0; }
+.gov-badge { font-size:10px; font-weight:700; padding:3px 8px; border-radius:999px; text-transform:uppercase; letter-spacing:0.04em; }
+.gov-badge-failed { background:rgba(244,63,94,0.12); color:var(--accent-rose); }
+.gov-badge-passed { background:rgba(34,197,94,0.12); color:var(--accent-green); }
+.gov-badge-upcoming { background:rgba(167,139,250,0.14); color:var(--accent-purple); }
+.gov-note { margin-top:12px; font-size:11px; color:var(--text-muted); line-height:1.5; }
+
+/* ── Zero L1 ── */
+.zero-grid { display:grid; grid-template-columns:180px 1fr; gap:14px; margin-bottom:14px; }
+.zero-count { background:rgba(74,158,255,0.06); border:1px solid rgba(74,158,255,0.18); border-radius:var(--radius-md); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; text-align:center; }
+.zero-count-days { font-size:34px; font-weight:800; color:var(--accent-blue); font-variant-numeric:tabular-nums; line-height:1; }
+.zero-count-lbl { font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-top:6px; }
+.zero-count-sub { font-size:11px; color:var(--text-secondary); margin-top:4px; }
+.zero-info { display:flex; flex-direction:column; gap:8px; justify-content:center; }
+.zero-info-row { display:flex; gap:10px; font-size:12px; color:var(--text-primary); align-items:baseline; flex-wrap:wrap; }
+.zero-info-key { font-size:10px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); min-width:86px; }
+.zero-partner { display:inline-block; background:rgba(255,255,255,0.05); border:1px solid var(--border-subtle); border-radius:999px; padding:2px 8px; font-size:10px; margin:0 4px 4px 0; color:var(--text-secondary); }
+.zero-zones { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.zero-zone { background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:10px 12px; }
+.zero-zone-name { font-size:12px; font-weight:700; color:var(--text-primary); }
+.zero-zone-desc { font-size:11px; color:var(--text-muted); margin-top:2px; }
+@media (max-width:640px){ .zero-grid{grid-template-columns:1fr} .zero-zones{grid-template-columns:1fr} .gov-next{flex-direction:column;gap:8px;align-items:flex-start} }

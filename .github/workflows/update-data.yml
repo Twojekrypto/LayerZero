@@ -39,6 +39,10 @@ jobs:
       - name: Merge with existing data (preserve labels)
         run: python update_data.py
 
+      - name: Refresh buybacks from Foundation tracker
+        continue-on-error: true
+        run: python fetch_buybacks.py
+
       - name: Auto-detect fresh wallets (<30 days old)
         continue-on-error: true
         env:

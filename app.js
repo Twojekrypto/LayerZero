@@ -1403,6 +1403,7 @@ function rerenderPriceSensitiveViews() {
     renderWhaleTransfers();
     renderVesting();
     renderInvestors();
+    renderNetFlowTrend();
 }
 
 function renderNetworkStats() {
@@ -2440,7 +2441,54 @@ function renderVesting() {
             <div class="vest-card"><div class="vest-card-label">Months Remaining</div><div class="vest-card-val">${monthsLeft}</div><div class="vest-card-sub">until full unlock</div></div>
         </div>
         ${v.schedule.map(s=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px"><span style="color:var(--text-secondary)">${s.period}</span><span style="color:var(--text-primary);font-weight:600">${fmt(s.tokens)} ZRO</span><span style="color:var(--text-muted)">${fmtUSD(s.tokens*DATA.meta.price_usd)}</span></div>`).join('')}
+        ${unlockProjectionChartHTML(v)}
         <div class="vest-correction"><div class="vest-correction-title">🚨 CEO Correction (19.77% supply repurchased)</div><div class="vest-correction-text">Bryan Pellegrino (Feb 2026): "Most public dashboards overstate unlock pressure by almost 2x." Real remaining pressure: <strong style="color:var(--accent-purple)">~${fmt(v.real_remaining)} ZRO</strong> (~${fmtUSD(realMonthlyUsd)}/mo) vs dashboard's ~${fmt(v.total_remaining)} ZRO (~${fmtUSD(monthlyUsd)}/mo).</div></div>`;
+}
+
+// ── Unlock projection chart: cumulative unlocks vs circulating supply ──
+function unlockProjectionChartHTML(v) {
+    const circ=DATA.meta.circulating_supply||0;
+    if(!circ) return '';
+    const end=new Date(v.vesting_end+'T00:00:00Z');
+    const now=new Date();
+    const points=[];
+    let dt=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),20));
+    if(dt<now) dt=new Date(Date.UTC(dt.getUTCFullYear(),dt.getUTCMonth()+1,20));
+    let i=0;
+    while(dt<=end&&i<=14){points.push({date:new Date(dt),n:i+1});dt=new Date(Date.UTC(dt.getUTCFullYear(),dt.getUTCMonth()+1,20));i++;}
+    if(!points.length) return '';
+    const monthly=v.monthly_unlock_total||0;
+    const realRatio=v.total_remaining?v.real_remaining/v.total_remaining:0.5;
+    const maxVal=circ+points.length*monthly;
+    const W=600,H=190,padL=46,padR=10,padT=14,padB=24;
+    const x=idx=>padL+idx*((W-padL-padR)/Math.max(1,points.length-1));
+    const y=val=>padT+(1-(val/maxVal))*(H-padT-padB);
+    const lineFull=points.map((p,idx)=>`${x(idx).toFixed(1)},${y(circ+(idx+1)*monthly).toFixed(1)}`).join(' ');
+    const lineReal=points.map((p,idx)=>`${x(idx).toFixed(1)},${y(circ+(idx+1)*monthly*realRatio).toFixed(1)}`).join(' ');
+    const labels=points.map((p,idx)=>{
+        if(idx%3!==0&&idx!==points.length-1) return '';
+        const lbl=p.date.toLocaleDateString('en-GB',{month:'short',year:'2-digit'});
+        return `<text x="${x(idx).toFixed(1)}" y="${H-6}" fill="var(--text-muted)" font-size="9" text-anchor="middle">${lbl}</text>`;
+    }).join('');
+    const grid=[0.25,0.5,0.75,1].map(f=>{
+        const val=maxVal*f;
+        return `<line x1="${padL}" y1="${y(val)}" x2="${W-padR}" y2="${y(val)}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/><text x="${padL-4}" y="${y(val)+3}" fill="var(--text-muted)" font-size="9" text-anchor="end">${Math.round(val/1e6)}M</text>`;
+    }).join('');
+    const circY=y(circ);
+    return `
+        <div style="margin-top:16px;font-size:12px;color:var(--text-secondary);font-weight:600">Projected Circulating Supply (cumulative unlocks)</div>
+        <svg viewBox="0 0 ${W} ${H}" width="100%" height="auto" role="img" aria-label="Projected circulating supply from cumulative unlocks until vesting end" style="margin-top:6px">
+            ${grid}
+            <line x1="${padL}" y1="${circY}" x2="${W-padR}" y2="${circY}" stroke="var(--accent-blue,#4a9eff)" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="${padL+4}" y="${circY-4}" fill="var(--accent-blue,#4a9eff)" font-size="9">now: ${Math.round(circ/1e6)}M circulating</text>
+            <polyline points="${lineFull}" fill="none" stroke="var(--accent-rose)" stroke-width="2"/>
+            <polyline points="${lineReal}" fill="none" stroke="var(--accent-purple,#a78bfa)" stroke-width="2" stroke-dasharray="6 3"/>
+            ${labels}
+        </svg>
+        <div style="display:flex;gap:14px;font-size:10px;color:var(--text-muted);margin-top:4px;flex-wrap:wrap">
+            <span><span style="display:inline-block;width:14px;height:2px;background:var(--accent-rose);vertical-align:middle;margin-right:4px"></span>Full schedule (+${fmt(monthly)}/mo)</span>
+            <span><span style="display:inline-block;width:14px;height:2px;background:var(--accent-purple,#a78bfa);vertical-align:middle;margin-right:4px"></span>CEO-corrected (~${Math.round(realRatio*100)}%)</span>
+        </div>`;
 }
 
 function renderBuybacks() {
@@ -2455,7 +2503,7 @@ function renderBuybacks() {
         <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;font-weight:600">Monthly Stargate Buybacks</div>
         ${b.stargate_monthly.map(m=>`<div class="bb-bar-row"><div class="bb-bar-label">${m.month}</div><div class="bb-bar-track"><div class="bb-bar-fill" style="width:${(m.usd/maxUSD*100).toFixed(0)}%">${fmt(m.tokens)}</div></div><div class="bb-bar-val">${fmtUSD(m.usd)}</div></div>`).join('')}
         <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">Foundation Buyback: ${fmt(b.foundation_buyback_tokens)} ZRO (5% supply) · Labs Discretionary: ${fmtUSD(b.labs_discretionary_usd)}</div>
-        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">ℹ️ Since Mar 2026, 100% of Stargate revenue funds ZRO buybacks (Sep 2025–Feb 2026 was split 50/50 with veSTG holders).</div>`;
+        <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">ℹ️ Since Mar 2026, 100% of Stargate revenue funds ZRO buybacks (Sep 2025–Feb 2026 was split 50/50 with veSTG holders).${b.supply_pct?` Bought back so far: ${b.supply_pct}% of total supply.`:''}${b.tracker_updated?` · <a href="https://layerzero.foundation/zro-buybacks" target="_blank" rel="noopener noreferrer">Foundation tracker</a> (synced ${b.tracker_updated})`:''}</div>`;
 }
 
 function renderInvestors() {
@@ -2490,6 +2538,130 @@ function renderTimeline() {
         const dt=new Date(d.date), now=new Date(), isPast=dt<now;
         return `<div class="tl-item"><div class="tl-dot ${d.type}"></div><div class="tl-date">${d.date}${isPast?' ✓':''}</div><div class="tl-event">${d.event}</div><div class="tl-detail">${d.detail}</div></div>`;
     }).join('')}</div>`;
+}
+
+// ── Governance: Fee Switch Referendums ──
+function renderGovernance() {
+    const g=DATA.governance, el=document.getElementById('governance-section');
+    if(!g||!el) return;
+    const now=new Date();
+    const next=new Date(g.next_vote.date+'T00:00:00Z');
+    const daysTo=Math.max(0,Math.ceil((next-now)/(24*60*60*1000)));
+    const resultBadge=r=>r==='failed_quorum'
+        ? '<span class="gov-badge gov-badge-failed">No quorum</span>'
+        : r==='passed' ? '<span class="gov-badge gov-badge-passed">Passed</span>'
+        : '<span class="gov-badge gov-badge-upcoming">Upcoming</span>';
+    const rows=g.referendums.map(r=>{
+        const turnout=r.turnout_zro!=null&&r.quorum_zro?Math.min(100,(r.turnout_zro/r.quorum_zro)*100):null;
+        const turnoutBar=turnout!=null
+            ? `<div class="gov-bar-track"><div class="gov-bar-fill" style="width:${Math.max(1.5,turnout).toFixed(1)}%"></div></div><span class="gov-bar-lbl">${turnout.toFixed(1)}% of quorum</span>`
+            : r.result==='upcoming'?'<span class="gov-bar-lbl">—</span>':'<span class="gov-bar-lbl">below quorum</span>';
+        return `<div class="gov-row">
+            <div class="gov-row-num">#${r.num}</div>
+            <div class="gov-row-main">
+                <div class="gov-row-dates">${r.start} → ${r.end}</div>
+                <div class="gov-row-meta">Quorum: ${r.quorum_zro?fmt(r.quorum_zro)+' ZRO':r.quorum_pct_circ!=null?r.quorum_pct_circ+'% circ.':'TBA'}${r.yes_pct!=null?` · ${r.yes_pct}% voted YES`:''}</div>
+                ${turnoutBar}
+            </div>
+            <div class="gov-row-result">${resultBadge(r.result)}</div>
+        </div>`;
+    }).join('');
+    el.innerHTML=`
+        <div class="gov-next">
+            <div><div class="gov-next-label">Next vote</div><div class="gov-next-val">${g.next_vote.date}</div><div class="gov-next-sub">${escapeHtml(g.next_vote.label)}</div></div>
+            <div class="gov-next-count"><span class="gov-next-days">${daysTo}</span><span class="gov-next-days-lbl">days</span></div>
+        </div>
+        <div class="gov-list">${rows}</div>
+        <div class="gov-note">ℹ️ ${escapeHtml(g.note)} A "Yes" outcome converts all messaging fees to ZRO and burns them.</div>`;
+}
+
+// ── Zero L1 ──
+function renderZeroL1() {
+    const z=DATA.zero_l1, el=document.getElementById('zero-section');
+    if(!z||!el) return;
+    const now=new Date();
+    const target=new Date(z.mainnet_target+'T00:00:00Z');
+    const daysTo=Math.max(0,Math.ceil((target-now)/(24*60*60*1000)));
+    el.innerHTML=`
+        <div class="zero-grid">
+            <div class="zero-count">
+                <div class="zero-count-days">${daysTo}</div>
+                <div class="zero-count-lbl">days to mainnet</div>
+                <div class="zero-count-sub">${escapeHtml(z.mainnet_label)} (target ${z.mainnet_target})</div>
+            </div>
+            <div class="zero-info">
+                <div class="zero-info-row"><span class="zero-info-key">Announced</span><span>${z.announced}</span></div>
+                <div class="zero-info-row"><span class="zero-info-key">Throughput</span><span>${escapeHtml(z.tps_claim)}</span></div>
+                <div class="zero-info-row"><span class="zero-info-key">ZRO role</span><span>${escapeHtml(z.zro_role)}</span></div>
+                <div class="zero-info-row"><span class="zero-info-key">Backers</span><span>${z.partners.map(p=>`<span class="zero-partner">${escapeHtml(p)}</span>`).join('')}</span></div>
+            </div>
+        </div>
+        <div class="zero-zones">${z.zones.map(zn=>`<div class="zero-zone"><div class="zero-zone-name">${escapeHtml(zn.name)}</div><div class="zero-zone-desc">${escapeHtml(zn.desc)}</div></div>`).join('')}</div>
+        <div class="gov-note">⚡ ${escapeHtml(z.strategic_investment)}. Launching with ${z.zones.length} zones.</div>`;
+}
+
+// ── Net CEX Flow Trend (daily, from whale transfers) ──
+let netFlowDays=30;
+function initNetFlowPills() {
+    const pills=document.getElementById('netflow-pills');
+    if(!pills) return;
+    pills.addEventListener('click',e=>{
+        const btn=e.target.closest('button[data-netflow-days]');
+        if(!btn) return;
+        netFlowDays=parseInt(btn.dataset.netflowDays,10)||30;
+        pills.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b===btn));
+        renderNetFlowTrend();
+    });
+}
+function renderNetFlowTrend() {
+    const el=document.getElementById('netflow-section');
+    if(!el) return;
+    const wt=DATA.whale_transfers||[];
+    const days=netFlowDays;
+    const dayMs=24*60*60*1000;
+    const end=new Date(); end.setUTCHours(0,0,0,0);
+    const start=end.getTime()-(days-1)*dayMs;
+    const buckets=new Map();
+    for(let t=start;t<=end.getTime();t+=dayMs) buckets.set(t,0);
+    let inSum=0,outSum=0;
+    wt.forEach(w=>{
+        if(w.type!=='CEX_DEPOSIT'&&w.type!=='CEX_WITHDRAWAL') return;
+        const dayTs=new Date(w.timestamp*1000); dayTs.setUTCHours(0,0,0,0);
+        const key=dayTs.getTime();
+        if(!buckets.has(key)) return;
+        const signed=w.type==='CEX_WITHDRAWAL'?w.value:-w.value;
+        buckets.set(key,buckets.get(key)+signed);
+        if(signed>0) inSum+=w.value; else outSum+=w.value;
+    });
+    const vals=[...buckets.values()];
+    const maxAbs=Math.max(1,...vals.map(v=>Math.abs(v)));
+    const net=inSum-outSum;
+    const W=600,H=170,padL=8,padR=8,mid=H/2-10;
+    const n=vals.length,bw=Math.max(2,((W-padL-padR)/n)-2);
+    const livePrice=DATA.meta.price_usd||0;
+    let bars='';
+    [...buckets.entries()].forEach(([ts,v],i)=>{
+        const x=padL+i*((W-padL-padR)/n);
+        const h=Math.abs(v)/maxAbs*(mid-14);
+        const y=v>=0?mid-h:mid;
+        const d=new Date(ts);
+        const dateLbl=`${String(d.getUTCDate()).padStart(2,'0')}.${String(d.getUTCMonth()+1).padStart(2,'0')}`;
+        bars+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0.5,h).toFixed(1)}" rx="1" fill="${v>=0?'var(--accent-green)':'var(--accent-rose)'}" opacity="0.85"><title>${dateLbl}: ${v>=0?'+':''}${fmt(Math.round(v))} ZRO</title></rect>`;
+    });
+    const fmtSigned=v=>`${v>=0?'+':'−'}${fmt(Math.round(Math.abs(v)))}`;
+    el.innerHTML=`
+        <div class="fresh-stats" style="margin-bottom:10px">
+            <div class="fresh-stat"><div class="fresh-stat-val" style="color:var(--accent-green)">+${fmt(Math.round(inSum))}</div><div class="fresh-stat-lbl">From CEX (accumulation)</div></div>
+            <div class="fresh-stat"><div class="fresh-stat-val" style="color:var(--accent-rose)">−${fmt(Math.round(outSum))}</div><div class="fresh-stat-lbl">To CEX (sell pressure)</div></div>
+            <div class="fresh-stat"><div class="fresh-stat-val" style="color:${net>=0?'var(--accent-green)':'var(--accent-rose)'}">${fmtSigned(net)}</div><div class="fresh-stat-lbl">Net ${days}d${livePrice?` (${fmtUSD(Math.abs(net)*livePrice)})`:''}</div></div>
+        </div>
+        <svg viewBox="0 0 ${W} ${H}" width="100%" height="auto" role="img" aria-label="Daily net CEX flow over last ${days} days">
+            <line x1="${padL}" y1="${mid}" x2="${W-padR}" y2="${mid}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+            <text x="${padL}" y="12" fill="var(--text-muted)" font-size="10">+${fmt(Math.round(maxAbs))} ZRO</text>
+            <text x="${padL}" y="${H-4}" fill="var(--text-muted)" font-size="10">−${fmt(Math.round(maxAbs))} ZRO</text>
+            ${bars}
+        </svg>
+        <div class="gov-note">Positive (green) = withdrawals from CEX into tracked wallets · Negative (red) = deposits to CEX. Source: tracked whale transfers ≥100K ZRO.</div>`;
 }
 
 // ── Data Freshness ──
@@ -2859,6 +3031,7 @@ async function init() {
     syncControlsFromState();
     renderMetrics(); renderNetworkStats(); renderChains(); renderHolders(); renderFreshWallets(); renderCoinbasePrime(); renderCbTransfers(); renderNewInstitutional(); renderFlows(); renderWhaleTransfers();
     renderAllocation(); renderVesting(); renderBuybacks(); renderInvestors(); renderValueStreams(); renderTimeline();
+    renderGovernance(); renderZeroL1(); renderNetFlowTrend(); initNetFlowPills();
     stateSyncReady = true;
     updateUrlState();
     updateFreshness(); setInterval(updateFreshness, 30000);

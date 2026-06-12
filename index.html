@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=23">
+    <link rel="stylesheet" href="style.css?v=24">
 </head>
 <body>
 <div class="page-wrapper">
@@ -307,6 +307,17 @@
             </div>
             <div class="table-footer" id="whale-pager"></div>
         </div>
+        <!-- NET CEX FLOW TREND -->
+        <div class="card anim anim-d2">
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Net CEX Flow Trend <span class="card-sub">daily, from tracked whale transfers</span></h3>
+                <div class="period-pills" id="netflow-pills">
+                    <button type="button" data-netflow-days="7">7d</button>
+                    <button type="button" data-netflow-days="30" class="active">30d</button>
+                    <button type="button" data-netflow-days="60">60d</button>
+                </div>
+            </div>
+            <div id="netflow-section" class="card-body-pad"></div>
+        </div>
     </div>
 
     <!-- ========== TAB: TOKENOMICS ========== -->
@@ -339,6 +350,16 @@
         <div class="card anim anim-d4">
             <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Value Accrual — 8 Streams <span class="card-sub">CEO: "All value goes to ZRO"</span></h3></div>
             <div id="value-section" class="card-body-pad"></div>
+        </div>
+        <!-- GOVERNANCE -->
+        <div class="card anim anim-d4">
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Governance — Fee Switch Referendums <span class="card-sub">vote every 6 months</span></h3></div>
+            <div id="governance-section" class="card-body-pad"></div>
+        </div>
+        <!-- ZERO L1 -->
+        <div class="card anim anim-d4">
+            <div class="card-header"><h3><img src="lz-icon.svg" class="lz-card-icon" width="18" height="22" alt="LZ"> Zero L1 <span class="card-sub">ZRO = gas + staking</span></h3></div>
+            <div id="zero-section" class="card-body-pad"></div>
         </div>
         <!-- KEY DATES -->
         <div class="card anim anim-d4">
@@ -380,6 +401,6 @@
     </div>
 </aside>
 <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
-<script src="app.js?v=22"></script>
+<script src="app.js?v=23"></script>
 </body>
 </html>

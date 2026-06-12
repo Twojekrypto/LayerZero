@@ -214,12 +214,29 @@
         "month": "Feb 2026",
         "tokens": 146430,
         "usd": 277141
+      },
+      {
+        "month": "Mar 2026",
+        "tokens": 126612,
+        "usd": 241538
+      },
+      {
+        "month": "Apr 2026",
+        "tokens": 143400,
+        "usd": 207936
+      },
+      {
+        "month": "May 2026",
+        "tokens": 124574,
+        "usd": 143217
       }
     ],
-    "stargate_total_tokens": 1495039,
-    "stargate_total_usd": 2274167,
+    "stargate_total_tokens": 1889625,
+    "stargate_total_usd": 2866859,
     "foundation_buyback_tokens": 50000000,
-    "labs_discretionary_usd": 10000000
+    "labs_discretionary_usd": 10000000,
+    "supply_pct": 0.19,
+    "tracker_updated": "2026-06-12"
   },
   "investors": [
     {
@@ -36539,5 +36556,82 @@
       "to_label": "0xc456…0ebd",
       "event_id": "0x31a0da4e51b981ce36349d530a7483dade26b52cc6978083dbb9f248f814e467"
     }
-  ]
+  ],
+  "governance": {
+    "next_vote": {
+      "date": "2026-06-20",
+      "label": "Fee Switch Referendum #4 (expected)"
+    },
+    "note": "Quorum not met in any referendum so far; protocol fee remains OFF. Vote repeats every 6 months.",
+    "referendums": [
+      {
+        "num": 1,
+        "start": "2024-12-20",
+        "end": "2024-12-27",
+        "quorum_pct_circ": 60.0,
+        "quorum_zro": null,
+        "turnout_zro": null,
+        "yes_pct": null,
+        "result": "failed_quorum"
+      },
+      {
+        "num": 2,
+        "start": "2025-06-20",
+        "end": "2025-06-27",
+        "quorum_pct_circ": 50.4,
+        "quorum_zro": 55400000,
+        "turnout_zro": 2000000,
+        "yes_pct": null,
+        "result": "failed_quorum"
+      },
+      {
+        "num": 3,
+        "start": "2025-12-20",
+        "end": "2025-12-27",
+        "quorum_pct_circ": 40.59,
+        "quorum_zro": 230000000,
+        "turnout_zro": null,
+        "yes_pct": 97,
+        "result": "failed_quorum"
+      },
+      {
+        "num": 4,
+        "start": "2026-06-20",
+        "end": "2026-06-27",
+        "quorum_pct_circ": null,
+        "quorum_zro": null,
+        "turnout_zro": null,
+        "yes_pct": null,
+        "result": "upcoming"
+      }
+    ]
+  },
+  "zero_l1": {
+    "announced": "2026-02-10",
+    "mainnet_target": "2026-10-01",
+    "mainnet_label": "Fall 2026",
+    "tps_claim": "up to 2M TPS",
+    "partners": [
+      "Citadel Securities",
+      "DTCC",
+      "ICE",
+      "Google Cloud"
+    ],
+    "strategic_investment": "Citadel Securities — strategic ZRO investment",
+    "zones": [
+      {
+        "name": "EVM Zone",
+        "desc": "General-purpose EVM environment"
+      },
+      {
+        "name": "Payments Zone",
+        "desc": "Privacy-focused payments"
+      },
+      {
+        "name": "Trading Zone",
+        "desc": "Multi-asset markets"
+      }
+    ],
+    "zro_role": "Native gas + staking + priority fees + MEV/tips"
+  }
 }
