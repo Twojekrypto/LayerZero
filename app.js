@@ -912,7 +912,7 @@ function addrCell(item) {
         : '';
     if (item.label) {
         const bCls={'CEX':'h-badge-cex','DEX':'h-badge-dex','PROTOCOL':'h-badge-protocol','VC':'h-badge-vc','INST':'h-badge-inst','WALLET':'h-badge-wallet','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[item.type]||'h-badge-whale';
-        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a><span class="h-badge ${bCls}">${item.type}</span>${cohortBadge}${sourceBadge}${sellerBadge}${freshBadge}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+        return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${escapeHtml(item.label)}</a><span class="h-badge ${bCls}">${escapeHtml(item.type)}</span>${cohortBadge}${sourceBadge}${sellerBadge}${freshBadge}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
     }
     return `<div class="h-addr-two-line"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${cohortBadge}${sourceBadge}${sellerBadge}${freshBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
 }
@@ -927,7 +927,7 @@ function flowAddrCell(item) {
     const primaryBadge = compactFlowPrimaryBadgeHTML(item, holder);
     const secondaryBadge = compactFlowSecondaryBadgeHTML(item, holder);
     if (item.label) {
-        return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${item.label}</a>${primaryBadge}</div><div class="h-addr-line2">${secondaryBadge}<span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
+        return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${escapeHtml(item.label)}</a>${primaryBadge}</div><div class="h-addr-line2">${secondaryBadge}<span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}${explorerIcon}</div></div>`;
     }
     return `<div class="h-addr-two-line flow-addr-compact"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${primaryBadge}</div><div class="h-addr-line2">${secondaryBadge}${copyButton}${dbIcon}${explorerIcon}</div></div>`;
 }
@@ -1549,7 +1549,7 @@ function renderHolders() {
         let addrTd;
         if(h.label){
             const bCls={'CEX':'h-badge-cex','PROTOCOL':'h-badge-protocol','INST':'h-badge-inst','VC':'h-badge-vc','DEX':'h-badge-dex','TEAM':'h-badge-team','WHALE':'h-badge-whale','CUSTODY':'h-badge-custody','MULTISIG':'h-badge-multisig','MM':'h-badge-mm','FRESH':'h-badge-fresh','UNLOCK':'h-badge-unlock','NEW_INST':'h-badge-inst'}[h.type]||'h-badge-whale';
-            addrTd=`<td class="h-td h-td-addr"${dataLabelAttr('Address')}><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${h.label}</a><span class="h-badge ${bCls}">${h.type}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}</div></div></td>`;
+            addrTd=`<td class="h-td h-td-addr"${dataLabelAttr('Address')}><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${escapeHtml(h.label)}</a><span class="h-badge ${bCls}">${escapeHtml(h.type)}</span></div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButton}${dbIcon}</div></div></td>`;
         } else {
             addrTd=`<td class="h-td h-td-addr"${dataLabelAttr('Address')}><div class="h-addr-two-line"><div class="h-addr-line1"><a href="${dbUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex">${shortA}</a>${copyButton}${dbIcon}</div></div></div></td>`;
         }
@@ -1691,7 +1691,7 @@ function renderFreshWallets() {
         const label = h.label || 'Fresh Wallet';
         const rank = start+i+1;
         const rankCls = rank <= 3 ? 'rank-badge top-3' : 'rank-badge';
-        const fundedBy = h.funded_by ? `<span class="h-badge h-badge-funded" title="Funded by ${h.funded_by}">via ${h.funded_by}</span>` : '';
+        const fundedBy = h.funded_by ? `<span class="h-badge h-badge-funded" title="Funded by ${escapeAttr(h.funded_by)}">via ${escapeHtml(h.funded_by)}</span>` : '';
         const signalTooltipParts = [];
         if (h.fresh_signal_label && h.fresh_signal_label !== 'Fresh wallet') {
             signalTooltipParts.push(h.fresh_signal_label);
@@ -1700,7 +1700,7 @@ function renderFreshWallets() {
         }
         const signalTitle = signalTooltipParts.join(' · ');
         const signalLabel = h.fresh_signal_label && h.fresh_signal_label !== 'Fresh wallet'
-            ? `<span class="h-badge h-badge-fresh-signal" title="${escapeAttr(signalTitle)}">${h.fresh_signal_label}</span>`
+            ? `<span class="h-badge h-badge-fresh-signal" title="${escapeAttr(signalTitle)}">${escapeHtml(h.fresh_signal_label)}</span>`
             : '';
         const profileTooltipParts = [];
         if (h.fresh_profile_label && h.fresh_profile_label !== 'Independent') {
@@ -1710,13 +1710,13 @@ function renderFreshWallets() {
         }
         const profileTitle = profileTooltipParts.join(' · ');
         const profileLabel = h.fresh_profile_label && h.fresh_profile_label !== 'Independent'
-            ? `<span class="h-badge h-badge-fresh-profile" title="${escapeAttr(profileTitle)}">${h.fresh_profile_label}</span>`
+            ? `<span class="h-badge h-badge-fresh-profile" title="${escapeAttr(profileTitle)}">${escapeHtml(h.fresh_profile_label)}</span>`
             : '';
         const signalDisplay = getFreshSignalDisplay(h);
         const createdDisplay = getFreshCreatedDisplay(h);
         const createdDate = createdDisplay.label;
         const createdAge = createdDisplay.sublabel;
-        const addrTd = `<div class="h-addr-two-line fresh-address-cell"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${label}</a><span class="h-badge h-badge-fresh">FRESH</span>${signalLabel}${profileLabel}${fundedBy}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButtonHTML(h.address)}${dbIcon}${explorerIcon}</div></div>`;
+        const addrTd = `<div class="h-addr-two-line fresh-address-cell"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-label">${escapeHtml(label)}</a><span class="h-badge h-badge-fresh">FRESH</span>${signalLabel}${profileLabel}${fundedBy}</div><div class="h-addr-line2"><span class="h-addr-hex-sm">${shortA}</span>${copyButtonHTML(h.address)}${dbIcon}${explorerIcon}</div></div>`;
         const lastFlowDate = h.last_flow ? new Date(h.last_flow * 1000).toLocaleDateString('en-GB', {day:'numeric',month:'short'}) : '';
         const lastFlowAge = formatDaysAgoFromSnapshot(h.last_flow);
         const lfAmt = h.last_flow_amount || 0;
@@ -1972,7 +1972,7 @@ function cbtAddrCell(addr, label) {
     const explorerUrl = `https://etherscan.io/address/${addr}`;
     return `<div class="cbt-addr-cell">
         <div class="cbt-addr-main">
-            <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="cbt-addr-name" title="${addr}">${label||short}</a>
+            <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="cbt-addr-name" title="${escapeAttr(addr)}">${escapeHtml(label||short)}</a>
             <button type="button" class="addr-icon-btn" data-copy="${escapeAttr(addr)}" title="Copy address" aria-label="Copy address"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
             <a href="${dbUrl}" target="_blank" rel="noopener noreferrer" class="addr-icon-btn" title="Open in DeBank" aria-label="Open in DeBank"><img src="https://debank.com/favicon.ico" width="12" height="12" alt="" aria-hidden="true" class="h-debank-favicon" style="border-radius:2px"></a>
         </div>
@@ -2004,7 +2004,7 @@ const CBT_COLUMNS = [
         </div>`;
     }},
     { id:'to', header:'To', mobileLabel:'To', width:264, align:'left', render: (t) => cbtAddrCell(t.to, t.to_label) },
-    { id:'type', header:'Type', mobileLabel:'Flow Type', width:132, align:'left', render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${t.type}</span>` },
+    { id:'type', header:'Type', mobileLabel:'Flow Type', width:132, align:'left', render: (t) => `<span style="color:${CBT_TYPE_COLORS[t.type]||'var(--text-primary)'};font-weight:600;font-size:12px">${CBT_TYPE_ICONS[t.type]||''} ${escapeHtml(t.type)}</span>` },
     { id:'amount', header:'Amount', mobileLabel:'Amount', width:164, align:'right', sortable:'amount', render: (t,p) => { const out=t.type==='SELL'||t.type==='OUTFLOW'; const c=out?'#FF4444':'#00D395'; const s=out?'-':'+'; const u=p?`<div class="h-usd-sub">${fmtUSD(t.value*p)}</div>`:''; return `<div style="color:${c};font-weight:600;font-variant-numeric:tabular-nums">${s}${fmt(t.value)} ZRO</div>${u}`; }},
 ];
 function toggleCbtSort(key) {
@@ -2672,7 +2672,7 @@ function buildWhaleCounterpartyCell(address, resolvedLabel, holder, options={}) 
     const routeLine = options.routeNote
         ? `<div class="whale-route-note">${escapeHtml(options.routeNote)}</div>`
         : '';
-    return `<div class="h-addr-two-line whale-entity-stack"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm whale-entity-link">${linkLabel}</a>${debankIconHTML(debankUrl)}</div><div class="h-whale-meta-row whale-entity-meta">${typeBadge}${cohortBadge}${subAddress}</div>${balanceLine}${routeLine}</div>`;
+    return `<div class="h-addr-two-line whale-entity-stack"><div class="h-addr-line1"><a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="h-addr-hex-sm whale-entity-link">${escapeHtml(linkLabel)}</a>${debankIconHTML(debankUrl)}</div><div class="h-whale-meta-row whale-entity-meta">${typeBadge}${cohortBadge}${subAddress}</div>${balanceLine}${routeLine}</div>`;
 }
 function buildWhaleDetailPayload(transfer, fromResolved, toResolved, contextMeta, scoreMeta, usdVal, timeStr, agoStr) {
     const amountLabel = `${transfer.type === 'CEX_DEPOSIT' ? '-' : '+'}${fmt(transfer.value)} ZRO`;
