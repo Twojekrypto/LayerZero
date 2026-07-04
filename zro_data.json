@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-07-04T23:41:53Z",
+    "generated": "2026-07-04T23:45:19Z",
     "token": "ZRO (LayerZero)",
     "contract": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
     "total_supply": 1000000000,
@@ -17,13 +17,13 @@
     "cross_chain_stablecoin_share": 71,
     "oft_count": 750,
     "integrity": {
-      "normalized_at": "2026-07-04T23:42:26Z",
+      "normalized_at": "2026-07-04T23:45:53Z",
       "duplicate_holder_records_removed": 0,
       "fresh_wallets_missing_created": 0,
       "fresh_wallets_missing_last_flow": 1,
       "tracked_chain_balances": {
-        "ethereum": 935023912.2700001,
-        "arbitrum": 21010082.79000002,
+        "ethereum": 935025319.98,
+        "arbitrum": 18454403.52000001,
         "base": 5603730.04,
         "bsc": 4945228.06,
         "optimism": 3454693.41,
@@ -397,21 +397,21 @@
       "name": "Ethereum",
       "short": "ETH",
       "color": "#627EEA",
-      "supply": 935023912.27,
-      "holders": 503,
+      "supply": 935025319.98,
+      "holders": 502,
       "explorer": "https://etherscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
       "verified_date": "2026-03-19",
       "reference_supply": 950798277,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-07-04T23:42:26Z"
+      "supply_synced_at": "2026-07-04T23:45:53Z"
     },
     "arbitrum": {
       "name": "Arbitrum",
       "short": "ARB",
       "color": "#28A0F0",
-      "supply": 21010082.79,
+      "supply": 18454403.52,
       "holders": 36160,
       "explorer": "https://arbiscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
@@ -419,7 +419,7 @@
       "reference_supply": 28465056,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-07-04T23:42:26Z"
+      "supply_synced_at": "2026-07-04T23:45:53Z"
     },
     "base": {
       "name": "Base",
@@ -433,7 +433,7 @@
       "reference_supply": 6496063,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-07-04T23:42:26Z"
+      "supply_synced_at": "2026-07-04T23:45:53Z"
     },
     "bsc": {
       "name": "BNB Chain",
@@ -447,7 +447,7 @@
       "reference_supply": 5721542,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-07-04T23:42:26Z"
+      "supply_synced_at": "2026-07-04T23:45:53Z"
     },
     "optimism": {
       "name": "Optimism",
@@ -461,7 +461,7 @@
       "reference_supply": 4956100,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-07-04T23:42:26Z"
+      "supply_synced_at": "2026-07-04T23:45:53Z"
     },
     "polygon": {
       "name": "Polygon",
@@ -475,7 +475,7 @@
       "reference_supply": 2487403,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-07-04T23:42:26Z"
+      "supply_synced_at": "2026-07-04T23:45:53Z"
     },
     "avalanche": {
       "name": "Avalanche",
@@ -489,7 +489,7 @@
       "reference_supply": 1075559,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-07-04T23:42:26Z"
+      "supply_synced_at": "2026-07-04T23:45:53Z"
     }
   },
   "top_holders": [
@@ -845,7 +845,7 @@
     {
       "address": "0xa31231e727ca53ff95f0d00a06c645110c4ab647",
       "balances": {
-        "ethereum": 5010293.72
+        "ethereum": 5010294.0
       },
       "label": "Bybit",
       "type": "CEX",
@@ -1265,6 +1265,16 @@
       "cb_last_flow_amount": 2225000
     },
     {
+      "address": "0x28c6c06298d514db089934071355e5743bf21d60",
+      "balances": {
+        "ethereum": 2157617.0
+      },
+      "label": "Binance",
+      "type": "CEX",
+      "last_flow": 1782089723,
+      "last_flow_amount": 167196.00000000003
+    },
+    {
       "address": "0x7723b24142f55b6d6f8ebde91b9a46ed8631babf",
       "balances": {
         "ethereum": 2110001.0
@@ -1275,16 +1285,6 @@
       "cb_last_funded": 1773087443,
       "cb_total_received": 2110001,
       "cb_last_flow_amount": 2110000
-    },
-    {
-      "address": "0x28c6c06298d514db089934071355e5743bf21d60",
-      "balances": {
-        "ethereum": 2085282.5
-      },
-      "label": "Binance",
-      "type": "CEX",
-      "last_flow": 1782089723,
-      "last_flow_amount": 167196.00000000003
     },
     {
       "address": "0xfa6749c452519c67fdaddb36ff10fce0c6cf035e",
@@ -2784,7 +2784,7 @@
     {
       "address": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "balances": {
-        "ethereum": 250303.08
+        "ethereum": 250303.0
       },
       "label": "Coinbase",
       "type": "CEX",
@@ -4215,7 +4215,7 @@
     {
       "address": "0xfec31338044ef12516b33c43a6caedd4443edc9a",
       "balances": {
-        "arbitrum": 68221.55
+        "arbitrum": 68576.0
       },
       "label": "",
       "type": ""
@@ -4669,7 +4669,7 @@
     {
       "address": "0x360acf12e72044ba3eaaa654e51e4725c699dcb1",
       "balances": {
-        "ethereum": 52307.52
+        "ethereum": 52381.0
       },
       "label": "",
       "type": ""
@@ -5140,6 +5140,14 @@
       "type": ""
     },
     {
+      "address": "0x3207c0d0243a145684e58a436ceb5901e4ece349",
+      "balances": {
+        "arbitrum": 36522.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
       "address": "0xe9f13d3bddb0a219375b2e09abc85a832c74ac4b",
       "balances": {
         "ethereum": 36493.0
@@ -5158,7 +5166,7 @@
     {
       "address": "0xbb3c6d28def21b6297016622a57a0b05015e3ad2",
       "balances": {
-        "ethereum": 35596.17
+        "ethereum": 35596.0
       },
       "label": "",
       "type": ""
@@ -5172,12 +5180,12 @@
       "type": "CEX"
     },
     {
-      "address": "0x3207c0d0243a145684e58a436ceb5901e4ece349",
+      "address": "0x0b2f362fe29fdd3e0bd4c39979268635aa20ba39",
       "balances": {
-        "arbitrum": 33970.42
+        "ethereum": 33333.0
       },
-      "label": "",
-      "type": ""
+      "label": "BitGo MultiSig",
+      "type": "CUSTODY"
     },
     {
       "address": "0x03c9e373d4a8bfbe1627af86c7eb3b8b5df7dbcb",
