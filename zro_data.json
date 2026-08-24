@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-08-24T02:13:50Z",
+    "generated": "2026-08-24T03:19:03Z",
     "token": "ZRO (LayerZero)",
     "contract": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
     "total_supply": 1000000000,
@@ -17,17 +17,17 @@
     "cross_chain_stablecoin_share": 71,
     "oft_count": 750,
     "integrity": {
-      "normalized_at": "2026-08-24T02:14:25Z",
+      "normalized_at": "2026-08-24T03:19:36Z",
       "duplicate_holder_records_removed": 0,
       "fresh_wallets_missing_created": 0,
       "fresh_wallets_missing_last_flow": 0,
       "tracked_chain_balances": {
-        "ethereum": 883143522.4000001,
-        "arbitrum": 17797043.65,
-        "base": 4636231.0,
+        "ethereum": 882783913.29,
+        "arbitrum": 16514477.13,
+        "base": 4636617.35,
         "bsc": 4946884.23,
         "optimism": 3417650.58,
-        "polygon": 1075589.23,
+        "polygon": 1011229.16,
         "avalanche": 886715.49
       },
       "chain_balance_anomalies": [],
@@ -95,14 +95,14 @@
         "all": {
           "raw_accumulators": 95,
           "raw_sellers": 43,
-          "excluded_untracked": 0,
+          "excluded_untracked": 6,
           "excluded_infrastructure": 0,
           "excluded_zero_balance": 0,
           "excluded_low_retention": 0,
           "excluded_low_signal": 0,
-          "chain_unresolved_rows": 41,
-          "normalized_accumulators": 95,
-          "normalized_sellers": 43
+          "chain_unresolved_rows": 40,
+          "normalized_accumulators": 94,
+          "normalized_sellers": 38
         }
       },
       "whale_transfer_diagnostics": {
@@ -407,7 +407,7 @@
       "name": "Ethereum",
       "short": "ETH",
       "color": "#627EEA",
-      "supply": 883143522.4,
+      "supply": 882783913.29,
       "holders": 719,
       "explorer": "https://etherscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
@@ -415,13 +415,13 @@
       "reference_supply": 950798277,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-08-24T02:14:25Z"
+      "supply_synced_at": "2026-08-24T03:19:36Z"
     },
     "arbitrum": {
       "name": "Arbitrum",
       "short": "ARB",
       "color": "#28A0F0",
-      "supply": 17797043.65,
+      "supply": 16514477.13,
       "holders": 36160,
       "explorer": "https://arbiscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
@@ -429,7 +429,7 @@
       "reference_supply": 28465056,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-08-24T02:14:25Z"
+      "supply_synced_at": "2026-08-24T03:19:36Z"
     },
     "base": {
       "name": "Base",
@@ -443,7 +443,7 @@
       "reference_supply": 6496063,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-08-24T02:14:25Z"
+      "supply_synced_at": "2026-08-24T03:19:36Z"
     },
     "bsc": {
       "name": "BNB Chain",
@@ -457,7 +457,7 @@
       "reference_supply": 5721542,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-08-24T02:14:25Z"
+      "supply_synced_at": "2026-08-24T03:19:36Z"
     },
     "optimism": {
       "name": "Optimism",
@@ -471,13 +471,13 @@
       "reference_supply": 4956100,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-08-24T02:14:25Z"
+      "supply_synced_at": "2026-08-24T03:19:36Z"
     },
     "polygon": {
       "name": "Polygon",
       "short": "MATIC",
       "color": "#8247E5",
-      "supply": 1075589.23,
+      "supply": 1011229.16,
       "holders": 289,
       "explorer": "https://polygonscan.com/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
@@ -485,7 +485,7 @@
       "reference_supply": 2487403,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-08-24T02:14:25Z"
+      "supply_synced_at": "2026-08-24T03:19:36Z"
     },
     "avalanche": {
       "name": "Avalanche",
@@ -499,7 +499,7 @@
       "reference_supply": 1075559,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-08-24T02:14:25Z"
+      "supply_synced_at": "2026-08-24T03:19:36Z"
     }
   },
   "top_holders": [
@@ -520,6 +520,18 @@
       "type": "TEAM"
     },
     {
+      "address": "0xf977814e90da44bfa03b6295a0616a897441acec",
+      "balances": {
+        "ethereum": 25363248.0,
+        "arbitrum": 2000000.0,
+        "base": 1346225.05,
+        "bsc": 1122968.38,
+        "optimism": 1000000.0
+      },
+      "label": "Binance",
+      "type": "CEX"
+    },
+    {
       "address": "0xc2f31575b97df563a3bba2a94e3a0b317ba2d412",
       "balances": {
         "ethereum": 30750000.0
@@ -528,18 +540,6 @@
       "type": "CUSTODY",
       "last_flow": 1774892615,
       "last_flow_amount": -4125607.6
-    },
-    {
-      "address": "0xf977814e90da44bfa03b6295a0616a897441acec",
-      "balances": {
-        "ethereum": 25363248.0,
-        "arbitrum": 800000.0,
-        "base": 1346225.05,
-        "bsc": 1122968.38,
-        "optimism": 1000000.0
-      },
-      "label": "Binance",
-      "type": "CEX"
     },
     {
       "address": "0x1f903473376fbe98cc763f1bc459c8fdb6ac3909",
@@ -625,7 +625,7 @@
     {
       "address": "0x63be42b40816eb08f6ea480e5875e6f4668da379",
       "balances": {
-        "ethereum": 14746177.99
+        "ethereum": 14481658.0
       },
       "label": "Upbit",
       "type": "CEX",
@@ -781,7 +781,7 @@
     {
       "address": "0xa31231e727ca53ff95f0d00a06c645110c4ab647",
       "balances": {
-        "ethereum": 6762778.0
+        "ethereum": 6888724.0
       },
       "label": "Bybit",
       "type": "CEX",
@@ -831,6 +831,15 @@
       "type": "WHALE"
     },
     {
+      "address": "0x98adef6f2ac8572ec48965509d69a8dd5e8bba9d",
+      "balances": {
+        "ethereum": 886610.0,
+        "arbitrum": 4672386.0
+      },
+      "label": "Binance Hot Wallet",
+      "type": "CEX"
+    },
+    {
       "address": "0x9381c3ca2ea66d259d1620ea2a10ea789d4e101b",
       "balances": {
         "ethereum": 5497022.0
@@ -853,16 +862,6 @@
       },
       "label": "LayerZero: ZRO Multisig",
       "type": "MULTISIG"
-    },
-    {
-      "address": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
-      "balances": {
-        "arbitrum": 4325859.0,
-        "bsc": 300000.0,
-        "avalanche": 104495.48
-      },
-      "label": "Exchange/Bot",
-      "type": "CEX"
     },
     {
       "address": "0x4cbaeb6de295bcb0fcc564adf6e53157a91f8dc1",
@@ -898,6 +897,16 @@
       "type": "WHALE"
     },
     {
+      "address": "0x28c6c06298d514db089934071355e5743bf21d60",
+      "balances": {
+        "ethereum": 4444041.0
+      },
+      "label": "Binance",
+      "type": "CEX",
+      "last_flow": 1787443211,
+      "last_flow_amount": 112466.11
+    },
+    {
       "address": "0x1ca4918bf78073ddf7a638c29109c16ba39b611e",
       "balances": {
         "ethereum": 4440034.0
@@ -909,25 +918,6 @@
       "cb_total_received": 4440034,
       "cb_last_flow_amount": 2500000,
       "cb_funded": true
-    },
-    {
-      "address": "0x28c6c06298d514db089934071355e5743bf21d60",
-      "balances": {
-        "ethereum": 4437951.0
-      },
-      "label": "Binance",
-      "type": "CEX",
-      "last_flow": 1787443211,
-      "last_flow_amount": 112466.11
-    },
-    {
-      "address": "0x57d48b26f488cef8337de9a3af4982f6dcb57230",
-      "balances": {
-        "ethereum": 3749999.0,
-        "arbitrum": 500001.0
-      },
-      "label": "Whale",
-      "type": "WHALE"
     },
     {
       "address": "0x437dcbbe1bd87688e58466cad48517c15473f303",
@@ -949,6 +939,14 @@
       "address": "0xb5e8fd3a7e5333d5640341ed1afd03eb35571257",
       "balances": {
         "ethereum": 3750000.0
+      },
+      "label": "Whale",
+      "type": "WHALE"
+    },
+    {
+      "address": "0x57d48b26f488cef8337de9a3af4982f6dcb57230",
+      "balances": {
+        "ethereum": 3749999.0
       },
       "label": "Whale",
       "type": "WHALE"
@@ -1042,7 +1040,7 @@
     {
       "address": "0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2",
       "balances": {
-        "ethereum": 3256145.0
+        "ethereum": 3257184.0
       },
       "label": "Exchange/Bot",
       "type": "CEX",
@@ -1308,6 +1306,14 @@
       "last_flow_amount": -197832.0558
     },
     {
+      "address": "0x611f7bf868a6212f871e89f7e44684045ddfb09d",
+      "balances": {
+        "arbitrum": 1901946.0
+      },
+      "label": "Exchange/Bot",
+      "type": "CEX"
+    },
+    {
       "address": "0x78860476a1c99bfd37aca73def0e62d1f8f57b82",
       "balances": {
         "ethereum": 1875000.0
@@ -1316,35 +1322,6 @@
       "type": "WHALE",
       "last_flow": 1787160863,
       "last_flow_amount": -187500.0
-    },
-    {
-      "address": "0x611f7bf868a6212f871e89f7e44684045ddfb09d",
-      "balances": {
-        "arbitrum": 1819993.54
-      },
-      "label": "Exchange/Bot",
-      "type": "CEX"
-    },
-    {
-      "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
-      "balances": {
-        "ethereum": 382513.8,
-        "arbitrum": 297981.85,
-        "optimism": 51785.49,
-        "polygon": 967564.31,
-        "avalanche": 60282.87
-      },
-      "label": "Bybit",
-      "type": "CEX"
-    },
-    {
-      "address": "0x98adef6f2ac8572ec48965509d69a8dd5e8bba9d",
-      "balances": {
-        "ethereum": 886610.0,
-        "arbitrum": 852845.98
-      },
-      "label": "Binance Hot Wallet",
-      "type": "CEX"
     },
     {
       "address": "0xb9e7ccfbf5c10ba622ee92276da83c41f8743b3b",
@@ -1377,18 +1354,6 @@
       "cb_last_flow_amount": 467342
     },
     {
-      "address": "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
-      "balances": {
-        "ethereum": 1415259.11,
-        "arbitrum": 258250.66,
-        "base": 17.7,
-        "bsc": 1882.0,
-        "optimism": 32.69
-      },
-      "label": "Gate.io",
-      "type": "CEX"
-    },
-    {
       "address": "0xfa6749c452519c67fdaddb36ff10fce0c6cf035e",
       "balances": {
         "ethereum": 1666667.0
@@ -1409,14 +1374,16 @@
       "last_flow_amount": 416667.0
     },
     {
-      "address": "0x15da7556d5ed888306839bed06f868aeaedcb0d7",
+      "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
       "balances": {
-        "ethereum": 1658658.0
+        "ethereum": 375776.0,
+        "arbitrum": 208507.0,
+        "optimism": 51785.49,
+        "polygon": 966419.0,
+        "avalanche": 60282.87
       },
-      "label": "Whale",
-      "type": "WHALE",
-      "last_flow": 1785540263,
-      "last_flow_amount": 102920.0
+      "label": "Bybit",
+      "type": "CEX"
     },
     {
       "address": "0x3021b22a2bfd8c179445ce2ad3192ce2faadedd3",
@@ -1463,6 +1430,16 @@
       "type": "CEX"
     },
     {
+      "address": "0x15da7556d5ed888306839bed06f868aeaedcb0d7",
+      "balances": {
+        "ethereum": 1587392.0
+      },
+      "label": "Whale",
+      "type": "WHALE",
+      "last_flow": 1785540263,
+      "last_flow_amount": 102920.0
+    },
+    {
       "address": "0xd2dd7b597fd2435b6db61ddf48544fd931e6869f",
       "balances": {
         "ethereum": 1573599.0
@@ -1506,22 +1483,6 @@
       "last_flow": 1784694383,
       "last_flow_amount": 1562499.9999999998,
       "label_source": "auto_fresh"
-    },
-    {
-      "address": "0xb38e8c17e38363af6ebdcb3dae12e0243582891d",
-      "balances": {
-        "arbitrum": 1552327.83
-      },
-      "label": "Whale",
-      "type": "WHALE"
-    },
-    {
-      "address": "0x88a1493366d48225fc3cefbdae9ebb23e323ade3",
-      "balances": {
-        "arbitrum": 1500002.0
-      },
-      "label": "Bybit",
-      "type": "CEX"
     },
     {
       "address": "0x4216dd6a50fea33b5dca985cd81ec8a5fb532f2d",
@@ -1704,8 +1665,8 @@
     {
       "address": "0x1ab4973a48dc892cd9971ece8e01dcc7688f8f23",
       "balances": {
-        "ethereum": 976221.0,
-        "arbitrum": 77769.0
+        "ethereum": 953819.0,
+        "arbitrum": 75078.0
       },
       "label": "Bybit",
       "type": "CEX"
@@ -1713,9 +1674,7 @@
     {
       "address": "0x88a1493366d48225fc3cefbdae9ebb23e323ade3",
       "balances": {
-        "ethereum": 977882.71,
-        "arbitrum": 41897.92,
-        "polygon": 56305.25
+        "arbitrum": 1000002.0
       },
       "label": "Bybit",
       "type": "CEX"
@@ -1794,6 +1753,14 @@
       "last_flow_amount": -143379.24000000002
     },
     {
+      "address": "0xb38e8c17e38363af6ebdcb3dae12e0243582891d",
+      "balances": {
+        "arbitrum": 930386.0
+      },
+      "label": "Whale",
+      "type": "WHALE"
+    },
+    {
       "address": "0x146b0edc9dffd5beaafe14cdf9aea21edfb92d8d",
       "balances": {
         "ethereum": 929307.0
@@ -1816,14 +1783,6 @@
       "cb_last_funded": 1774226891,
       "cb_total_received": 927678,
       "cb_last_flow_amount": 439874
-    },
-    {
-      "address": "0xb38e8c17e38363af6ebdcb3dae12e0243582891d",
-      "balances": {
-        "arbitrum": 925736.0
-      },
-      "label": "Whale",
-      "type": "WHALE"
     },
     {
       "address": "0xcbfe4a36604c3df559c6d91e0581218e0e6c5f57",
@@ -1906,14 +1865,6 @@
       "cb_last_flow_amount": 301893
     },
     {
-      "address": "0x25681ab599b4e2ceea31f8b498052c53fc2d74db",
-      "balances": {
-        "arbitrum": 785444.19
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x94333d7d2bd7175f8d40461e6314f3d15b2bb8e1",
       "balances": {
         "ethereum": 733333.0
@@ -1922,14 +1873,6 @@
       "type": "CUSTODY",
       "last_flow": 1787265455,
       "last_flow_amount": -133333.32
-    },
-    {
-      "address": "0xffa8db7b38579e6a2d14f9b347a9ace4d044cd54",
-      "balances": {
-        "arbitrum": 702132.44
-      },
-      "label": "Exchange/Bot",
-      "type": "CEX"
     },
     {
       "address": "0x43684d03d81d3a4c70da68febdd61029d426f042",
@@ -1971,16 +1914,6 @@
       },
       "label": "BitGo MultiSig",
       "type": "CUSTODY"
-    },
-    {
-      "address": "0x58edf78281334335effa23101bbe3371b6a36a51",
-      "balances": {
-        "ethereum": 567931.0
-      },
-      "label": "Exchange/Bot",
-      "type": "CEX",
-      "last_flow": 1787513675,
-      "last_flow_amount": 156826.82
     },
     {
       "address": "0x6494e38f6ab76e0a83b5171f85a6105d08ad85af",
@@ -2059,14 +1992,6 @@
       "type": "MULTISIG"
     },
     {
-      "address": "0x9b0c45d46d386cedd98873168c36efd0dcba8d46",
-      "balances": {
-        "ethereum": 434902.91
-      },
-      "label": "Revolut",
-      "type": "CEX"
-    },
-    {
       "address": "0x6e4eed4b0eb5eb20c4f43315093ac2d13f3b9b69",
       "balances": {
         "ethereum": 431666.0
@@ -2077,7 +2002,7 @@
     {
       "address": "0x58edf78281334335effa23101bbe3371b6a36a51",
       "balances": {
-        "ethereum": 424673.0
+        "ethereum": 425901.0
       },
       "label": "Exchange/Bot",
       "type": "CEX",
@@ -2103,7 +2028,7 @@
     {
       "address": "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
       "balances": {
-        "ethereum": 411299.0
+        "ethereum": 410070.0
       },
       "label": "Binance",
       "type": "CEX"
@@ -2119,6 +2044,15 @@
       "cb_last_funded": 1786036487,
       "cb_total_received": 541667,
       "cb_last_flow_amount": 41667
+    },
+    {
+      "address": "0x5a52e96bacdabb82fd05763e25335261b270efcb",
+      "balances": {
+        "bsc": 300000.0,
+        "avalanche": 104495.48
+      },
+      "label": "Exchange/Bot",
+      "type": "CEX"
     },
     {
       "address": "0x559072b696618cb99ad7dbd64b2b866f222ac52a",
@@ -2157,17 +2091,9 @@
       "label_source": "auto_fresh"
     },
     {
-      "address": "0x2677c4c8757da1857cc7cc4071e0e0dd32ccb975",
-      "balances": {
-        "arbitrum": 395776.52
-      },
-      "label": "MultiSig/Contract",
-      "type": "MULTISIG"
-    },
-    {
       "address": "0xbbff82342f43cdb0a121f4574e7a7dcf7995ae7b",
       "balances": {
-        "arbitrum": 383533.21
+        "arbitrum": 383533.0
       },
       "label": "",
       "type": ""
@@ -2189,14 +2115,6 @@
       "type": "MULTISIG",
       "last_flow": 1781625227,
       "last_flow_amount": -138887.4
-    },
-    {
-      "address": "0x4680900fb91164ee22b9e8f7c66efc79d7c4e1f9",
-      "balances": {
-        "ethereum": 357631.0
-      },
-      "label": "Bithumb",
-      "type": "CEX"
     },
     {
       "address": "0x9b9eb2232b951d9f224a6205261019a6581e31c5",
@@ -2444,11 +2362,29 @@
       "label_source": "auto_fresh"
     },
     {
+      "address": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
+      "balances": {
+        "ethereum": 352489.0
+      },
+      "label": "Coinbase",
+      "type": "CEX",
+      "last_flow": 1787529863,
+      "last_flow_amount": 173718.5487535715
+    },
+    {
       "address": "0x77134cbc06cb00b66f4c7e623d5fdbf6777635ec",
       "balances": {
         "ethereum": 337372.0
       },
       "label": "Exchange/Bot",
+      "type": "CEX"
+    },
+    {
+      "address": "0x4680900fb91164ee22b9e8f7c66efc79d7c4e1f9",
+      "balances": {
+        "ethereum": 336631.0
+      },
+      "label": "Bithumb",
       "type": "CEX"
     },
     {
@@ -2513,14 +2449,6 @@
       "label_source": "auto_fresh"
     },
     {
-      "address": "0x9d271a4e9523d74572b618ec10419a0a330e1bf0",
-      "balances": {
-        "arbitrum": 324674.22
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x55ab9e4758dd55f65824f0a8f37277d0a04154a9",
       "balances": {
         "ethereum": 320000.0
@@ -2545,42 +2473,6 @@
       "type": "WHALE"
     },
     {
-      "address": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "balances": {
-        "ethereum": 281223.0
-      },
-      "label": "Coinbase",
-      "type": "CEX",
-      "last_flow": 1787529863,
-      "last_flow_amount": 173718.5487535715
-    },
-    {
-      "address": "0x21a31ee1afc51d94c2efccaa2092ad1028285549",
-      "balances": {
-        "ethereum": 306947.25
-      },
-      "label": "Binance",
-      "type": "CEX"
-    },
-    {
-      "address": "0x7da0b9211020d3775b18116fe751c555b9a7058c",
-      "balances": {
-        "arbitrum": 293651.01
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xd97107064b8c7520aae6c6e6ca75bb2aa73b670d",
-      "balances": {
-        "ethereum": 119278.0,
-        "arbitrum": 146752.48,
-        "bsc": 9824.3
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x282da9b6a564f4bde9ba7c51650b3ca562994d63",
       "balances": {
         "ethereum": 275555.0
@@ -2595,6 +2487,16 @@
       },
       "label": "CEX Deposit Wallet",
       "type": "CEX"
+    },
+    {
+      "address": "0xd97107064b8c7520aae6c6e6ca75bb2aa73b670d",
+      "balances": {
+        "ethereum": 119278.0,
+        "arbitrum": 128249.0,
+        "bsc": 9824.3
+      },
+      "label": "",
+      "type": ""
     },
     {
       "address": "0x8a6397d9d6d3848affd1896bc230a61f72b5cf63",
@@ -2615,6 +2517,14 @@
       "type": "INST",
       "last_flow": 1774385051,
       "last_flow_amount": 223015.17
+    },
+    {
+      "address": "0x9b0c45d46d386cedd98873168c36efd0dcba8d46",
+      "balances": {
+        "ethereum": 222847.0
+      },
+      "label": "Revolut",
+      "type": "CEX"
     },
     {
       "address": "0x31e24d375494a1581f6f60a9223d0fec0c1d4c08",
@@ -2732,7 +2642,7 @@
     {
       "address": "0x16390472de74afa9e290af1cfa6c78b1274e34db",
       "balances": {
-        "arbitrum": 177863.07
+        "arbitrum": 177863.0
       },
       "label": "",
       "type": ""
@@ -2746,20 +2656,20 @@
       "type": "CUSTODY"
     },
     {
-      "address": "0x03e6fa590cadcf15a38e86158e9b3d06ff3399ba",
-      "balances": {
-        "arbitrum": 172134.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xe0dedcdb5b5ef2c82e4adc60aacc23486a518357",
       "balances": {
         "ethereum": 171543.0
       },
       "label": "Bitvavo",
       "type": "CEX"
+    },
+    {
+      "address": "0x03e6fa590cadcf15a38e86158e9b3d06ff3399ba",
+      "balances": {
+        "arbitrum": 170932.0
+      },
+      "label": "",
+      "type": ""
     },
     {
       "address": "0x173d5192d08fe83d4dbca7bb00e64117794e06f2",
@@ -2823,18 +2733,9 @@
       "type": ""
     },
     {
-      "address": "0x32cf060fff42ed5a31d5c336800529354f93ac1a",
-      "balances": {
-        "ethereum": 90564.0,
-        "arbitrum": 56905.21
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xb6bab2902f6c7baff4902b1dde2574ebdad96490",
       "balances": {
-        "arbitrum": 139862.88
+        "arbitrum": 139863.0
       },
       "label": "",
       "type": ""
@@ -2850,7 +2751,7 @@
     {
       "address": "0x17a30350771d02409046a683b18fe1c13ccfc4a8",
       "balances": {
-        "arbitrum": 133731.26
+        "arbitrum": 133731.0
       },
       "label": "",
       "type": ""
@@ -2862,6 +2763,14 @@
       },
       "label": "BitGo MultiSig",
       "type": "CUSTODY"
+    },
+    {
+      "address": "0x1714400ff23db4af24f9fd64e7039e6597f18c2b",
+      "balances": {
+        "arbitrum": 133268.0
+      },
+      "label": "",
+      "type": ""
     },
     {
       "address": "0xaf5baa42b2d91bbceb91d706199f04e42fab9e5e",
@@ -2885,14 +2794,6 @@
         "ethereum": 129171.0
       },
       "label": "CEX Deposit Wallet",
-      "type": "CEX"
-    },
-    {
-      "address": "0xb8e6d31e7b212b2b7250ee9c26c56cebbfbe6b23",
-      "balances": {
-        "arbitrum": 126318.17
-      },
-      "label": "KuCoin",
       "type": "CEX"
     },
     {
@@ -3008,14 +2909,6 @@
       "type": "CUSTODY"
     },
     {
-      "address": "0xcf0afa96743819d52515bff99635a7978f2a856f",
-      "balances": {
-        "arbitrum": 100486.29
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x8894e0a0c962cb723c1976a4421c95949be2d4e3",
       "balances": {
         "bsc": 100075.88
@@ -3032,9 +2925,9 @@
       "type": ""
     },
     {
-      "address": "0x25681ab599b4e2ceea31f8b498052c53fc2d74db",
+      "address": "0xb432863b3857f1cd9d78f5856a8d20693a8bc1a0",
       "balances": {
-        "arbitrum": 98428.0
+        "ethereum": 96188.0
       },
       "label": "",
       "type": ""
@@ -3087,27 +2980,34 @@
       "label_source": "auto_fresh"
     },
     {
-      "address": "0x1714400ff23db4af24f9fd64e7039e6597f18c2b",
+      "address": "0x25681ab599b4e2ceea31f8b498052c53fc2d74db",
       "balances": {
-        "arbitrum": 93632.12
+        "arbitrum": 93726.0
       },
       "label": "",
       "type": ""
     },
     {
-      "address": "0x3b78810f6bc902b669f53a80638f19a097217ff2",
+      "address": "0x51c72848c68a965f66fa7a88855f9f7784502a7f",
       "balances": {
-        "ethereum": 89361.98
+        "ethereum": 54904.0,
+        "arbitrum": 36088.0
+      },
+      "label": "MultiSig/Contract",
+      "type": "MULTISIG"
+    },
+    {
+      "address": "0x32cf060fff42ed5a31d5c336800529354f93ac1a",
+      "balances": {
+        "ethereum": 90564.0
       },
       "label": "",
       "type": ""
     },
     {
-      "address": "0xb57d6e248f0cc14b90659efea2931497df3eae89",
+      "address": "0x7da0b9211020d3775b18116fe751c555b9a7058c",
       "balances": {
-        "ethereum": 60399.0,
-        "arbitrum": 26427.37,
-        "avalanche": 2361.57
+        "arbitrum": 90063.0
       },
       "label": "",
       "type": ""
@@ -3116,7 +3016,25 @@
       "address": "0x71e78c4f39ed573babc6098aec504846deef5077",
       "balances": {
         "ethereum": 67685.0,
-        "arbitrum": 21219.69
+        "arbitrum": 21920.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0xb57d6e248f0cc14b90659efea2931497df3eae89",
+      "balances": {
+        "ethereum": 60399.0,
+        "arbitrum": 26427.0,
+        "avalanche": 2361.57
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0x9d271a4e9523d74572b618ec10419a0a330e1bf0",
+      "balances": {
+        "arbitrum": 88917.0
       },
       "label": "",
       "type": ""
@@ -3132,15 +3050,7 @@
     {
       "address": "0xdb5645120924cfdba5010e2869cc5f1b0c0d10d5",
       "balances": {
-        "arbitrum": 85385.04
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xd86b1f5e74e83f321f587c2f260c7e0e506f8293",
-      "balances": {
-        "arbitrum": 85006.64
+        "arbitrum": 85385.0
       },
       "label": "",
       "type": ""
@@ -3176,15 +3086,6 @@
       },
       "label": "",
       "type": ""
-    },
-    {
-      "address": "0x51c72848c68a965f66fa7a88855f9f7784502a7f",
-      "balances": {
-        "ethereum": 54904.0,
-        "arbitrum": 25199.46
-      },
-      "label": "MultiSig/Contract",
-      "type": "MULTISIG"
     },
     {
       "address": "0xbda8e8a0627ebe62c7406b2c1315c0ae8e16869d",
@@ -3276,28 +3177,12 @@
       "last_flow_amount": 1847226.580789
     },
     {
-      "address": "0x97772ff955ce7c136f9d7db5414e197da25a9c72",
-      "balances": {
-        "arbitrum": 68974.42
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xf0a8f9f717349c0a09587fbb06d81d312f1682de",
       "balances": {
         "ethereum": 68904.0
       },
       "label": "BitGo MultiSig",
       "type": "CUSTODY"
-    },
-    {
-      "address": "0xfec31338044ef12516b33c43a6caedd4443edc9a",
-      "balances": {
-        "arbitrum": 68221.55
-      },
-      "label": "",
-      "type": ""
     },
     {
       "address": "0x3691d20d022234d51d4e2a8c8ef2d1488fb757c4",
@@ -3319,14 +3204,6 @@
       "address": "0x0a7e3e04fb45af4233a27bcf23f2c94f5babcf39",
       "balances": {
         "avalanche": 66580.64
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x4cef551255ec96d89fec975446301b5c4e164c59",
-      "balances": {
-        "arbitrum": 65278.12
       },
       "label": "",
       "type": ""
@@ -3356,17 +3233,9 @@
       "type": ""
     },
     {
-      "address": "0x488e8d01f9ede5963a5b7e7a26bd03bd0c95ced7",
+      "address": "0x360acf12e72044ba3eaaa654e51e4725c699dcb1",
       "balances": {
-        "ethereum": 60501.91
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x79d75252d790db3e929062d00b80f0532813418d",
-      "balances": {
-        "ethereum": 60297.0
+        "ethereum": 60024.0
       },
       "label": "",
       "type": ""
@@ -3382,7 +3251,7 @@
     {
       "address": "0x096bf4cf9d3826039aa0afafcea47c1b0d69d51d",
       "balances": {
-        "arbitrum": 58784.26
+        "arbitrum": 58784.0
       },
       "label": "",
       "type": ""
@@ -3391,14 +3260,6 @@
       "address": "0x027075497fbd026f0392a5eaf835f6b0b46efc15",
       "balances": {
         "ethereum": 58333.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x360acf12e72044ba3eaaa654e51e4725c699dcb1",
-      "balances": {
-        "ethereum": 57580.14
       },
       "label": "",
       "type": ""
@@ -3414,7 +3275,7 @@
     {
       "address": "0x504fa1716481efc88b56198f0ab48c58746d2ba1",
       "balances": {
-        "arbitrum": 56638.25
+        "arbitrum": 56638.0
       },
       "label": "",
       "type": ""
@@ -3422,7 +3283,7 @@
     {
       "address": "0xbe7019f8333b0b3cfc707ac353ebc2123140134c",
       "balances": {
-        "arbitrum": 1082.06,
+        "arbitrum": 1082.0,
         "base": 55215.58
       },
       "label": "",
@@ -3496,14 +3357,6 @@
       "label_source": "auto_fresh"
     },
     {
-      "address": "0x2228e5704b637131a3798a186caf18366c146f74",
-      "balances": {
-        "ethereum": 53706.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xe3b3a6ec02c550d60344e9ce5cb64558a8492c47",
       "balances": {
         "base": 53606.87
@@ -3514,7 +3367,7 @@
     {
       "address": "0x4cef551255ec96d89fec975446301b5c4e164c59",
       "balances": {
-        "arbitrum": 53258.0
+        "arbitrum": 52789.0
       },
       "label": "",
       "type": ""
@@ -3522,7 +3375,7 @@
     {
       "address": "0xdd7b8c4f82b5b8637f7917390fae450c95d7adc4",
       "balances": {
-        "arbitrum": 11808.98,
+        "arbitrum": 11809.0,
         "optimism": 40012.87
       },
       "label": "",
@@ -3611,7 +3464,7 @@
     {
       "address": "0x434b9180114ffce0391ab01abb658655df4c7344",
       "balances": {
-        "arbitrum": 47472.45
+        "arbitrum": 47472.0
       },
       "label": "",
       "type": ""
@@ -3625,25 +3478,18 @@
       "type": ""
     },
     {
+      "address": "0x01989c93890aed05a63d179b03424997075b6acf",
+      "balances": {
+        "arbitrum": 37195.0,
+        "base": 9811.95
+      },
+      "label": "",
+      "type": ""
+    },
+    {
       "address": "0xc228d8dba41ea9f9829197dae1145ea649a514eb",
       "balances": {
-        "arbitrum": 45736.82
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xf72b120743f4e6562a77c31b7a4be3d7ecc8e88e",
-      "balances": {
-        "arbitrum": 45451.67
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x657137963db5674e90eb00040a767f1eaa644625",
-      "balances": {
-        "arbitrum": 45403.13
+        "arbitrum": 45737.0
       },
       "label": "",
       "type": ""
@@ -3660,22 +3506,6 @@
       "address": "0xb563511bebf1aea3daf1cd77aaeb757ef85f9c6a",
       "balances": {
         "base": 44615.71
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x94045603b04d48544e85670eba507c7c25141d8f",
-      "balances": {
-        "arbitrum": 41317.54
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
-      "balances": {
-        "arbitrum": 40437.0
       },
       "label": "",
       "type": ""
@@ -3716,6 +3546,14 @@
       "label_source": "auto_fresh"
     },
     {
+      "address": "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
+      "balances": {
+        "arbitrum": 40039.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
       "address": "0x77203801ef4249c2bfd5a6cfd0e35b1c18442f06",
       "balances": {
         "ethereum": 40000.0
@@ -3724,9 +3562,9 @@
       "type": ""
     },
     {
-      "address": "0x4a1ca3e90e9e3a00eb27e9f409b4db310aa7405f",
+      "address": "0x391eacb1e4826faeed2e96089dabcf7e0b5d33bf",
       "balances": {
-        "arbitrum": 39065.86
+        "arbitrum": 38661.0
       },
       "label": "",
       "type": ""
@@ -3748,9 +3586,9 @@
       "type": ""
     },
     {
-      "address": "0xddde8d0e2487a365a6207f1ad97fbfaf8cbfd439",
+      "address": "0x50da711bce653577fbcbef066961c4f21784867e",
       "balances": {
-        "arbitrum": 37231.49
+        "arbitrum": 37156.0
       },
       "label": "",
       "type": ""
@@ -3759,6 +3597,14 @@
       "address": "0xa086d8519a607f58fc8c7d3336a5836bd56df99e",
       "balances": {
         "optimism": 36951.85
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0x3207c0d0243a145684e58a436ceb5901e4ece349",
+      "balances": {
+        "arbitrum": 36522.0
       },
       "label": "",
       "type": ""
@@ -3789,25 +3635,9 @@
       "type": ""
     },
     {
-      "address": "0x3207c0d0243a145684e58a436ceb5901e4ece349",
-      "balances": {
-        "arbitrum": 33970.42
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x03c9e373d4a8bfbe1627af86c7eb3b8b5df7dbcb",
       "balances": {
         "ethereum": 33333.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x391eacb1e4826faeed2e96089dabcf7e0b5d33bf",
-      "balances": {
-        "arbitrum": 33086.69
       },
       "label": "",
       "type": ""
@@ -3823,15 +3653,7 @@
     {
       "address": "0xad3b0b1a49b5cc6a0d3aea35e17e3abfe49540c4",
       "balances": {
-        "arbitrum": 32237.68
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x50da711bce653577fbcbef066961c4f21784867e",
-      "balances": {
-        "arbitrum": 32117.69
+        "arbitrum": 32238.0
       },
       "label": "",
       "type": ""
@@ -3839,7 +3661,7 @@
     {
       "address": "0xe931494503bb12093ef684929fb86a8201e61dd3",
       "balances": {
-        "arbitrum": 31998.08
+        "arbitrum": 31998.0
       },
       "label": "",
       "type": ""
@@ -3847,15 +3669,7 @@
     {
       "address": "0xfefa37ff080ca1fa8090dc57a0f977fc72c83e90",
       "balances": {
-        "arbitrum": 31889.21
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x97fd546b992f12a845cf7e9ea25c7101ed7f9530",
-      "balances": {
-        "arbitrum": 31839.03
+        "arbitrum": 31889.0
       },
       "label": "",
       "type": ""
@@ -3879,39 +3693,15 @@
     {
       "address": "0x9f2990f2a5aa904424691c30914417294cac2df7",
       "balances": {
-        "arbitrum": 30899.77
+        "arbitrum": 30900.0
       },
       "label": "Exchange/Bot",
       "type": "CEX"
     },
     {
-      "address": "0x03e6fa590cadcf15a38e86158e9b3d06ff3399ba",
-      "balances": {
-        "arbitrum": 30477.41
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xc0fce7361f72227972562b3c87812e1dea1c9cac",
-      "balances": {
-        "ethereum": 30028.86
-      },
-      "label": "Active Trader",
-      "type": "WHALE"
-    },
-    {
-      "address": "0xf268e45e467a3a5ac265cfaeda4443052bc31dd2",
-      "balances": {
-        "arbitrum": 29999.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x386f91d6e1b03ce63f10fc60293796df406fac07",
       "balances": {
-        "arbitrum": 29803.96
+        "arbitrum": 29804.0
       },
       "label": "",
       "type": ""
@@ -3933,25 +3723,17 @@
       "type": ""
     },
     {
-      "address": "0x75e89d5979e4f6fba9f97c104c2f0afb3f1dcb88",
-      "balances": {
-        "ethereum": 29027.98
-      },
-      "label": "MEXC",
-      "type": "CEX"
-    },
-    {
       "address": "0xa7aa2a600b506c951abb3c22ce7cf19d0d523e08",
       "balances": {
-        "arbitrum": 28495.24
+        "arbitrum": 28495.0
       },
       "label": "",
       "type": ""
     },
     {
-      "address": "0x9d40b76d9869fe4591b6894732cf5355dd5283bf",
+      "address": "0xddde8d0e2487a365a6207f1ad97fbfaf8cbfd439",
       "balances": {
-        "arbitrum": 28382.99
+        "arbitrum": 28237.0
       },
       "label": "",
       "type": ""
@@ -3959,7 +3741,7 @@
     {
       "address": "0x3b088dbaeebe2453ec67f44c53fbed31092c4a27",
       "balances": {
-        "arbitrum": 28046.61
+        "arbitrum": 28047.0
       },
       "label": "",
       "type": ""
@@ -3967,7 +3749,7 @@
     {
       "address": "0x7ff1499b03c0d3aae87e28bdd0264cdd6379b016",
       "balances": {
-        "arbitrum": 27843.65
+        "arbitrum": 27844.0
       },
       "label": "",
       "type": ""
@@ -3976,7 +3758,7 @@
       "address": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "balances": {
         "ethereum": 1728.0,
-        "arbitrum": 18362.56,
+        "arbitrum": 18363.0,
         "base": 3236.54,
         "bsc": 1656.17,
         "optimism": 2517.46,
@@ -3987,9 +3769,17 @@
       "type": ""
     },
     {
+      "address": "0xd7a827fbaf38c98e8336c5658e4bcbcd20a4fd2d",
+      "balances": {
+        "arbitrum": 27522.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
       "address": "0x525b685e5a4c6031f64909221ad74c2c61501f9f",
       "balances": {
-        "arbitrum": 27349.81
+        "arbitrum": 27350.0
       },
       "label": "",
       "type": ""
@@ -3997,15 +3787,15 @@
     {
       "address": "0x094c73d19134e8448504954fd6dccb69447ad54c",
       "balances": {
-        "arbitrum": 27110.16
+        "arbitrum": 27110.0
       },
       "label": "",
       "type": ""
     },
     {
-      "address": "0x040dc078a7c9c560e5bf79f42689eac3f988ebac",
+      "address": "0xf268e45e467a3a5ac265cfaeda4443052bc31dd2",
       "balances": {
-        "ethereum": 26920.87
+        "arbitrum": 27000.0
       },
       "label": "",
       "type": ""
@@ -4089,14 +3879,6 @@
       "label_source": "auto_fresh"
     },
     {
-      "address": "0xff8ba4d1fc3762f6154cc942ccf30049a2a0cec6",
-      "balances": {
-        "ethereum": 25587.05
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x3c1a22884c64bf6f2f7ab38b99f5e32d420b65c9",
       "balances": {
         "ethereum": 25556.0
@@ -4129,17 +3911,9 @@
       "type": ""
     },
     {
-      "address": "0xd8c860d789ec1c6ae9631b680e6555f25bc28331",
-      "balances": {
-        "arbitrum": 25000.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xb6519765ee3aef43b2e7e5d14f8a348e2e2e0639",
       "balances": {
-        "arbitrum": 24872.79
+        "arbitrum": 24873.0
       },
       "label": "",
       "type": ""
@@ -4147,7 +3921,7 @@
     {
       "address": "0x1dd57e5db5a756003039ff41e79334df22168d4a",
       "balances": {
-        "arbitrum": 24828.6
+        "arbitrum": 24829.0
       },
       "label": "",
       "type": ""
@@ -4169,25 +3943,9 @@
       "type": ""
     },
     {
-      "address": "0x229b1c70124141ec96945aec2323a22b68bb093c",
+      "address": "0x91dca37856240e5e1906222ec79278b16420dc92",
       "balances": {
-        "arbitrum": 24119.64
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x50415b9d886892be314f5cbaf600c3a4b625cbe5",
-      "balances": {
-        "arbitrum": 23879.92
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x360e68faccca8ca495c1b759fd9eee466db9fb32",
-      "balances": {
-        "arbitrum": 23743.69
+        "arbitrum": 24077.0
       },
       "label": "",
       "type": ""
@@ -4195,15 +3953,24 @@
     {
       "address": "0x575c8b3d9e2d53ccd62a5cb10315cfdfe534f4d5",
       "balances": {
-        "arbitrum": 23714.35
+        "arbitrum": 23714.0
       },
       "label": "",
       "type": ""
     },
     {
-      "address": "0x91dca37856240e5e1906222ec79278b16420dc92",
+      "address": "0xf21b72da8b92e44aaa0c8f358271c7ab4e994241",
       "balances": {
-        "arbitrum": 23121.86
+        "arbitrum": 16816.0,
+        "optimism": 6374.44
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0xf04b90a811072014c339312c3e623c36f54f58e7",
+      "balances": {
+        "arbitrum": 23087.0
       },
       "label": "",
       "type": ""
@@ -4219,15 +3986,7 @@
     {
       "address": "0xae548b4102ceabf18187eca4833cfecd34f35894",
       "balances": {
-        "arbitrum": 23037.98
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x5ca1063894e5bbd688830d83fefa5ce3d339744d",
-      "balances": {
-        "arbitrum": 22986.15
+        "arbitrum": 23038.0
       },
       "label": "",
       "type": ""
@@ -4235,7 +3994,7 @@
     {
       "address": "0x57fc3b185d51c7c8bf88210b33cb833c686dafb8",
       "balances": {
-        "arbitrum": 22979.9
+        "arbitrum": 22980.0
       },
       "label": "",
       "type": ""
@@ -4243,7 +4002,7 @@
     {
       "address": "0x635e3aa117b17e51134d3d49ac8d58d84f2901d3",
       "balances": {
-        "arbitrum": 22894.26
+        "arbitrum": 22894.0
       },
       "label": "",
       "type": ""
@@ -4265,18 +4024,9 @@
       "type": ""
     },
     {
-      "address": "0x01989c93890aed05a63d179b03424997075b6acf",
-      "balances": {
-        "arbitrum": 12064.54,
-        "base": 9811.95
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x7e3c84d7aa6787df3a3c05fae7776e6c884377f2",
       "balances": {
-        "arbitrum": 21783.2
+        "arbitrum": 21783.0
       },
       "label": "",
       "type": ""
@@ -4291,17 +4041,9 @@
       "type": ""
     },
     {
-      "address": "0xbfbc749333ca06835c620c5839c42ab9c072288d",
-      "balances": {
-        "ethereum": 21226.74
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xd87a102977c3491d8e46e6c59baf89fc60bd7a5e",
       "balances": {
-        "arbitrum": 21076.16
+        "arbitrum": 21076.0
       },
       "label": "",
       "type": ""
@@ -4310,22 +4052,6 @@
       "address": "0x397a2ef7bdf58b51c113381055d1097efb7279c5",
       "balances": {
         "optimism": 21061.97
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x56a2e227b07ea134c217605a09d4306686176a25",
-      "balances": {
-        "arbitrum": 21000.94
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xdfebad708f803af22e81044ad228ff77c83c935c",
-      "balances": {
-        "ethereum": 20207.09
       },
       "label": "",
       "type": ""
@@ -4355,7 +4081,7 @@
       "type": ""
     },
     {
-      "address": "0x240ed9fe4f9bac21ce4fd9233ba077ab3fbf2cd1",
+      "address": "0x56a2e227b07ea134c217605a09d4306686176a25",
       "balances": {
         "arbitrum": 20000.0
       },
@@ -4382,20 +4108,10 @@
     {
       "address": "0x72bf37fd77fc888e3c66bf0e418fbbf7e96dcf88",
       "balances": {
-        "arbitrum": 18902.13
+        "arbitrum": 18902.0
       },
       "label": "",
       "type": ""
-    },
-    {
-      "address": "0xfb19085ac3951cb0af7b5a6126f4bff8e2d1f8ee",
-      "balances": {
-        "arbitrum": 18837.19
-      },
-      "label": "Active Trader",
-      "type": "WHALE",
-      "last_flow": 1778751755,
-      "last_flow_amount": -1999950.0
     },
     {
       "address": "0x2f4006e8dd664a91522c8ceba413ac05ba208445",
@@ -4418,7 +4134,7 @@
     {
       "address": "0x27fd0c5d2514a6d499eb768be8e1e5e19213334a",
       "balances": {
-        "arbitrum": 18640.81
+        "arbitrum": 18641.0
       },
       "label": "",
       "type": ""
@@ -4440,14 +4156,6 @@
       "type": ""
     },
     {
-      "address": "0x94a9f61607409c8a11044af8ecb01032950a9585",
-      "balances": {
-        "arbitrum": 18167.54
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x5f0006eb1a5790c77e62891c828648c74bbafa0d",
       "balances": {
         "ethereum": 18102.0
@@ -4464,25 +4172,9 @@
       "type": ""
     },
     {
-      "address": "0x811e80d2303eb236bc6c9a7863f432ce6196bbb8",
-      "balances": {
-        "arbitrum": 18025.43
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x3e4a71d916973006073a0330b81eb405605b21ed",
       "balances": {
-        "arbitrum": 17862.53
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x342714edf5d0d295872f4ad77dde69eb50c27ba7",
-      "balances": {
-        "ethereum": 17794.25
+        "arbitrum": 17863.0
       },
       "label": "",
       "type": ""
@@ -4565,7 +4257,7 @@
     {
       "address": "0xd72a51d7fa413e6f36eeb4a89232538782ae05af",
       "balances": {
-        "arbitrum": 17026.69
+        "arbitrum": 17027.0
       },
       "label": "",
       "type": ""
@@ -4574,30 +4266,6 @@
       "address": "0x87ab6b135ba56893cacbb36067cda456759d0ab8",
       "balances": {
         "bsc": 17001.42
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xd7a827fbaf38c98e8336c5658e4bcbcd20a4fd2d",
-      "balances": {
-        "arbitrum": 16908.59
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xc06e0513a150a021104fdcdd20ce362fa593ba1f",
-      "balances": {
-        "arbitrum": 16814.28
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xf5213a6a2f0890321712520b8048d9886c1a9900",
-      "balances": {
-        "ethereum": 16785.69
       },
       "label": "",
       "type": ""
@@ -4619,6 +4287,14 @@
       "type": ""
     },
     {
+      "address": "0x78ef9eafc1cd56199cb05a7044fe143bc9ef6f45",
+      "balances": {
+        "arbitrum": 16655.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
       "address": "0xcddc5d0ebeb71a08fff26909aa6c0d4e256b4fe1",
       "balances": {
         "avalanche": 16649.34
@@ -4635,33 +4311,9 @@
       "type": ""
     },
     {
-      "address": "0x8dc9c06b4049a7b26b284b8bddff643fe34d03ee",
-      "balances": {
-        "arbitrum": 16236.84
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x78ef9eafc1cd56199cb05a7044fe143bc9ef6f45",
-      "balances": {
-        "arbitrum": 16151.69
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xb432863b3857f1cd9d78f5856a8d20693a8bc1a0",
-      "balances": {
-        "ethereum": 16107.9
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xfe67ddfa4f6a2caaa6f0d91c93b341dc59e8d15d",
       "balances": {
-        "arbitrum": 15999.89
+        "arbitrum": 16000.0
       },
       "label": "",
       "type": ""
@@ -4677,23 +4329,7 @@
     {
       "address": "0x28515ad66bff9ea9ee61764066feac0e742bb90c",
       "balances": {
-        "arbitrum": 15610.79
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xf04b90a811072014c339312c3e623c36f54f58e7",
-      "balances": {
-        "arbitrum": 15493.79
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x6636f59f7c7548b18eafb870f362d795e16a1f5c",
-      "balances": {
-        "arbitrum": 15487.61
+        "arbitrum": 15611.0
       },
       "label": "",
       "type": ""
@@ -4763,14 +4399,6 @@
       "type": ""
     },
     {
-      "address": "0x679e48815fe89662c12eb05c7baaca9674973cc0",
-      "balances": {
-        "arbitrum": 14976.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xc241e8fb314bc3799be2db94dce4d070c29b425d",
       "balances": {
         "bsc": 14547.04
@@ -4814,24 +4442,6 @@
       "address": "0x1f4bd9098f3e24c7a4a620d8c903282237596a11",
       "balances": {
         "optimism": 13340.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x2b3bf74b29f59fb8dda41cf3d6a8da28cf8e7921",
-      "balances": {
-        "arbitrum": 5816.16,
-        "bsc": 7194.99
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0xf21b72da8b92e44aaa0c8f358271c7ab4e994241",
-      "balances": {
-        "arbitrum": 6372.0,
-        "optimism": 6374.44
       },
       "label": "",
       "type": ""
@@ -4959,7 +4569,7 @@
     {
       "address": "0x5add37d3121e74544683ec446711ac954d6eeef8",
       "balances": {
-        "ethereum": 11005.48
+        "ethereum": 11007.0
       },
       "label": "",
       "type": ""
@@ -5007,33 +4617,9 @@
       "type": ""
     },
     {
-      "address": "0x166b1a160cab177b8634c3308cfc015472df29ba",
-      "balances": {
-        "ethereum": 10101.42
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xddb7f09db0aef36bc833c43832f1d885d6152718",
       "balances": {
         "base": 10068.33
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x12d3d411d010891a88bff2401bd73fa41fb1316e",
-      "balances": {
-        "ethereum": 10000.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x816eb16ada61d4cd008d86d5a9d3db2290db9933",
-      "balances": {
-        "ethereum": 10000.0
       },
       "label": "",
       "type": ""
@@ -5071,14 +4657,6 @@
       "type": ""
     },
     {
-      "address": "0x60a2926ef07ed69fcf518a6fa69e747a3c354cf9",
-      "balances": {
-        "ethereum": 9658.85
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x143d48e9d4b736eab6c653824ab8ccf3e0d520c3",
       "balances": {
         "ethereum": 9556.0
@@ -5090,6 +4668,14 @@
       "address": "0x7bea16f5553eb3dadb23860abd29c55dd891ff70",
       "balances": {
         "ethereum": 9551.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0x229b1c70124141ec96945aec2323a22b68bb093c",
+      "balances": {
+        "arbitrum": 9547.0
       },
       "label": "",
       "type": ""
@@ -5113,7 +4699,7 @@
     {
       "address": "0x6b061bf10994be7f726bb1ada7522e381a3a82d9",
       "balances": {
-        "arbitrum": 3233.3,
+        "arbitrum": 3233.0,
         "bsc": 5856.01
       },
       "label": "",
@@ -5131,16 +4717,7 @@
       "address": "0xa006daad287b050bf4a9ebbc3e0a05b2039af549",
       "balances": {
         "ethereum": 3242.0,
-        "arbitrum": 5324.89
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x4aa5c2fe353745d3d6000f1be402c72da500fcaa",
-      "balances": {
-        "arbitrum": 478.16,
-        "base": 7994.03
+        "arbitrum": 5325.0
       },
       "label": "",
       "type": ""
@@ -5186,18 +4763,17 @@
       "type": ""
     },
     {
-      "address": "0xd6c34449c8bfb20b51a330287e2a8697ab1a3143",
+      "address": "0x4aa5c2fe353745d3d6000f1be402c72da500fcaa",
       "balances": {
-        "ethereum": 7987.0
+        "base": 7994.03
       },
       "label": "",
       "type": ""
     },
     {
-      "address": "0xf65e3546abe8ecc029b4526a083dd29d4c3b723a",
+      "address": "0xd6c34449c8bfb20b51a330287e2a8697ab1a3143",
       "balances": {
-        "arbitrum": 603.63,
-        "bsc": 7318.68
+        "ethereum": 7987.0
       },
       "label": "",
       "type": ""
@@ -5237,7 +4813,7 @@
     {
       "address": "0x02f250ad8521cd737589304b845b6f84cc5cbcb6",
       "balances": {
-        "arbitrum": 2175.39,
+        "arbitrum": 2175.0,
         "base": 5240.21
       },
       "label": "",
@@ -5254,8 +4830,16 @@
     {
       "address": "0xeed5c3f75ec347bd5941b59c4874e241d8a09916",
       "balances": {
-        "arbitrum": 805.76,
+        "arbitrum": 806.0,
         "optimism": 6529.19
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0xf65e3546abe8ecc029b4526a083dd29d4c3b723a",
+      "balances": {
+        "bsc": 7318.68
       },
       "label": "",
       "type": ""
@@ -5269,14 +4853,6 @@
       "type": ""
     },
     {
-      "address": "0xddde8d0e2487a365a6207f1ad97fbfaf8cbfd439",
-      "balances": {
-        "arbitrum": 7237.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x8a0f6d048d509625cdeba009ca20290bbf482305",
       "balances": {
         "bsc": 7224.98
@@ -5285,9 +4861,11 @@
       "type": ""
     },
     {
-      "address": "0x86cf49652a7b9b5456f7b9f1135c94020d217c1a",
+      "address": "0x2b3bf74b29f59fb8dda41cf3d6a8da28cf8e7921",
       "balances": {
-        "ethereum": 7043.33
+        "arbitrum": 1.0,
+        "bsc": 7194.99,
+        "ethereum": 5.0
       },
       "label": "",
       "type": ""
@@ -5296,14 +4874,6 @@
       "address": "0x44454823bfffff882fa80828c8bfdb1540213928",
       "balances": {
         "base": 7000.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x06959153b974d0d5fdfd87d561db6d8d4fa0bb0b",
-      "balances": {
-        "polygon": 6909.51
       },
       "label": "",
       "type": ""
@@ -5365,15 +4935,6 @@
       "type": ""
     },
     {
-      "address": "0xa311f7ca3eb2fb98123a807f9b8e4bbbdbdcb2ee",
-      "balances": {
-        "arbitrum": 2540.02,
-        "optimism": 4137.41
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xe197f452cab3ba2bebd0ab359a4a0d2a6327bd22",
       "balances": {
         "bsc": 6629.4
@@ -5417,6 +4978,15 @@
       "address": "0x407ee802fe8e6046693555a34336e2cc37151850",
       "balances": {
         "base": 6391.14
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0xa311f7ca3eb2fb98123a807f9b8e4bbbdbdcb2ee",
+      "balances": {
+        "arbitrum": 2252.0,
+        "optimism": 4137.41
       },
       "label": "",
       "type": ""
@@ -5506,6 +5076,14 @@
       "address": "0x2e621846879a44ca37437f002c561fc9b0155649",
       "balances": {
         "bsc": 5769.34
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0x6636f59f7c7548b18eafb870f362d795e16a1f5c",
+      "balances": {
+        "arbitrum": 5769.0
       },
       "label": "",
       "type": ""
@@ -7435,6 +7013,14 @@
       "type": ""
     },
     {
+      "address": "0xc06e0513a150a021104fdcdd20ce362fa593ba1f",
+      "balances": {
+        "arbitrum": 1848.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
       "address": "0x9fc11ba7e5562ebac6c026fb02de11fa115609c7",
       "balances": {
         "avalanche": 1812.1
@@ -8055,6 +7641,14 @@
       "type": ""
     },
     {
+      "address": "0xfec31338044ef12516b33c43a6caedd4443edc9a",
+      "balances": {
+        "arbitrum": 358.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
       "address": "0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa",
       "balances": {
         "ethereum": 111.0
@@ -8083,6 +7677,24 @@
       "cb_last_funded": 1756135667,
       "cb_total_received": 75000,
       "cb_last_flow_amount": 75000
+    },
+    {
+      "address": "0xff8ba4d1fc3762f6154cc942ccf30049a2a0cec6",
+      "balances": {
+        "ethereum": 1.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0xfb19085ac3951cb0af7b5a6126f4bff8e2d1f8ee",
+      "balances": {
+        "ethereum": 1.0
+      },
+      "label": "Active Trader",
+      "type": "WHALE",
+      "last_flow": 1778751755,
+      "last_flow_amount": -1999950.0
     }
   ],
   "flows": {
@@ -14371,21 +13983,6 @@
           "flow_score": 144374.12
         },
         {
-          "address": "0xcf0afa96743819d52515bff99635a7978f2a856f",
-          "label": "",
-          "type": "",
-          "net_flow": 45647,
-          "balance": 100486,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 45647,
-          "retention_ratio": 2.2014,
-          "chain_unresolved": true,
-          "accumulation_source": "external_inflow",
-          "accumulation_source_label": "External inflow",
-          "flow_score": 131235.12
-        },
-        {
           "address": "0x2228e5704b637131a3798a186caf18366c146f74",
           "label": "",
           "type": "",
@@ -14821,28 +14418,6 @@
           "flow_score": 4553125.0
         },
         {
-          "address": "0xc0fce7361f72227972562b3c87812e1dea1c9cac",
-          "label": "Active Trader",
-          "type": "WHALE",
-          "net_flow": -814190,
-          "balance": 30029,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 877823,
-          "total_out": 1692013,
-          "retention_ratio": 0.0342,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "mixed_outflow",
-          "seller_profile_label": "Mixed outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 0.6401,
-          "sell_pressure_score": 1973625.06,
-          "flow_score": 1973625.06
-        },
-        {
           "address": "0x849fba83059f8a5cbe0ddb81e37ed6d92003fcd4",
           "label": "Whale",
           "type": "WHALE",
@@ -14943,50 +14518,6 @@
           "flow_score": 280481.9
         },
         {
-          "address": "0x3b78810f6bc902b669f53a80638f19a097217ff2",
-          "label": "",
-          "type": "",
-          "net_flow": -102006,
-          "balance": 89362,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 3146841,
-          "total_out": 3248846,
-          "retention_ratio": 0.0284,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.281,
-          "external_outflow_ratio": 0.719,
-          "sell_pressure_score": 255479.13,
-          "flow_score": 255479.13
-        },
-        {
-          "address": "0x166b1a160cab177b8634c3308cfc015472df29ba",
-          "label": "",
-          "type": "",
-          "net_flow": -93517,
-          "balance": 10101,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 6979237,
-          "total_out": 7072754,
-          "retention_ratio": 0.0014,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "mixed_outflow",
-          "seller_profile_label": "Mixed outflow",
-          "cex_outflow_ratio": 0.1294,
-          "external_outflow_ratio": 0.4483,
-          "sell_pressure_score": 231301.67,
-          "flow_score": 231301.67
-        },
-        {
           "address": "0x173d5192d08fe83d4dbca7bb00e64117794e06f2",
           "label": "Whale",
           "type": "WHALE",
@@ -15007,50 +14538,6 @@
           "external_outflow_ratio": 1.0,
           "sell_pressure_score": 221901.1,
           "flow_score": 221901.1
-        },
-        {
-          "address": "0x342714edf5d0d295872f4ad77dde69eb50c27ba7",
-          "label": "",
-          "type": "",
-          "net_flow": -83607,
-          "balance": 17794,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 3779835,
-          "total_out": 3863442,
-          "retention_ratio": 0.0047,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "mixed_outflow",
-          "seller_profile_label": "Mixed outflow",
-          "cex_outflow_ratio": 0.2,
-          "external_outflow_ratio": 0.6478,
-          "sell_pressure_score": 217940.88,
-          "flow_score": 217940.88
-        },
-        {
-          "address": "0xdfebad708f803af22e81044ad228ff77c83c935c",
-          "label": "",
-          "type": "",
-          "net_flow": -83327,
-          "balance": 20207,
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_in": 3258661,
-          "total_out": 3341988,
-          "retention_ratio": 0.0062,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.3437,
-          "external_outflow_ratio": 0.6563,
-          "sell_pressure_score": 211570.17,
-          "flow_score": 211570.17
         },
         {
           "address": "0x7b7e9c072c90ebcf80dfc33b817ab27b9e182f9b",
@@ -15637,14 +15124,14 @@
       "meta": {
         "raw_accumulators": 95,
         "raw_sellers": 43,
-        "excluded_untracked": 0,
+        "excluded_untracked": 6,
         "excluded_infrastructure": 0,
         "excluded_zero_balance": 0,
         "excluded_low_retention": 0,
         "excluded_low_signal": 0,
-        "chain_unresolved_rows": 41,
-        "normalized_accumulators": 95,
-        "normalized_sellers": 43
+        "chain_unresolved_rows": 40,
+        "normalized_accumulators": 94,
+        "normalized_sellers": 38
       }
     }
   },
@@ -22082,17 +21569,6 @@
   ],
   "whale_transfers": [
     {
-      "tx_hash": "0xb144b53f0900741c557f31a03040588dd5a5f4ae636ff57a9133e1df4b4b3e09",
-      "from": "0x073f564419b625a45d8aea3bb0de4d5647113ad7",
-      "to": "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe",
-      "value": 117163.58,
-      "timestamp": 1783480019,
-      "type": "CEX_WITHDRAWAL",
-      "from_label": "Exchange/Bot",
-      "to_label": "OKX",
-      "event_id": "0xb144b53f0900741c557f31a03040588dd5a5f4ae636ff57a9133e1df4b4b3e09"
-    },
-    {
       "tx_hash": "0x980f3bf78a49f6115aba099739bf710572066042eccf35e98ce8c19f18fc3f67",
       "from": "0xb0a27099582833c0cb8c7a0565759ff145113d64",
       "to": "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
@@ -27580,6 +27056,17 @@
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xac55474dda0feb8d62d91889dc0a45b395ab9f8828c3ff83aaa8d2c794a60ef0"
+    },
+    {
+      "tx_hash": "0xd48a186a0271214c0169beca1feedfe12a7121465f77440c2de58ef9b47b9962",
+      "from": "0xb0a27099582833c0cb8c7a0565759ff145113d64",
+      "to": "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
+      "value": 360328.3,
+      "timestamp": 1787541431,
+      "type": "CEX_WITHDRAWAL",
+      "from_label": "Exchange/Bot",
+      "to_label": "OKX",
+      "event_id": "0xd48a186a0271214c0169beca1feedfe12a7121465f77440c2de58ef9b47b9962"
     }
   ],
   "governance": {
