@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-11-04T06:54:56Z",
+    "generated": "2026-11-04T07:41:22Z",
     "token": "ZRO (LayerZero)",
     "contract": "0x6985884c4392d348587b19cb9eaaf157f13271cd",
     "total_supply": 1000000000,
@@ -17,13 +17,13 @@
     "cross_chain_stablecoin_share": 71,
     "oft_count": 750,
     "integrity": {
-      "normalized_at": "2026-11-04T06:55:20Z",
+      "normalized_at": "2026-11-04T07:42:00Z",
       "duplicate_holder_records_removed": 0,
       "fresh_wallets_missing_created": 0,
       "fresh_wallets_missing_last_flow": 0,
       "tracked_chain_balances": {
-        "ethereum": 935988207.6699995,
-        "arbitrum": 19113993.11,
+        "ethereum": 935877276.7299997,
+        "arbitrum": 19093479.57,
         "base": 5165424.23,
         "bsc": 4945587.78,
         "optimism": 5108412.12,
@@ -35,14 +35,14 @@
         "1d": {
           "raw_accumulators": 18,
           "raw_sellers": 15,
-          "excluded_untracked": 0,
+          "excluded_untracked": 1,
           "excluded_infrastructure": 0,
           "excluded_zero_balance": 0,
           "excluded_low_retention": 0,
           "excluded_low_signal": 0,
           "chain_unresolved_rows": 0,
           "normalized_accumulators": 18,
-          "normalized_sellers": 15
+          "normalized_sellers": 14
         },
         "7d": {
           "raw_accumulators": 45,
@@ -109,7 +109,7 @@
         "raw_rows": 500,
         "deduplicated_rows": 0,
         "removed_cex_to_cex": 0,
-        "reclassified_rows": 0,
+        "reclassified_rows": 32,
         "removed_below_threshold": 0,
         "normalized_rows": 500
       }
@@ -417,7 +417,7 @@
       "name": "Ethereum",
       "short": "ETH",
       "color": "#627EEA",
-      "supply": 935988207.67,
+      "supply": 935877276.73,
       "holders": 563,
       "explorer": "https://etherscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
@@ -425,13 +425,13 @@
       "reference_supply": 950798277,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-11-04T06:55:20Z"
+      "supply_synced_at": "2026-11-04T07:42:00Z"
     },
     "arbitrum": {
       "name": "Arbitrum",
       "short": "ARB",
       "color": "#28A0F0",
-      "supply": 19113993.11,
+      "supply": 19093479.57,
       "holders": 136,
       "explorer": "https://arbiscan.io/token/0x6985884c4392d348587b19cb9eaaf157f13271cd",
       "verified": true,
@@ -439,7 +439,7 @@
       "reference_supply": 28465056,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-11-04T06:55:20Z"
+      "supply_synced_at": "2026-11-04T07:42:00Z"
     },
     "base": {
       "name": "Base",
@@ -453,7 +453,7 @@
       "reference_supply": 6496063,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-11-04T06:55:20Z"
+      "supply_synced_at": "2026-11-04T07:42:00Z"
     },
     "bsc": {
       "name": "BNB Chain",
@@ -467,7 +467,7 @@
       "reference_supply": 5721542,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-11-04T06:55:20Z"
+      "supply_synced_at": "2026-11-04T07:42:00Z"
     },
     "optimism": {
       "name": "Optimism",
@@ -481,7 +481,7 @@
       "reference_supply": 4956100,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-11-04T06:55:20Z"
+      "supply_synced_at": "2026-11-04T07:42:00Z"
     },
     "polygon": {
       "name": "Polygon",
@@ -495,7 +495,7 @@
       "reference_supply": 2487403,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-11-04T06:55:20Z"
+      "supply_synced_at": "2026-11-04T07:42:00Z"
     },
     "avalanche": {
       "name": "Avalanche",
@@ -509,7 +509,7 @@
       "reference_supply": 1075559,
       "reference_verified_date": "2026-03-19",
       "supply_source": "indexed_holder_snapshot",
-      "supply_synced_at": "2026-11-04T06:55:20Z"
+      "supply_synced_at": "2026-11-04T07:42:00Z"
     }
   },
   "top_holders": [
@@ -669,7 +669,7 @@
     {
       "address": "0xa31231e727ca53ff95f0d00a06c645110c4ab647",
       "balances": {
-        "ethereum": 10749160.17
+        "ethereum": 10717019.0
       },
       "label": "Bybit",
       "type": "CEX",
@@ -795,7 +795,7 @@
     {
       "address": "0x921949cc006a563d76abd111a3e4c2ace2c4273f",
       "balances": {
-        "ethereum": 8448397.8
+        "ethereum": 8448340.0
       },
       "label": "LayerZero: STG ZRO Swapper",
       "type": "PROTOCOL",
@@ -932,7 +932,7 @@
     {
       "address": "0x2a3e01a0cfe03ce1fbfde6ca315018d036c783f2",
       "balances": {
-        "ethereum": 4361699.22
+        "ethereum": 4360248.0
       },
       "label": "Exchange/Bot",
       "type": "CEX",
@@ -1332,7 +1332,7 @@
     {
       "address": "0x073f564419b625a45d8aea3bb0de4d5647113ad7",
       "balances": {
-        "ethereum": 2295585.64
+        "ethereum": 2295586.0
       },
       "label": "Exchange/Bot",
       "type": "CEX",
@@ -1398,9 +1398,21 @@
       "type": "WHALE"
     },
     {
+      "address": "0x2ea06d44a738164b70c5a1cd859045380e22b857",
+      "balances": {
+        "ethereum": 2034510.0
+      },
+      "label": "Coinbase Prime Investor",
+      "type": "INST",
+      "cb_first_funded": 1773076547,
+      "cb_last_funded": 1773086831,
+      "cb_total_received": 2034510,
+      "cb_last_flow_amount": 2034509
+    },
+    {
       "address": "0x690c3eebf6ee237f00fc96f9766282f096c191cc",
       "balances": {
-        "ethereum": 2034532.41
+        "ethereum": 2012489.0
       },
       "label": "Fresh Wallet",
       "type": "FRESH",
@@ -1434,18 +1446,6 @@
       "label_source": "auto_fresh"
     },
     {
-      "address": "0x2ea06d44a738164b70c5a1cd859045380e22b857",
-      "balances": {
-        "ethereum": 2034510.0
-      },
-      "label": "Coinbase Prime Investor",
-      "type": "INST",
-      "cb_first_funded": 1773076547,
-      "cb_last_funded": 1773086831,
-      "cb_total_received": 2034510,
-      "cb_last_flow_amount": 2034509
-    },
-    {
       "address": "0x6d26d7c490da21a201c641cafcea5456ee289f6e",
       "balances": {
         "ethereum": 2000000.0
@@ -1456,7 +1456,7 @@
     {
       "address": "0x611f7bf868a6212f871e89f7e44684045ddfb09d",
       "balances": {
-        "arbitrum": 1977619.16
+        "arbitrum": 1977619.0
       },
       "label": "Exchange/Bot",
       "type": "CEX"
@@ -1464,7 +1464,7 @@
     {
       "address": "0x15da7556d5ed888306839bed06f868aeaedcb0d7",
       "balances": {
-        "ethereum": 1859817.8
+        "ethereum": 1885013.0
       },
       "label": "Whale",
       "type": "WHALE",
@@ -1583,7 +1583,7 @@
       "address": "0xf89d7b9c864f589bbf53a82105107622b35eaa40",
       "balances": {
         "ethereum": 375776.0,
-        "arbitrum": 120185.3,
+        "arbitrum": 119381.0,
         "optimism": 2853.42,
         "polygon": 966419.0,
         "avalanche": 60282.87
@@ -1739,7 +1739,7 @@
     {
       "address": "0xf8191d98ae98d2f7abdfb63a9b0b812b93c873aa",
       "balances": {
-        "ethereum": 1189496.32
+        "ethereum": 1189496.0
       },
       "label": "Exchange/Bot",
       "type": "CEX"
@@ -1942,7 +1942,7 @@
     {
       "address": "0x91d40e4818f4d4c57b4578d9eca6afc92ac8debe",
       "balances": {
-        "ethereum": 852986.59
+        "ethereum": 852987.0
       },
       "label": "OKX",
       "type": "CEX"
@@ -1962,7 +1962,7 @@
     {
       "address": "0x2623be206294a9ecbc06011a06b22168ea38a39a",
       "balances": {
-        "ethereum": 843446.99
+        "ethereum": 843447.0
       },
       "label": "CEX Deposit Wallet",
       "type": "CEX"
@@ -2055,7 +2055,7 @@
     {
       "address": "0x92ea7496eba5f001d620005f88f3e8e686e3d4ea",
       "balances": {
-        "ethereum": 775964.82
+        "ethereum": 775965.0
       },
       "label": "Exchange/Bot",
       "type": "CEX"
@@ -2071,8 +2071,8 @@
     {
       "address": "0x0d0707963952f2fba59dd06f2b425ace40b492fe",
       "balances": {
-        "ethereum": 514289.17,
-        "arbitrum": 236307.61,
+        "ethereum": 514289.0,
+        "arbitrum": 237147.0,
         "base": 17.7,
         "bsc": 1882.0,
         "optimism": 32.69
@@ -2095,7 +2095,7 @@
     {
       "address": "0x4a4aaa0155237881fbd5c34bfae16e985a7b068d",
       "balances": {
-        "ethereum": 720563.36
+        "ethereum": 720563.0
       },
       "label": "OKX",
       "type": "CEX",
@@ -2229,7 +2229,7 @@
     {
       "address": "0xafee421482faea92292ed3ffe29371742542ad72",
       "balances": {
-        "arbitrum": 545145.67
+        "arbitrum": 545146.0
       },
       "label": "Whale",
       "type": "WHALE"
@@ -2317,7 +2317,7 @@
     {
       "address": "0x9b64203878f24eb0cdf55c8c6fa7d08ba0cf77e5",
       "balances": {
-        "arbitrum": 457806.18
+        "arbitrum": 460695.0
       },
       "label": "",
       "type": ""
@@ -2389,25 +2389,9 @@
       "type": ""
     },
     {
-      "address": "0x173810f8ca9c4c631aeb1d6c36d007f054fee980",
-      "balances": {
-        "ethereum": 404436.91
-      },
-      "label": "",
-      "type": ""
-    },
-    {
-      "address": "0x2d668e26e35c8803c4f2511e9affc7db943f4202",
-      "balances": {
-        "ethereum": 401931.0
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0xf3e9fdd1ae54e5ad88ee540855f83cf3918f4385",
       "balances": {
-        "ethereum": 398773.68
+        "ethereum": 410640.0
       },
       "label": "Fresh Wallet",
       "type": "FRESH",
@@ -2441,6 +2425,22 @@
       "label_source": "auto_fresh"
     },
     {
+      "address": "0x173810f8ca9c4c631aeb1d6c36d007f054fee980",
+      "balances": {
+        "ethereum": 404437.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0x2d668e26e35c8803c4f2511e9affc7db943f4202",
+      "balances": {
+        "ethereum": 401931.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
       "address": "0xdfc8724decfae75bd3206c49f7bb920c90d136c4",
       "balances": {
         "ethereum": 392982.0
@@ -2451,7 +2451,7 @@
     {
       "address": "0xde1c31ef18a36e44125c641063544ed5d44bfe78",
       "balances": {
-        "ethereum": 392199.91
+        "ethereum": 392199.0
       },
       "label": "Fresh Wallet",
       "type": "FRESH",
@@ -2485,6 +2485,14 @@
       "label_source": "auto_fresh"
     },
     {
+      "address": "0x7f604d597c15b2e2f60dc645844f68b1d781b752",
+      "balances": {
+        "ethereum": 383946.0
+      },
+      "label": "Exchange/Bot",
+      "type": "CEX"
+    },
+    {
       "address": "0xbbff82342f43cdb0a121f4574e7a7dcf7995ae7b",
       "balances": {
         "arbitrum": 383533.0
@@ -2505,7 +2513,7 @@
     {
       "address": "0xc6fe7b7fbc7ef114284896a6631251cf54a8c304",
       "balances": {
-        "ethereum": 379642.11
+        "ethereum": 379642.0
       },
       "label": "Fresh Wallet",
       "type": "FRESH",
@@ -2571,14 +2579,6 @@
       "type": ""
     },
     {
-      "address": "0x7f604d597c15b2e2f60dc645844f68b1d781b752",
-      "balances": {
-        "ethereum": 368668.65
-      },
-      "label": "Exchange/Bot",
-      "type": "CEX"
-    },
-    {
       "address": "0xb789936432690bbc5db8fc00f87508916d5e2d5a",
       "balances": {
         "ethereum": 361107.0
@@ -2626,7 +2626,7 @@
     {
       "address": "0x3d5dc8d8ef62348e8e2e1abe4aa6d1153b48f232",
       "balances": {
-        "ethereum": 344761.16
+        "ethereum": 346761.0
       },
       "label": "Fresh Wallet",
       "type": "FRESH",
@@ -2983,7 +2983,7 @@
     {
       "address": "0x037741ef196087b26abfb173b64d05df23fadc72",
       "balances": {
-        "ethereum": 237823.79
+        "ethereum": 237824.0
       },
       "label": "Fresh Wallet",
       "type": "FRESH",
@@ -3096,7 +3096,7 @@
     {
       "address": "0xf37594875f33a004df690bcbb65ee432b0959d59",
       "balances": {
-        "ethereum": 212890.65
+        "ethereum": 212891.0
       },
       "label": "Active Trader",
       "type": "WHALE",
@@ -3106,7 +3106,7 @@
     {
       "address": "0xc456e33ddf99c48e26e31120f32eae470e040ebd",
       "balances": {
-        "ethereum": 212648.41
+        "ethereum": 212649.0
       },
       "label": "",
       "type": ""
@@ -3218,6 +3218,16 @@
       "type": ""
     },
     {
+      "address": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
+      "balances": {
+        "ethereum": 206795.0
+      },
+      "label": "Coinbase",
+      "type": "CEX",
+      "last_flow": 1793716211,
+      "last_flow_amount": 108354.43381254736
+    },
+    {
       "address": "0x3c0f1eb74d98de584e6b46089f94ba3086eefa9c",
       "balances": {
         "ethereum": 204887.0
@@ -3288,6 +3298,14 @@
       "type": ""
     },
     {
+      "address": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
+      "balances": {
+        "ethereum": 191173.0
+      },
+      "label": "Upbit",
+      "type": "CEX"
+    },
+    {
       "address": "0x504ce9e51e508c85a161058c12e970a903d482fc",
       "balances": {
         "ethereum": 190975.0
@@ -3344,14 +3362,6 @@
       "type": ""
     },
     {
-      "address": "0xe6026f60efc3d0e714f1b89c596aa484ffbd25c8",
-      "balances": {
-        "arbitrum": 182760.24
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x4413967d54c7f185c0d4ac670ce72c5ab6aa47c5",
       "balances": {
         "ethereum": 182614.0
@@ -3366,16 +3376,6 @@
       },
       "label": "",
       "type": ""
-    },
-    {
-      "address": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
-      "balances": {
-        "ethereum": 182521.28
-      },
-      "label": "Coinbase",
-      "type": "CEX",
-      "last_flow": 1793716211,
-      "last_flow_amount": 108354.43381254736
     },
     {
       "address": "0x58f9b4f2866de84bdb9805112c1d79ebba90f4af",
@@ -3435,14 +3435,6 @@
       },
       "label": "",
       "type": ""
-    },
-    {
-      "address": "0x6540f4a2f4c4fbac288fa738a249924a636020d0",
-      "balances": {
-        "ethereum": 177326.28
-      },
-      "label": "Upbit",
-      "type": "CEX"
     },
     {
       "address": "0x49b47081344e6208102ca69c6b3ae54e650885b6",
@@ -3541,7 +3533,7 @@
     {
       "address": "0xab782bc7d4a2b306825de5a7730034f8f63ee1bc",
       "balances": {
-        "ethereum": 169833.34
+        "ethereum": 169833.0
       },
       "label": "Bitvavo",
       "type": "CEX"
@@ -3574,6 +3566,14 @@
       "address": "0x3a5cc8689d1b0cef2c317bc5c0ad6ce88b27d597",
       "balances": {
         "ethereum": 165975.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0xe6026f60efc3d0e714f1b89c596aa484ffbd25c8",
+      "balances": {
+        "arbitrum": 163827.0
       },
       "label": "",
       "type": ""
@@ -3664,7 +3664,7 @@
     {
       "address": "0xe92e65049b3c2ca12806e9567b08895118c5a03f",
       "balances": {
-        "ethereum": 150116.67
+        "ethereum": 150117.0
       },
       "label": "Exchange/Bot",
       "type": "CEX",
@@ -3915,14 +3915,6 @@
       "cb_last_flow_amount": 49999
     },
     {
-      "address": "0x9d271a4e9523d74572b618ec10419a0a330e1bf0",
-      "balances": {
-        "arbitrum": 120670.35
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x8945f0a5c5521f68166f178ae34d4c9925cabb2e",
       "balances": {
         "ethereum": 120440.0
@@ -3941,7 +3933,7 @@
     {
       "address": "0x7da0b9211020d3775b18116fe751c555b9a7058c",
       "balances": {
-        "arbitrum": 119244.9
+        "arbitrum": 119244.0
       },
       "label": "",
       "type": ""
@@ -4001,6 +3993,14 @@
       "address": "0x6fffe084f6413fa400bdb93b951e71e190d5d18a",
       "balances": {
         "ethereum": 117016.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0x9d271a4e9523d74572b618ec10419a0a330e1bf0",
+      "balances": {
+        "arbitrum": 116559.0
       },
       "label": "",
       "type": ""
@@ -4121,7 +4121,7 @@
     {
       "address": "0x377b8ce04761754e8ac153b47805a9cf6b190873",
       "balances": {
-        "ethereum": 106608.4
+        "ethereum": 106463.0
       },
       "label": "",
       "type": ""
@@ -4475,41 +4475,6 @@
       "type": ""
     },
     {
-      "address": "0xe485e7a70b1131216cb47ca4555c4bbb2c742478",
-      "balances": {
-        "ethereum": 84720.0
-      },
-      "label": "Fresh Wallet",
-      "type": "FRESH",
-      "fresh": true,
-      "label_manual": true,
-      "fresh_profile": "independent",
-      "fresh_profile_label": "Independent",
-      "fresh_profile_reason": "independent",
-      "fresh_signal": "fresh_accumulator",
-      "fresh_signal_label": "Accumulator",
-      "fresh_signal_score": 80,
-      "fresh_retention_ratio": 1.0,
-      "fresh_net_accumulation": 84720.4516,
-      "fresh_total_in_value": 84720.4516,
-      "fresh_total_out_value": 0.0,
-      "fresh_total_in_count": 1,
-      "fresh_total_out_count": 0,
-      "fresh_outbound_counterparties": 0,
-      "fresh_outbound_ratio": 0.0,
-      "fresh_cex_outbound_ratio": 0.0,
-      "fresh_cex_score": 0,
-      "fresh_cex_in_count": 0,
-      "fresh_cex_out_count": 0,
-      "fresh_cex_touch_count": 0,
-      "fresh_cex_in_value": 0.0,
-      "fresh_cex_out_value": 0.0,
-      "wallet_created": 1793557355,
-      "last_flow": 1793601791,
-      "last_flow_amount": 84720.45164502999,
-      "label_source": "auto_fresh"
-    },
-    {
       "address": "0xbda8e8a0627ebe62c7406b2c1315c0ae8e16869d",
       "balances": {
         "ethereum": 78735.0,
@@ -4561,7 +4526,7 @@
     {
       "address": "0xf440139a62b2b939699c5b3e09f88e40464ab9bc",
       "balances": {
-        "ethereum": 57027.77,
+        "ethereum": 57027.0,
         "arbitrum": 22896.0,
         "bsc": 258.2,
         "polygon": 1489.0
@@ -4678,7 +4643,7 @@
     {
       "address": "0x58edf78281334335effa23101bbe3371b6a36a51",
       "balances": {
-        "ethereum": 74515.96
+        "ethereum": 74516.0
       },
       "label": "Fresh Wallet",
       "type": "FRESH",
@@ -4713,7 +4678,7 @@
     {
       "address": "0x9642b23ed1e01df1092b92641051881a322f5d4e",
       "balances": {
-        "ethereum": 74017.97
+        "ethereum": 74018.0
       },
       "label": "MEXC",
       "type": "CEX"
@@ -4953,14 +4918,6 @@
       "type": ""
     },
     {
-      "address": "0x9e9aaec8557b6e43c8c53e1704238038593960fa",
-      "balances": {
-        "ethereum": 62831.0
-      },
-      "label": "CEX Deposit Wallet",
-      "type": "CEX"
-    },
-    {
       "address": "0x0a7be8d536dc3597e13e4d428a4c9d2fa1b303a6",
       "balances": {
         "ethereum": 62498.0
@@ -4993,14 +4950,6 @@
       "type": ""
     },
     {
-      "address": "0x91dca37856240e5e1906222ec79278b16420dc92",
-      "balances": {
-        "arbitrum": 60594.13
-      },
-      "label": "",
-      "type": ""
-    },
-    {
       "address": "0x3a476cf731afab2ac4822a5b79f65151d13219af",
       "balances": {
         "bsc": 60520.0
@@ -5012,6 +4961,14 @@
       "address": "0x79d75252d790db3e929062d00b80f0532813418d",
       "balances": {
         "arbitrum": 60313.0
+      },
+      "label": "",
+      "type": ""
+    },
+    {
+      "address": "0x91dca37856240e5e1906222ec79278b16420dc92",
+      "balances": {
+        "arbitrum": 60202.0
       },
       "label": "",
       "type": ""
@@ -5139,7 +5096,7 @@
     {
       "address": "0xb334a61a6209f14b5fa5f1684a4ed7621f66e1ef",
       "balances": {
-        "ethereum": 55933.73
+        "ethereum": 55934.0
       },
       "label": "",
       "type": ""
@@ -5259,7 +5216,7 @@
     {
       "address": "0x3d2335cac7b31411467ef03168c5869452fb7e86",
       "balances": {
-        "ethereum": 53775.98
+        "ethereum": 53776.0
       },
       "label": "",
       "type": ""
@@ -8548,31 +8505,6 @@
           "flow_score": 218304.36
         },
         {
-          "address": "0xe485e7a70b1131216cb47ca4555c4bbb2c742478",
-          "label": "Fresh Wallet",
-          "type": "FRESH",
-          "net_flow": -84720,
-          "balance": 84720,
-          "fresh_profile": "independent",
-          "fresh_signal": "fresh_accumulator",
-          "flow_cohort": "organic",
-          "flow_cohort_label": "Organic",
-          "total_out": 84720,
-          "flow_chains": [
-            "ethereum"
-          ],
-          "primary_flow_chain": "ethereum",
-          "fresh_overlap": true,
-          "fresh_flow_signal": "fresh_seller",
-          "fresh_flow_label": "Fresh seller",
-          "seller_profile": "external_outflow",
-          "seller_profile_label": "External outflow",
-          "cex_outflow_ratio": 0.0,
-          "external_outflow_ratio": 1.0,
-          "sell_pressure_score": 205869.6,
-          "flow_score": 205869.6
-        },
-        {
           "address": "0xc6fe7b7fbc7ef114284896a6631251cf54a8c304",
           "label": "Fresh Wallet",
           "type": "FRESH",
@@ -8796,14 +8728,14 @@
       "meta": {
         "raw_accumulators": 18,
         "raw_sellers": 15,
-        "excluded_untracked": 0,
+        "excluded_untracked": 1,
         "excluded_infrastructure": 0,
         "excluded_zero_balance": 0,
         "excluded_low_retention": 0,
         "excluded_low_signal": 0,
         "chain_unresolved_rows": 0,
         "normalized_accumulators": 18,
-        "normalized_sellers": 15
+        "normalized_sellers": 14
       }
     },
     "7d": {
@@ -38126,7 +38058,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 131939.14,
       "timestamp": 1791025619,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xc418325d4ea8677f038daf94daecd0c2cd153922acd36e92ded8b48939c48933"
@@ -38137,7 +38069,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 122618.97,
       "timestamp": 1791040571,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xa1821227c87040968ee7a7ed86d4207bf9607e14389f237d0de4ea94039997c9"
@@ -38214,7 +38146,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 107386.73,
       "timestamp": 1791109331,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xaef834cad95b87f38140e3ad95cb7344c2021cb3a2cab036fec6eecc20fce0c4"
@@ -38401,7 +38333,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 106084.49,
       "timestamp": 1791158723,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xbfe3cb314819604cdf3044303328ee16b7440cba0ec3f38f4ca6e42083a02e0f"
@@ -38423,7 +38355,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 101205.72,
       "timestamp": 1791178991,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x4a3f426978c8c57f28b20886facb40791421e135a48475d59ea76d58a0822ffb"
@@ -38500,7 +38432,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 109112.15,
       "timestamp": 1791237491,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x026269461243032c5ab6ae4956d72c5bc927c9bb7be8223c347d480ceef1da65"
@@ -38731,7 +38663,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 109932.25,
       "timestamp": 1791571031,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x673a30dd7ac119e57352b395174f3dba6fc42df62dcc4662b41f7f147ad5befc"
@@ -38742,7 +38674,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 107393.84,
       "timestamp": 1791572231,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x3a980523bca2dd265324436afb3317a67309d8e7d0ffbe6ff91053b6872da566"
@@ -38753,7 +38685,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 198666.02,
       "timestamp": 1791572831,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x46d34d3a13833a54770315e8a8ceda7ec59eb5e695291a341d0225d9c7120dee"
@@ -38764,7 +38696,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 108333.51,
       "timestamp": 1791581651,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x52be54bf4080b5a25b5a6085570dcb8559e420c2068731961f2b583cc09e6305"
@@ -39248,7 +39180,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 128197.99,
       "timestamp": 1792126211,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xd920517fc3af52952408c6e398373b6b6944d52b9b9e49d4bc79e1dbcc037795"
@@ -39292,7 +39224,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 114883.17,
       "timestamp": 1792170011,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xbe8f106e077c60ce3bc66d6f3d37521dbe0f1c44821dcab8d893b4e9f6b0e192"
@@ -39303,7 +39235,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 112517.23,
       "timestamp": 1792170611,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x44bdfcf0ff5decf53c47b38052f2cdb39a07eae88e888175979b1875d4257828"
@@ -39314,7 +39246,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 101004.68,
       "timestamp": 1792171571,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x73cd642d0c82cfee66b3c55ee7105d9be1bd2e73af777a1e2b4b8c47e2e89517"
@@ -39347,7 +39279,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 106114.81,
       "timestamp": 1792222631,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x3839dcecd0e9d5123fbbe145b0297949a882aa9639c914abd2826c10a516eb3b"
@@ -39380,7 +39312,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 105422.43,
       "timestamp": 1792256771,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x138410dde52ccb867886d02b41e6241e5ada431fce997dd6b0275984a692cbaf"
@@ -39556,7 +39488,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 113108.78,
       "timestamp": 1792439051,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xd43a7aa6843407026f4e0c911a7791568e2644c8508dbf189996d79fce252b59"
@@ -39600,7 +39532,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 167129.17,
       "timestamp": 1792449311,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xd185903c3e7f25447c2d05b6f8000572f243f0b9c68f0a7923449cb9426de921"
@@ -39633,7 +39565,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 106064.7,
       "timestamp": 1792470851,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x446a1c8d3999077cad80decea91f3454d353978e032d10d491738851bf60306e"
@@ -39743,7 +39675,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 103612.69,
       "timestamp": 1792610051,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x14dfaca8bc7d39a35d14350ba240257c36e13348f5284cae5f13a4e4ab378746"
@@ -39765,7 +39697,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 108189.29,
       "timestamp": 1792613291,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x679112ba877f7c5bf4ddf16bf03165f3478712677fe0914331b92abb2925fb4e"
@@ -40073,7 +40005,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 116764.59,
       "timestamp": 1793029691,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xda1f5af79ea833a67fcd2004a0da5104ded13fbcce476635b07087bc978cb8fe"
@@ -40150,7 +40082,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 117998.62,
       "timestamp": 1793133311,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x9a90a35786c2d539bf2aef894e5242784485ee1e48b28e5b82671b92fc091491"
@@ -40227,7 +40159,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 125393.33,
       "timestamp": 1793230091,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x2f155905ff48b323dd4ca3d6fd6347432915fe7d2216b4e7d846667d1e7d0d52"
@@ -40238,7 +40170,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 112327.71,
       "timestamp": 1793255591,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x0eddfcc67a411df5f6db27ec3a9f137d4cdefd1aa61445a1c1051ca056cc4547"
@@ -40249,7 +40181,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 131757.68,
       "timestamp": 1793303471,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x33d1dac55608501ffaf337e1860f38ec71c4be538749bccd6b8e9179442d914d"
@@ -40304,7 +40236,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 140968.14,
       "timestamp": 1793322491,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xc30e5243fad867621f634f470f379eb86c76f3ea22cc7cfee6c2342557058eb7"
@@ -40326,7 +40258,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 114524.15,
       "timestamp": 1793323991,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x51ba785944c4e159d7e6310b736f3e33056e3ecdd889da38560cd188fd0771e5"
@@ -40337,7 +40269,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 118212.89,
       "timestamp": 1793327951,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x4ae58216b26767294e527d3e023a5f4c29b121561a66b1ae120a92a3ef2c2d04"
@@ -40381,7 +40313,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 109911.27,
       "timestamp": 1793390951,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x54ec61f94be18fbfe9214ae3a6aa874ebed8555ac0f0b260b09b41fcbe8cdca3"
@@ -40414,7 +40346,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 113827.26,
       "timestamp": 1793404391,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0x245bef520644b206df1cdfb3e60467f1f423986a32822588b593aa028961333b"
@@ -40502,7 +40434,7 @@
       "to": "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43",
       "value": 133962.23,
       "timestamp": 1793471279,
-      "type": "CEX_WITHDRAWAL",
+      "type": "CEX_DEPOSIT",
       "from_label": "CEX Deposit Wallet",
       "to_label": "Coinbase",
       "event_id": "0xbe6fdea697745745209fa793b50f629f77f688e9f2481567219a86e72c459e3a"
