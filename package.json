@@ -6,6 +6,6 @@
     "refresh:data:full": "python3 refresh_dashboard_data.py --mode full",
     "refresh:data:hourly": "python3 refresh_dashboard_data.py --mode hourly",
     "refresh:data:plan": "python3 refresh_dashboard_data.py --mode full --dry-run",
-    "test": "node --test tests/dashboard-smoke.test.js"
+    "test": "node --test tests/dashboard-smoke.test.js && python3 -m unittest discover -s tests -p 'test_*.py'"
   }
 }

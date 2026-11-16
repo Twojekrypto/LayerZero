@@ -18,6 +18,8 @@ from collections import defaultdict
 from copy import deepcopy
 
 from cex_addresses import KNOWN_CEX_ADDRESSES
+from flow_metrics import period_retention
+from fresh_wallet_utils import derive_fresh_signal
 from utils import atomic_json_dump
 
 
@@ -251,6 +253,21 @@ def normalize_holders(data, fresh_cache):
 
     deduped = [merge_holders(records, fresh_cache) for records in grouped.values()]
     deduped = [holder for holder in deduped if holder_total(holder) > 0]
+    for holder in deduped:
+        if not is_fresh_holder(holder) or "fresh_total_in_value" not in holder:
+            continue
+        analysis = {
+            "profile": holder.get("fresh_profile"),
+            "total_inbound_value": holder.get("fresh_total_in_value", 0),
+            "total_outbound_value": holder.get("fresh_total_out_value", 0),
+            "total_inbound_count": holder.get("fresh_total_in_count", 0),
+            "total_outbound_count": holder.get("fresh_total_out_count", 0),
+            "outgoing_to_cex_value": holder.get("fresh_cex_out_value", 0),
+            "unique_outbound_counterparties": holder.get("fresh_outbound_counterparties", 0),
+        }
+        signal = derive_fresh_signal(holder, analysis)
+        for field in ("signal", "signal_label", "signal_score", "retention_ratio", "net_accumulation", "outbound_ratio", "cex_outbound_ratio"):
+            holder[f"fresh_{field}"] = signal[field]
     deduped.sort(key=holder_total, reverse=True)
 
     removed = len(data.get("top_holders", [])) - len(deduped)
@@ -430,9 +447,9 @@ def normalize_flow_item(raw_item, holder_map):
     if not holder:
         return None, "untracked"
 
-    label = raw_item.get("label") or holder.get("label", "")
-    flow_type = raw_item.get("type") or holder.get("type", "")
-    balance = round(float(raw_item.get("balance") or holder_total(holder) or 0))
+    label = holder.get("label", "")
+    flow_type = holder.get("type", "")
+    balance = round(holder_total(holder))
     net_flow = round(float(raw_item.get("net_flow") or 0))
 
     if net_flow == 0 or balance <= 0:
@@ -442,11 +459,7 @@ def normalize_flow_item(raw_item, holder_map):
 
     total_in = float(raw_item.get("total_in") or 0)
     total_out = float(raw_item.get("total_out") or 0)
-    retention_ratio = raw_item.get("retention_ratio")
-    if retention_ratio in (None, "") and net_flow > 0:
-        base = total_in if total_in > 0 else abs(net_flow)
-        if base > 0:
-            retention_ratio = round(balance / base, 4)
+    retention_ratio = period_retention(total_in, total_out)
 
     normalized = {
         "address": address,
@@ -461,7 +474,7 @@ def normalize_flow_item(raw_item, holder_map):
         normalized["fresh_profile"] = holder["fresh_profile"]
     if holder.get("fresh_signal"):
         normalized["fresh_signal"] = holder["fresh_signal"]
-    flow_cohort = raw_item.get("flow_cohort") or derive_flow_cohort(label, flow_type, address)
+    flow_cohort = derive_flow_cohort(label, flow_type, address)
     normalized["flow_cohort"] = flow_cohort
     normalized["flow_cohort_label"] = raw_item.get("flow_cohort_label") or FLOW_COHORT_LABELS[flow_cohort]
     if total_in > 0:
@@ -484,7 +497,8 @@ def normalize_flow_item(raw_item, holder_map):
     else:
         normalized["chain_unresolved"] = True
 
-    fresh_flow_signal = derive_fresh_flow_signal(raw_item, holder)
+    fresh_flow_signal = derive_fresh_flow_signal({"net_flow": net_flow, "type": flow_type, "label": label,
+                                                "fresh_signal": holder.get("fresh_signal")}, holder)
     if fresh_flow_signal:
         normalized["fresh_overlap"] = True
         normalized["fresh_flow_signal"] = fresh_flow_signal
@@ -503,9 +517,11 @@ def normalize_flow_item(raw_item, holder_map):
             normalized["cex_outflow_ratio"] = round(float(raw_item["cex_outflow_ratio"]), 4)
         if raw_item.get("external_outflow_ratio") not in (None, ""):
             normalized["external_outflow_ratio"] = round(float(raw_item["external_outflow_ratio"]), 4)
-        normalized["sell_pressure_score"] = derive_sell_pressure_score({**raw_item, **normalized})
+        score_input = {**raw_item, **normalized}
+        score_input.pop("sell_pressure_score", None)
+        normalized["sell_pressure_score"] = derive_sell_pressure_score(score_input)
 
-    normalized["flow_score"] = round(float(raw_item.get("flow_score") or derive_flow_score(normalized)), 2)
+    normalized["flow_score"] = derive_flow_score(normalized)
 
     return normalized, "ok"
 
@@ -540,8 +556,6 @@ def normalize_flows(data):
                 summary["excluded_zero_balance"] += 1
                 continue
 
-            if item.get("chain_unresolved"):
-                summary["chain_unresolved_rows"] += 1
             if not is_meaningful_accumulator(item):
                 summary["excluded_low_retention"] += 1
                 continue
@@ -558,8 +572,6 @@ def normalize_flows(data):
             if reason != "ok":
                 summary["excluded_zero_balance"] += 1
                 continue
-            if item.get("chain_unresolved"):
-                summary["chain_unresolved_rows"] += 1
             if not is_meaningful_seller(item):
                 summary["excluded_low_signal"] += 1
                 continue
@@ -567,6 +579,7 @@ def normalize_flows(data):
 
         accumulators.sort(key=lambda item: (item.get("flow_score", 0), item["net_flow"], item.get("retention_ratio", 0), item["balance"]), reverse=True)
         sellers.sort(key=lambda item: (item.get("sell_pressure_score", item.get("flow_score", 0)), abs(item["net_flow"]), -item["balance"]), reverse=True)
+        summary["chain_unresolved_rows"] = sum(bool(item.get("chain_unresolved")) for item in accumulators + sellers)
 
         flow_bucket["accumulators"] = accumulators
         flow_bucket["sellers"] = sellers
@@ -638,7 +651,7 @@ def normalize_whale_transfers(data):
         to_cex_label = get_canonical_cex_label(to_addr, to_holder, raw_item.get("to_label"))
         from_is_cex = bool(from_cex_label)
         to_is_cex = bool(to_cex_label)
-        if from_is_cex and to_is_cex and from_cex_label == to_cex_label:
+        if from_is_cex and to_is_cex:
             summary["removed_cex_to_cex"] += 1
             continue
 
@@ -674,8 +687,8 @@ def normalize_whale_transfers(data):
         deduped[event_id] = normalized
 
     normalized_rows = sorted(deduped.values(), key=lambda item: item.get("timestamp", 0))
-    summary["normalized_rows"] = len(normalized_rows)
     data["whale_transfers"] = normalized_rows[-500:]
+    summary["normalized_rows"] = len(data["whale_transfers"])
     return summary
 
 
@@ -777,6 +790,13 @@ def main():
 
     deduped_holders, duplicate_records_removed = normalize_holders(data, fresh_cache)
     data["top_holders"] = deduped_holders
+    buybacks = data.get("buybacks", {})
+    if buybacks.get("stargate_monthly"):
+        buybacks["stargate_total_tokens"] = sum(row["tokens"] for row in buybacks["stargate_monthly"])
+        buybacks["stargate_total_usd"] = sum(row["usd"] for row in buybacks["stargate_monthly"])
+        total_supply = data.get("meta", {}).get("total_supply") or data.get("total_supply")
+        if total_supply:
+            buybacks["supply_pct"] = round(buybacks["stargate_total_tokens"] / total_supply * 100, 4)
     sync_chain_snapshot_supply(data, normalized_at)
     flow_summary = normalize_flows(data)
     whale_summary = normalize_whale_transfers(data)

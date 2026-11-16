@@ -65,7 +65,10 @@ def fetch_json(url, retries=3, delay=2):
                     if switch_api_key():
                         new_key = get_api_key()
                         url = re.sub(r'apikey=[^&]+', f'apikey={new_key}', url)
+                    if attempt < retries - 1:
+                        time.sleep(delay * (2 ** attempt))
                         continue
+                    return None
                 return data
         except Exception as e:
             if attempt < retries - 1:

@@ -86,8 +86,7 @@ def get_recent_unlock_transfers(since_hours=2):
 
 def main():
     if not API_KEY:
-        print("❌ ETHERSCAN_API_KEY not set")
-        return
+        raise RuntimeError("ETHERSCAN_API_KEY not set")
 
     with open(DATA_PATH) as f:
         data = json.load(f)
@@ -138,6 +137,7 @@ def main():
     updated = 0
     errors = 0
     req_count = 0
+    successful_requests = 0
 
     for i, h in enumerate(top_holders):
         addr = h["address"]
@@ -161,6 +161,7 @@ def main():
                 req_count += 1
 
                 if bal is not None:
+                    successful_requests += 1
                     new_balances[chain] = round(bal)
                 else:
                     # Keep old value on API error
@@ -213,8 +214,14 @@ def main():
         print(f"   🔄 Removed {dup_removed} duplicate holders")
     holders = deduped
 
+    if successful_requests == 0:
+        raise RuntimeError("No balance requests succeeded; preserving previous snapshot and timestamps")
+
     data["top_holders"] = holders
     data["meta"]["generated"] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    data["meta"]["balance_coverage"] = {"successful_requests": successful_requests, "failed_requests": errors,
+                                        "partial": errors > 0, "top_n": TOP_N}
+    data["meta"]["balances_updated"] = data["meta"]["generated"]
 
     # Sync labels in flows data
     label_map = {h["address"].lower(): {"label": h.get("label", ""), "type": h.get("type", "")}

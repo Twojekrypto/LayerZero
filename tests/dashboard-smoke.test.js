@@ -350,6 +350,17 @@ test('snapshot data remains internally consistent', () => {
       assert.notEqual(transfer.from_label, transfer.to_label, 'CEX withdrawal rows should not be pure CEX-to-CEX relabels');
     }
   }
+  const holderMap = new Map(dashboardData.top_holders.map(holder => [holder.address, holder]));
+  const buybackTokens = dashboardData.buybacks.stargate_monthly.reduce((total, row) => total + row.tokens, 0);
+  assert.equal(dashboardData.buybacks.stargate_total_tokens, buybackTokens);
+  assert.ok(Math.abs(dashboardData.buybacks.supply_pct - buybackTokens / dashboardData.meta.total_supply * 100) < 0.0001, 'Stargate share reconciles with token total');
+  for (const bucket of Object.values(dashboardData.flows)) {
+    for (const row of [...bucket.accumulators, ...bucket.sellers]) {
+      assert.ok(row.retention_ratio >= 0 && row.retention_ratio <= 1, 'period retention stays within 0..1');
+      const totalBalance = Object.values(holderMap.get(row.address).balances).reduce((a, b) => a + b, 0);
+      assert.ok(Math.abs(row.balance - totalBalance) <= 0.500001, 'flow balance matches tracked holder within integer rounding');
+    }
+  }
 });
 
 test('holders_multichain stays aligned with snapshot metadata for tracked holders', () => {

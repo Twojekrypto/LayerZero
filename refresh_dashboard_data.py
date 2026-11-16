@@ -37,6 +37,7 @@ class Step:
 
 PIPELINES = {
     "full": (
+        Step("Refresh market data", ("refresh_market_data.py",), soft_fail=True),
         Step("Fetch multichain holders", ("fetch_holders.py",), required_env=("ETHERSCAN_API_KEY",), optional_env=("ALCHEMY_API_KEY",)),
         Step("Merge fresh holder data into zro_data.json", ("update_data.py",)),
         Step("Detect fresh and institutional wallets", ("detect_fresh.py",), soft_fail=True, required_env=("ETHERSCAN_API_KEY",)),
@@ -48,6 +49,7 @@ PIPELINES = {
         Step("Normalize zro_data.json", ("sanitize_zro_data.py",)),
     ),
     "hourly": (
+        Step("Refresh market data", ("refresh_market_data.py",), soft_fail=True),
         Step("Refresh top holder balances", ("refresh_balances.py",), required_env=("ETHERSCAN_API_KEY",)),
         Step("Update Coinbase Prime transfer history", ("monitor_cb_prime.py",), soft_fail=True, required_env=("ETHERSCAN_API_KEY",)),
         Step("Detect fresh and institutional wallets", ("detect_fresh.py",), soft_fail=True, required_env=("ETHERSCAN_API_KEY",)),

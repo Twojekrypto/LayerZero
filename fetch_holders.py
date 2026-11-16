@@ -144,13 +144,15 @@ def fetch_transfers_etherscan(chainid, start_block=0):
 
         data = fetch_json(url)
         if not data:
-            break
+            raise RuntimeError("Etherscan transfer page unavailable")
 
         if data.get("status") != "1" or not data.get("result"):
+            if data.get("message") == "No transactions found" or data.get("result") == "No transactions found":
+                break
             if page == 1:
                 msg = data.get("result", data.get("message", "Unknown error"))
                 print(f"  ⚠️ Etherscan returned: {msg}")
-            break
+            raise RuntimeError("Etherscan transfer history incomplete")
 
         results = data["result"]
         all_txs.extend(results)
@@ -191,8 +193,7 @@ def fetch_transfers_alchemy(chain_key, from_block="0x0"):
     while True:
         page += 1
         if page > MAX_PAGES:
-            print(f"  ⚠️ Reached max pages ({MAX_PAGES}), stopping")
-            break
+            raise RuntimeError("Alchemy transfer pagination limit reached")
         payload = {
             "id": 1,
             "jsonrpc": "2.0",
@@ -215,7 +216,7 @@ def fetch_transfers_alchemy(chain_key, from_block="0x0"):
         if not data or "result" not in data:
             if data and "error" in data:
                 print(f"  ⚠️ Alchemy error: {data['error'].get('message', '')}")
-            break
+            raise RuntimeError("Alchemy transfer history incomplete")
 
         result = data["result"]
         transfers = result.get("transfers", [])
@@ -296,7 +297,7 @@ def main():
 
     # For incremental mode, load existing holders
     existing_holders = {}
-    if not is_full and os.path.exists(OUTPUT_FILE):
+    if os.path.exists(OUTPUT_FILE):
         with open(OUTPUT_FILE) as f:
             existing = json.load(f)
         for h in existing.get("holders", []):
@@ -304,10 +305,12 @@ def main():
 
     all_holders = {}
     chain_stats = {}
+    rebuilt_chains = set()
 
     for chain_key, chain_info in CHAINS.items():
         chainid = chain_info["chainid"]
         chain_state = state.get(chain_key, {})
+        chain_is_full = is_full or not chain_state.get("last_block")
 
         if is_full:
             start_block = 0
@@ -323,16 +326,33 @@ def main():
         max_block = 0
         if ALCHEMY_KEY and chain_key in ALCHEMY_URLS:
             from_hex = hex(start_block) if start_block > 0 else "0x0"
-            transfers, max_block = fetch_transfers_alchemy(chain_key, from_hex)
+            try:
+                transfers, max_block = fetch_transfers_alchemy(chain_key, from_hex)
+            except RuntimeError:
+                print("   Alchemy scan incomplete; trying fallback")
 
         # Fallback: Etherscan (only if Alchemy unavailable or returned nothing)
         if not transfers:
-            transfers, max_block = fetch_transfers_etherscan(chainid, start_block)
+            try:
+                transfers, max_block = fetch_transfers_etherscan(chainid, start_block)
+            except RuntimeError:
+                print("   Etherscan scan incomplete; keeping previous snapshot when available")
 
         print(f"   Transfers fetched: {len(transfers)}")
 
         # Fallback to CSV if both APIs failed
         if not transfers:
+            previous_balances = {address: balances[chain_key] for address, balances in existing_holders.items()
+                                 if balances.get(chain_key, 0) > 0}
+            if previous_balances:
+                state.pop(chain_key, None)
+                for address, balance in previous_balances.items():
+                    all_holders.setdefault(address, {"balances": {}})["balances"][chain_key] = balance
+                chain_stats[chain_key] = {"source": "preserved_snapshot", "transfers": 0,
+                                          "holders_gt10": len(previous_balances),
+                                          "tracked_balance_gt10": round(sum(previous_balances.values()), 2)}
+                print(f"   {chain_key}: no transfer data; preserving previous balances instead of historical CSV")
+                continue
             csv_file = CSV_FILES.get(chain_key)
             csv_path = os.path.join(CSV_DIR, csv_file) if csv_file else None
             if csv_path and os.path.exists(csv_path):
@@ -392,8 +412,8 @@ def main():
             chain_stats[chain_key] = {"transfers": 0, "holders_gt10": 0, "tracked_balance_gt10": 0}
             continue
 
-        if is_full:
-            # Full mode: compute balances from all transfers
+        if chain_is_full:
+            # A missing cursor requires full reconstruction, not deltas on an old balance.
             balances = compute_balances(transfers)
         else:
             # Incremental: compute DELTAS and apply to existing balances
@@ -420,6 +440,7 @@ def main():
         print(f"   Holders with >{MIN_BALANCE} ZRO: {len(balances)}")
 
         chain_stats[chain_key] = {
+            "source": "transfer_scan",
             "transfers": len(transfers),
             "holders_gt10": len(balances),
             "tracked_balance_gt10": round(sum(balances.values()), 2),
@@ -433,6 +454,7 @@ def main():
             state[chain_key]["stats"] = chain_stats[chain_key]
 
         # Merge into all_holders
+        rebuilt_chains.add(chain_key)
         for addr, balance in balances.items():
             if addr not in all_holders:
                 all_holders[addr] = {"balances": {}}
@@ -445,16 +467,11 @@ def main():
     # For incremental mode, merge with existing holders (keep chains not re-scanned)
     if not is_full:
         for addr, chain_balances in existing_holders.items():
-            if addr not in all_holders:
-                # Keep existing holder entirely
-                total = sum(chain_balances.values())
-                if total > MIN_BALANCE:
-                    all_holders[addr] = {"balances": chain_balances}
-            else:
-                # Merge chains not re-scanned
-                for chain, bal in chain_balances.items():
-                    if chain not in all_holders[addr]["balances"] and chain not in chain_stats:
-                        all_holders[addr]["balances"][chain] = bal
+            remaining = {chain: balance for chain, balance in chain_balances.items() if chain not in rebuilt_chains}
+            if remaining:
+                entry = all_holders.setdefault(addr, {"balances": {}})
+                for chain, balance in remaining.items():
+                    entry["balances"].setdefault(chain, balance)
 
     # Build output
     holders_list = []
@@ -498,7 +515,7 @@ def main():
     print(f"   ✂️ Pruned {pre_prune:,} → {len(holders_list)} holders (top per chain + labeled)")
 
     # Update state
-    if is_full:
+    if is_full and all(stats.get("source") == "transfer_scan" for stats in chain_stats.values()):
         state["last_full_scan"] = datetime.utcnow().strftime("%Y-%m-%d")
     state["last_scan"] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
     state["mode"] = mode

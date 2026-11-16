@@ -233,7 +233,7 @@ def main():
         to_is_cex = bool(to_cex_label)
 
         # Skip internal CEX-to-CEX transfers, including labeled same-entity CEX proxy wallets.
-        if from_is_cex and to_is_cex and from_cex_label == to_cex_label:
+        if from_is_cex and to_is_cex:
             mark_seen(seen, tx_hash, log_index)
             print(f"  ⏭️ Skip CEX→CEX: {from_cex_label} → {to_cex_label} ({fmt(value)} ZRO)")
             continue

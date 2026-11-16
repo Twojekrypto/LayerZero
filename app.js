@@ -49,8 +49,8 @@ const FRESH_FLOW_LABELS = {
 };
 const WHALE_FILTER_LABELS = {
     ALL: 'Large transfers',
-    BUY: 'Buy-side transfers',
-    SELL: 'Sell-side transfers',
+    BUY: 'CEX withdrawals',
+    SELL: 'CEX deposits',
     MOVE: 'Wallet-to-wallet moves',
 };
 const STRATEGIC_FLOW_TYPES = new Set(['VC', 'TEAM', 'UNLOCK', 'INST']);
@@ -607,18 +607,16 @@ function getTrackedHolder(address) {
 }
 
 function getFlowItemBalance(item, holder=getTrackedHolder(item.address)) {
+    if (holder) return getHolderTotalBalance(holder);
     const explicitBalance = Number(item?.balance || 0);
     if (explicitBalance > 0) return explicitBalance;
     return holder ? getHolderTotalBalance(holder) : 0;
 }
 
 function getFlowRetentionRatio(item, balance=getFlowItemBalance(item)) {
-    const explicitRatio = Number(item?.retention_ratio);
-    if (Number.isFinite(explicitRatio) && explicitRatio > 0) return explicitRatio;
     const totalIn = Number(item?.total_in || 0);
-    if (totalIn > 0 && balance > 0) return balance / totalIn;
-    const netFlow = Number(item?.net_flow || 0);
-    return netFlow > 0 && balance > 0 ? balance / netFlow : 0;
+    const totalOut = Number(item?.total_out || 0);
+    return totalIn > 0 ? Math.max(0, Math.min(1, (totalIn - totalOut) / totalIn)) : 0;
 }
 
 function getFlowNetRetentionRatio(item) {
@@ -1328,13 +1326,16 @@ async function fetchPrice() {
         if (j.market_data) {
             const md=j.market_data;
             const prevPrice = DATA.meta.price_usd;
+            const prevCirculating = DATA.meta.circulating_supply;
+            if (!Number.isFinite(md.current_price?.usd) || md.current_price.usd <= 0 || !Number.isFinite(md.circulating_supply) || md.circulating_supply < 0 || md.circulating_supply > DATA.meta.total_supply) throw new Error('Invalid market data');
             DATA.meta.price_usd=md.current_price.usd;
-            DATA.meta.circulating_supply=md.circulating_supply||DATA.meta.circulating_supply;
+            DATA.meta.circulating_supply=md.circulating_supply;
+            DATA.meta.market_data_updated=md.last_updated || j.last_updated;
             DATA.meta.market_cap=md.market_cap.usd||DATA.meta.market_cap;
             DATA.meta.fdv=md.fully_diluted_valuation.usd||DATA.meta.fdv;
             DATA.meta.price_change_24h=typeof md.price_change_percentage_24h === 'number' ? md.price_change_percentage_24h : DATA.meta.price_change_24h;
             renderMetrics();
-            if (prevPrice !== DATA.meta.price_usd) rerenderPriceSensitiveViews();
+            if (prevPrice !== DATA.meta.price_usd || prevCirculating !== DATA.meta.circulating_supply) rerenderPriceSensitiveViews();
             const ch=md.price_change_percentage_24h;
             if (typeof ch === 'number') {
                 document.getElementById('m-price-src').innerHTML=`Live via CoinGecko · <span style="color:${ch>=0?'var(--accent-green)':'var(--accent-rose)'}">${ch>=0?'+':''}${ch.toFixed(2)}% 24h</span>`;
@@ -1342,7 +1343,10 @@ async function fetchPrice() {
                 setText('m-price-src', 'Live via CoinGecko');
             }
         }
-    } catch(e) { console.warn('CoinGecko failed',e); }
+    } catch(e) {
+        console.warn('CoinGecko failed',e);
+        setText('m-price-src', DATA.meta.market_data_updated ? `Cached CoinGecko · ${new Date(DATA.meta.market_data_updated).toLocaleDateString('en-GB')}` : 'Snapshot price · date unavailable');
+    }
 }
 
 function renderMetrics() {
@@ -1416,6 +1420,7 @@ function renderNetworkStats() {
     document.getElementById('s-apps').textContent=m.apps+'+';
     document.getElementById('s-stable').textContent=m.cross_chain_stablecoin_share+'%';
     document.getElementById('s-oft').textContent=m.oft_count+'+';
+    document.querySelector('.stats-row')?.setAttribute('title', 'Historical reference metrics, maintained separately from wallet snapshots. Q4 volume is Q4 2025.');
 }
 
 function renderChains() {
@@ -1423,6 +1428,7 @@ function renderChains() {
     const anomalies = DATA.meta?.integrity?.chain_balance_anomalies || [];
     const entries=Object.entries(DATA.chains).map(([chain, config]) => [chain, {
         ...config,
+        holders: DATA.top_holders.filter(holder => Number(holder.balances?.[chain] || 0) > 0).length,
         trackedBalance: trackedBalances[chain] || 0,
         configuredSupply: config.supply || 0,
         anomalous: anomalies.some(item => item.chain === chain),
@@ -1438,9 +1444,11 @@ function renderChains() {
     const noteText = anomalies.length
         ? `Using indexed holder balances for distribution. ${anomalies.length} chain snapshot${anomalies.length > 1 ? 's' : ''} currently exceed configured supply, so treat per-chain supply as approximate until the dataset is regenerated.`
         : snapshotSupplySynced
-            ? 'Using indexed holder balances for distribution and snapshot-synced per-chain supply from the current holder universe.'
-            : 'Using indexed holder balances for distribution and configured holder counts for coverage.';
-    document.getElementById('chain-bars').innerHTML=`<div class="chain-integrity-note${noteClass}">${noteText}</div>`+entries.map(([k,c])=>{
+            ? 'Indexed balances and tracked wallets per chain. The same wallet can appear on several chains; counts are not global holder totals.'
+            : 'Indexed balances and tracked wallets per chain; this is a sample of holders.';
+    const limitedChains = entries.filter(([, c]) => ['CSV', 'preserved_snapshot'].includes(c.balance_source)).map(([, c]) => c.short);
+    const coverageNote = limitedChains.length ? ` ${limitedChains.join(', ')}: previous/CSV balances; current on-chain coverage is unverified.` : '';
+    document.getElementById('chain-bars').innerHTML=`<div class="chain-integrity-note${noteClass}">${noteText}${coverageNote}</div>`+entries.map(([k,c])=>{
         const pct=maxTracked ? (c.trackedBalance/maxTracked*100).toFixed(1) : '0.0';
         const sPct=totalTracked ? (c.trackedBalance/totalTracked*100).toFixed(1) : '0.0';
         const configuredHint = c.anomalous ? `<div class="chain-bar-sub">Cfg ${fmt(c.configuredSupply)}</div>` : '';
@@ -2341,7 +2349,10 @@ function renderFlows() {
             ${pageButtonHTML(target, 1, '&rsaquo;', page>=totalPages)}
             ${pageButtonHTML(target, 999, '&raquo;', page>=totalPages)}`;
     });
-    const contextParts = [`${FLOW_COHORT_LABELS[flowCohort]} view`];
+    const flowUpdated = DATA.meta?.flows_updated;
+    const contextParts = [flowUpdated ? `Flows as of ${new Date(flowUpdated).toLocaleString('en-GB', {dateStyle:'medium',timeStyle:'short'})}` : 'Flow refresh time unavailable', `${FLOW_COHORT_LABELS[flowCohort]} view`];
+    if (DATA.meta?.flow_coverage?.partial) contextParts.push('partial API coverage');
+    contextParts.push('ALL = available cached history (up to 365 days)');
     if (hideCex) contextParts.push('quality filter on');
     if (flowChain !== 'all') contextParts.push(`${DATA.chains?.[flowChain]?.short || flowChain.toUpperCase()} only`);
     const freshOverlapTotal = freshCounts.accumulators + freshCounts.sellers;
@@ -2437,7 +2448,7 @@ function renderVesting() {
     const cliffLabel = start.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
     const endLabel = end.toLocaleDateString('en-GB', {month:'short', year:'numeric'});
     el.innerHTML=`
-        <div class="vest-progress"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Vesting Progress · ${pct.toFixed(1)}% elapsed</div>
+        <div class="vest-progress"><div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Reference vesting model · ${pct.toFixed(1)}% of schedule elapsed · amounts below are manually maintained</div>
         <div class="vest-bar-track"><div class="vest-bar-fill" style="width:${pct}%"></div></div>
         <div class="vest-labels"><span>Cliff End: ${cliffLabel}</span><span>Now</span><span>Vesting End: ${endLabel}</span></div></div>
         <div class="vest-grid">
@@ -2447,7 +2458,7 @@ function renderVesting() {
         </div>
         ${v.schedule.map(s=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px"><span style="color:var(--text-secondary)">${s.period}</span><span style="color:var(--text-primary);font-weight:600">${fmt(s.tokens)} ZRO</span><span style="color:var(--text-muted)">${fmtUSD(s.tokens*DATA.meta.price_usd)}</span></div>`).join('')}
         ${unlockProjectionChartHTML(v)}
-        <div class="vest-correction"><div class="vest-correction-title">🚨 CEO Correction (19.77% supply repurchased)</div><div class="vest-correction-text">Bryan Pellegrino (Feb 2026): "Most public dashboards overstate unlock pressure by almost 2x." Real remaining pressure: <strong style="color:var(--accent-purple)">~${fmt(v.real_remaining)} ZRO</strong> (~${fmtUSD(realMonthlyUsd)}/mo) vs dashboard's ~${fmt(v.total_remaining)} ZRO (~${fmtUSD(monthlyUsd)}/mo).</div></div>`;
+        <div class="vest-correction"><div class="vest-correction-title">Historical scenario assumptions</div><div class="vest-correction-text">Stored reference model: <strong style="color:var(--accent-purple)">~${fmt(v.real_remaining)} ZRO</strong> adjusted vs ~${fmt(v.total_remaining)} ZRO unadjusted. These baselines are not measured remaining supply today. Scenario monthly value at current price: ~${fmtUSD(realMonthlyUsd)} adjusted / ~${fmtUSD(monthlyUsd)} unadjusted.</div></div>`;
 }
 
 // ── Unlock projection chart: cumulative unlocks vs circulating supply ──
@@ -2481,7 +2492,7 @@ function unlockProjectionChartHTML(v) {
     }).join('');
     const circY=y(circ);
     return `
-        <div style="margin-top:16px;font-size:12px;color:var(--text-secondary);font-weight:600">Projected Circulating Supply (cumulative unlocks)</div>
+        <div style="margin-top:16px;font-size:12px;color:var(--text-secondary);font-weight:600">Hypothetical supply scenario (constant monthly unlock; excludes burns and other changes)</div>
         <svg viewBox="0 0 ${W} ${H}" width="100%" height="auto" role="img" aria-label="Projected circulating supply from cumulative unlocks until vesting end" style="margin-top:6px">
             ${grid}
             <line x1="${padL}" y1="${circY}" x2="${W-padR}" y2="${circY}" stroke="var(--accent-blue,#4a9eff)" stroke-width="1" stroke-dasharray="4 3"/>
@@ -2541,7 +2552,7 @@ function renderTimeline() {
     const el=document.getElementById('dates-section');
     el.innerHTML=`<div class="tl-list">${DATA.key_dates.map(d=>{
         const dt=new Date(d.date), now=new Date(), isPast=dt<now;
-        return `<div class="tl-item"><div class="tl-dot ${d.type}"></div><div class="tl-date">${d.date}${isPast?' ✓':''}</div><div class="tl-event">${d.event}</div><div class="tl-detail">${d.detail}</div></div>`;
+        return `<div class="tl-item"><div class="tl-dot ${d.type}"></div><div class="tl-date">${d.date}${isPast?' (past date)':''}</div><div class="tl-event">${d.event}</div><div class="tl-detail">${d.detail}</div></div>`;
     }).join('')}</div>`;
 }
 
@@ -2552,10 +2563,11 @@ function renderGovernance() {
     const now=new Date();
     const next=new Date(g.next_vote.date+'T00:00:00Z');
     const daysTo=Math.max(0,Math.ceil((next-now)/(24*60*60*1000)));
-    const resultBadge=r=>r==='failed_quorum'
+    const voteOverdue = next < now;
+    const resultBadge=(r, end)=>r==='failed_quorum'
         ? '<span class="gov-badge gov-badge-failed">No quorum</span>'
         : r==='passed' ? '<span class="gov-badge gov-badge-passed">Passed</span>'
-        : '<span class="gov-badge gov-badge-upcoming">Upcoming</span>';
+        : `<span class="gov-badge gov-badge-upcoming">${new Date(end) < now ? 'Result unverified' : 'Scheduled'}</span>`;
     const rows=g.referendums.map(r=>{
         const turnout=r.turnout_zro!=null&&r.quorum_zro?Math.min(100,(r.turnout_zro/r.quorum_zro)*100):null;
         const turnoutBar=turnout!=null
@@ -2568,13 +2580,13 @@ function renderGovernance() {
                 <div class="gov-row-meta">Quorum: ${r.quorum_zro?fmt(r.quorum_zro)+' ZRO':r.quorum_pct_circ!=null?r.quorum_pct_circ+'% circ.':'TBA'}${r.yes_pct!=null?` · ${r.yes_pct}% voted YES`:''}</div>
                 ${turnoutBar}
             </div>
-            <div class="gov-row-result">${resultBadge(r.result)}</div>
+            <div class="gov-row-result">${resultBadge(r.result, r.end)}</div>
         </div>`;
     }).join('');
     el.innerHTML=`
         <div class="gov-next">
-            <div><div class="gov-next-label">Next vote</div><div class="gov-next-val">${g.next_vote.date}</div><div class="gov-next-sub">${escapeHtml(g.next_vote.label)}</div></div>
-            <div class="gov-next-count"><span class="gov-next-days">${daysTo}</span><span class="gov-next-days-lbl">days</span></div>
+            <div><div class="gov-next-label">${voteOverdue ? 'Scheduled vote (past)' : 'Next scheduled vote'}</div><div class="gov-next-val">${g.next_vote.date}</div><div class="gov-next-sub">${escapeHtml(g.next_vote.label)}${voteOverdue ? ' · result needs verification' : ''}</div></div>
+            <div class="gov-next-count"><span class="gov-next-days">${voteOverdue ? '—' : daysTo}</span><span class="gov-next-days-lbl">${voteOverdue ? 'unverified' : 'days'}</span></div>
         </div>
         <div class="gov-list">${rows}</div>
         <div class="gov-note">ℹ️ ${escapeHtml(g.note)} A "Yes" outcome converts all messaging fees to ZRO and burns them.</div>`;
@@ -2590,8 +2602,8 @@ function renderZeroL1() {
     el.innerHTML=`
         <div class="zero-grid">
             <div class="zero-count">
-                <div class="zero-count-days">${daysTo}</div>
-                <div class="zero-count-lbl">days to mainnet</div>
+                <div class="zero-count-days">${target < now ? '—' : daysTo}</div>
+                <div class="zero-count-lbl">${target < now ? 'Past target · launch unverified' : 'days to mainnet target'}</div>
                 <div class="zero-count-sub">${escapeHtml(z.mainnet_label)} (target ${z.mainnet_target})</div>
             </div>
             <div class="zero-info">
@@ -2656,8 +2668,8 @@ function renderNetFlowTrend() {
     const fmtSigned=v=>`${v>=0?'+':'−'}${fmt(Math.round(Math.abs(v)))}`;
     el.innerHTML=`
         <div class="fresh-stats" style="margin-bottom:10px">
-            <div class="fresh-stat"><div class="fresh-stat-val" style="color:var(--accent-green)">+${fmt(Math.round(inSum))}</div><div class="fresh-stat-lbl">From CEX (accumulation)</div></div>
-            <div class="fresh-stat"><div class="fresh-stat-val" style="color:var(--accent-rose)">−${fmt(Math.round(outSum))}</div><div class="fresh-stat-lbl">To CEX (sell pressure)</div></div>
+            <div class="fresh-stat"><div class="fresh-stat-val" style="color:var(--accent-green)">+${fmt(Math.round(inSum))}</div><div class="fresh-stat-lbl">CEX withdrawals</div></div>
+            <div class="fresh-stat"><div class="fresh-stat-val" style="color:var(--accent-rose)">−${fmt(Math.round(outSum))}</div><div class="fresh-stat-lbl">CEX deposits</div></div>
             <div class="fresh-stat"><div class="fresh-stat-val" style="color:${net>=0?'var(--accent-green)':'var(--accent-rose)'}">${fmtSigned(net)}</div><div class="fresh-stat-lbl">Net ${days}d${livePrice?` (${fmtUSD(Math.abs(net)*livePrice)})`:''}</div></div>
         </div>
         <svg viewBox="0 0 ${W} ${H}" width="100%" height="auto" role="img" aria-label="Daily net CEX flow over last ${days} days">
@@ -2682,12 +2694,12 @@ function updateFreshness() {
     }
     if (bannerEl) {
         const title = status === 'fresh'
-            ? `Indexed on-chain tables were refreshed ${ageLabel}.`
+            ? `Holder snapshot was processed ${ageLabel}.`
             : status === 'delayed'
                 ? `Indexed on-chain tables are slightly delayed and were refreshed ${ageLabel}.`
                 : `On-chain tables currently reflect an older indexed snapshot from ${absoluteLabel}.`;
         const detail = status === 'fresh'
-            ? 'Token price refreshes live from CoinGecko, and period filters plus relative ages are anchored to the recent indexed dataset.'
+            ? 'Price and circulating supply refresh from CoinGecko. Balance coverage and flow timestamps are reported separately; preserved or CSV balances may be older.'
             : status === 'delayed'
                 ? 'Token price refreshes live from CoinGecko, while holder tables, flows, whale activity and relative ages use the latest indexed dataset available locally.'
                 : 'Token price still refreshes live from CoinGecko, but holder tables, flows, whale activity and relative ages stay tied to the last indexed dataset until zro_data.json is regenerated.';
@@ -2874,7 +2886,7 @@ function buildWhaleDetailPayload(transfer, fromResolved, toResolved, contextMeta
         title: `${transfer.type === 'CEX_WITHDRAWAL' ? 'Buy-side' : transfer.type === 'CEX_DEPOSIT' ? 'Sell-side' : 'Large transfer'} signal`,
         subtitle: `${timeStr} · ${agoStr}`,
         badges: [
-            { label: transfer.type === 'CEX_WITHDRAWAL' ? 'BUY' : transfer.type === 'CEX_DEPOSIT' ? 'SELL' : 'MOVE', tone: transfer.type === 'CEX_WITHDRAWAL' ? 'buy' : transfer.type === 'CEX_DEPOSIT' ? 'sell' : 'neutral' },
+            { label: transfer.type === 'CEX_WITHDRAWAL' ? 'WITHDRAWAL' : transfer.type === 'CEX_DEPOSIT' ? 'DEPOSIT' : 'MOVE', tone: transfer.type === 'CEX_WITHDRAWAL' ? 'buy' : transfer.type === 'CEX_DEPOSIT' ? 'sell' : 'neutral' },
             { label: contextMeta.label, tone: contextMeta.tone || 'neutral' },
             { label: `${scoreMeta.label} ${scoreMeta.value.toFixed(1)}`, tone: scoreMeta.className.replace('whale-score-', '') },
         ],
@@ -2933,12 +2945,12 @@ function renderWhaleTransfers() {
                 <div class="whale-signal-sub">${WHALE_FILTER_LABELS[whaleFilter]}</div>
             </div>
             <div class="whale-signal-stat whale-signal-stat-compact">
-                <div class="whale-signal-label">Buys</div>
+                <div class="whale-signal-label">Withdrawals</div>
                 <div class="whale-signal-value accent-green">${fmt(buyVolume)} ZRO</div>
                 <div class="whale-signal-sub">${buyRows.length} rows</div>
             </div>
             <div class="whale-signal-stat whale-signal-stat-compact">
-                <div class="whale-signal-label">Sells</div>
+                <div class="whale-signal-label">Deposits</div>
                 <div class="whale-signal-value accent-rose">${fmt(sellVolume)} ZRO</div>
                 <div class="whale-signal-sub">${sellRows.length} rows</div>
             </div>
@@ -2960,7 +2972,7 @@ function renderWhaleTransfers() {
         const timeStr = date.toLocaleDateString('en-GB', {day:'numeric',month:'short'}) + ' ' + date.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
         const agoStr = formatDaysAgoFromSnapshot(t.timestamp);
         const typeCls = t.type === 'CEX_WITHDRAWAL' ? 'h-badge-fresh' : t.type === 'CEX_DEPOSIT' ? 'h-badge-sell' : 'h-badge-inst';
-        const typeLabel = t.type === 'CEX_WITHDRAWAL' ? '🟢 BUY' : t.type === 'CEX_DEPOSIT' ? '🔴 SELL' : '🔄 MOVE';
+        const typeLabel = t.type === 'CEX_WITHDRAWAL' ? 'Withdrawal' : t.type === 'CEX_DEPOSIT' ? 'Deposit' : 'Move';
         const fromResolved = labelMap[t.from.toLowerCase()] || t.from_label;
         const toResolved = labelMap[t.to.toLowerCase()] || t.to_label;
         const contextMeta = getWhaleContextMeta(t, toHolder);

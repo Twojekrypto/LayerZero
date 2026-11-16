@@ -7,6 +7,10 @@ on:
   workflow_dispatch:
     # Allow manual trigger
 
+concurrency:
+  group: layerzero-data-writer
+  cancel-in-progress: false
+
 permissions:
   contents: write
 
@@ -36,6 +40,10 @@ jobs:
           ALCHEMY_API_KEY: ${{ secrets.ALCHEMY_API_KEY }}
         run: python fetch_holders.py
 
+      - name: Refresh market data
+        continue-on-error: true
+        run: python refresh_market_data.py
+
       - name: Merge with existing data (preserve labels)
         run: python update_data.py
 
@@ -62,8 +70,10 @@ jobs:
         uses: actions/cache@v4
         with:
           path: flow_cache.json
-          key: flow-cache-v1
-          restore-keys: flow-cache-
+          key: flow-cache-v2-${{ github.run_id }}
+          restore-keys: |
+            flow-cache-v2-
+            flow-cache-
 
       - name: Generate real flow data from on-chain transfers
         continue-on-error: true
@@ -76,7 +86,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: label_cache.json
-          key: label-cache-v1
+          key: label-cache-v2-${{ github.run_id }}
           restore-keys: label-cache-
 
       - name: Auto-label top unlabeled wallets
@@ -108,5 +118,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add zro_data.json holders_multichain.json scan_state.json fresh_cache.json label_cache.json
           git commit -m "📊 Daily holder scan $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git pull --rebase -X theirs origin master
+          git pull --rebase origin master
+          python sanitize_zro_data.py --fail-on-anomaly
+          npm test
+          git add zro_data.json holders_multichain.json
+          git diff --cached --quiet || git commit -m "Normalize snapshot after rebase"
           git push

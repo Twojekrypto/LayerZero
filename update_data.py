@@ -162,6 +162,7 @@ def main():
 
     fresh = load_json(holders_path)
     existing = load_json(data_path)
+    original_holder_count = len(existing.get("top_holders", []))
 
     # Build label map from existing data
     label_map = {}
@@ -234,7 +235,8 @@ def main():
             # Keep labeled address with ORIGINAL balances (not empty)
             entry = {
                 "address": addr,
-                "balances": balance_map.get(addr, {}),
+                "balances": {chain: balance for chain, balance in balance_map.get(addr, {}).items()
+                             if fresh.get("chain_stats", {}).get(chain, {}).get("source") != "transfer_scan"},
                 "label": "",
                 "type": ""
             }
@@ -304,6 +306,7 @@ def main():
     for chain_key, stats in chain_stats.items():
         if chain_key in existing.get("chains", {}):
             existing["chains"][chain_key]["holders"] = stats.get("holders_gt10", 0)
+            existing["chains"][chain_key]["balance_source"] = stats.get("source", "transfer_scan")
     sync_chain_snapshot_supply(existing, chain_stats, new_holders, synced_at)
 
     # ── Data Validation ──
@@ -311,7 +314,7 @@ def main():
     errors = []
 
     # Check: holder count didn't drop more than 50%
-    old_count = len(label_map)  # how many labeled we had
+    old_count = original_holder_count
     new_count = len(new_holders)
     if old_count > 100 and new_count < old_count * 0.5:
         errors.append(f"Holder count dropped {old_count} → {new_count} (>50% drop!)")
@@ -343,7 +346,7 @@ def main():
         print("   🛑 Aborting save due to data validation errors!")
         print("   Fix the issues and re-run, or use FORCE_SAVE=1 to override")
         if not os.environ.get("FORCE_SAVE"):
-            return
+            raise RuntimeError("Holder snapshot validation failed")
 
     save_json(data_path, existing)
     synced_count = sync_holders_multichain_metadata(fresh, new_holders)

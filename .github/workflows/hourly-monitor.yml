@@ -8,7 +8,7 @@ on:
     # Allow manual trigger
 
 concurrency:
-  group: layerzero-hourly-monitor
+  group: layerzero-data-writer
   cancel-in-progress: false
 
 permissions:
@@ -36,6 +36,10 @@ jobs:
           node-version: '20'
 
       # --- 1. Balance refresh (top 500 + Token Unlocks watch) ---
+      - name: Refresh market data
+        continue-on-error: true
+        run: python refresh_market_data.py
+
       - name: Refresh top 500 balances + watch Token Unlocks
         env:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
@@ -100,5 +104,9 @@ jobs:
           git add zro_data.json holders_multichain.json cb_monitor_state.json fresh_cache.json whale_monitor_state.json
           git diff --cached --quiet && echo "No staged changes after refresh" && exit 0
           git commit -m "🔄 Hourly monitor $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git rebase -X theirs origin/master
+          git rebase origin/master
+          python sanitize_zro_data.py --fail-on-anomaly
+          npm test
+          git add zro_data.json holders_multichain.json
+          git diff --cached --quiet || git commit -m "Normalize snapshot after rebase"
           git push

@@ -281,7 +281,7 @@ def derive_fresh_signal(holder, analysis):
     outbound_ratio = 0.0
     cex_outbound_ratio = 0.0
     if total_inbound_value > 0:
-        retention_ratio = min(2.0, current_balance / total_inbound_value)
+        retention_ratio = max(0.0, min(1.0, current_balance / total_inbound_value, net_accumulation / total_inbound_value))
         outbound_ratio = total_outbound_value / total_inbound_value
         cex_outbound_ratio = outgoing_to_cex_value / total_inbound_value
 

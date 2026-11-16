@@ -12,6 +12,7 @@ import json, os, time
 from urllib.request import urlopen, Request
 from collections import defaultdict
 from cex_addresses import KNOWN_CEX_ADDRESSES
+from flow_metrics import merge_transfers, period_retention
 from utils import atomic_json_dump, fetch_json, get_api_key
 
 API_KEY = get_api_key()
@@ -86,7 +87,7 @@ STRATEGIC_FLOW_TYPES = {"VC", "TEAM", "UNLOCK", "INST"}
 
 
 
-def get_zro_transfers(address, chain_name, chain_id, start_block=0):
+def get_zro_transfers(address, chain_name, chain_id, start_block=0, end_block=99999999):
     """Fetch ZRO token transfers for an address on a specific chain."""
     transfers = []
     page = 1
@@ -97,14 +98,20 @@ def get_zro_transfers(address, chain_name, chain_id, start_block=0):
             f"&module=account&action=tokentx"
             f"&address={address}"
             f"&contractaddress={ZRO_CONTRACT}"
-            f"&startblock={start_block}&endblock=99999999"
+            f"&startblock={start_block}&endblock={end_block}"
             f"&page={page}&offset=1000&sort=desc"
             f"&apikey={API_KEY}"
         )
         data = fetch_json(url)
 
-        if not data or data.get("status") != "1" or not data.get("result"):
-            break
+        if not data:
+            raise RuntimeError(f"{chain_name}: transfer API unavailable on page {page}")
+        if data.get("status") != "1":
+            if data.get("message") == "No transactions found" or data.get("result") == "No transactions found":
+                break
+            raise RuntimeError(f"{chain_name}: transfer API rejected page {page}")
+        if not isinstance(data.get("result"), list):
+            raise RuntimeError(f"{chain_name}: invalid transfer API response")
 
         results = data["result"]
         for tx in results:
@@ -115,6 +122,7 @@ def get_zro_transfers(address, chain_name, chain_id, start_block=0):
                 "value": int(tx.get("value", "0")) / (10 ** DECIMALS),
                 "timestamp": int(tx.get("timeStamp", "0")),
                 "chain": chain_name,
+                "log_index": tx.get("logIndex"),
             })
 
         if len(results) < 1000:
@@ -331,7 +339,7 @@ def build_flow_item(addr, holder_meta, inbound, outbound, chain_volume, outbound
         return None
 
     flow_chains = [chain for chain, volume in sorted(chain_volume.items(), key=lambda item: item[1], reverse=True) if volume > 0]
-    retention_ratio = round(balance / inbound, 4) if inbound > 0 else None
+    retention_ratio = period_retention(inbound, outbound)
     item = {
         "address": addr,
         "label": holder_meta.get("label", ""),
@@ -422,8 +430,7 @@ def is_meaningful_seller(item):
 
 def main():
     if not API_KEY:
-        print("❌ ETHERSCAN_API_KEY not set")
-        return
+        raise RuntimeError("ETHERSCAN_API_KEY not set")
 
     with open(DATA_PATH) as f:
         data = json.load(f)
@@ -444,6 +451,9 @@ def main():
 
     total_requests = 0
     new_transfers_total = 0
+    successful_scans = 0
+    failed_scans = 0
+    scan_blocks = cache.setdefault("scan_blocks", {})
 
     # Process each chain
     for chain_name, chain_cfg in CHAINS.items():
@@ -465,6 +475,10 @@ def main():
 
         current_block = get_current_block(chain_id)
         time.sleep(0.22)
+        if current_block <= 0:
+            failed_scans += len(chain_holders)
+            print(f"   {chain_name}: unavailable; keeping existing cache and scan cursors")
+            continue
 
         # Determine start block
         cache_key = chain_name
@@ -484,46 +498,34 @@ def main():
 
         processed = 0
         chain_new = 0
+        chain_failed = 0
+        chain_cursors = scan_blocks.setdefault(chain_name, {})
         for h in chain_holders:
             addr = h["address"].lower()
             processed += 1
 
             # For wallets NOT yet in cache, do a full scan (not just delta)
             # This catches new holders whose historical transfers are missing
-            if is_incremental and addr not in cache["transfers"]:
-                blocks_back = int(FULL_SCAN_DAYS * 86400 / block_time)
-                full_start = max(0, current_block - blocks_back)
-                transfers = get_zro_transfers(addr, chain_name, chain_id, full_start)
-                if transfers:
-                    print(f"   🆕 Full scan for new wallet {addr[:10]}…: {len(transfers)} transfers")
-            else:
-                transfers = get_zro_transfers(addr, chain_name, chain_id, start_block)
+            wallet_start = chain_cursors.get(addr)
+            if wallet_start is None:
+                has_chain_history = any(tx.get("chain") == chain_name for tx in cache["transfers"].get(addr, []))
+                wallet_start = start_block - 1 if has_chain_history else max(0, current_block - int(FULL_SCAN_DAYS * 86400 / block_time)) - 1
+            try:
+                transfers = get_zro_transfers(addr, chain_name, chain_id, wallet_start + 1, current_block)
+            except RuntimeError as exc:
+                chain_failed += 1
+                failed_scans += 1
+                print(f"   Warning: {addr[:10]}: {exc}; cursor unchanged")
+                continue
+            chain_cursors[addr] = current_block
+            successful_scans += 1
             total_requests += 1
             time.sleep(0.22)
 
             if transfers:
-                # Merge with existing cached transfers (dedup by tx_hash, fallback to tuple key)
+                # A transaction may contain several Transfer logs, even on different chains.
                 existing = cache["transfers"].get(addr, [])
-                existing_hashes = set(
-                    t["hash"] for t in existing if t.get("hash")
-                )
-                # Fallback dedup for old cache entries without hash
-                existing_tuples = set(
-                    (t["from"], t["to"], int(t["value"]*100), t["timestamp"], t.get("chain", ""))
-                    for t in existing if not t.get("hash")
-                )
-                new_count = 0
-                for t in transfers:
-                    if t.get("hash") and t["hash"] in existing_hashes:
-                        continue
-                    if not t.get("hash"):
-                        key = (t["from"], t["to"], int(t["value"]*100), t["timestamp"], t.get("chain", ""))
-                        if key in existing_tuples:
-                            continue
-                    existing.append(t)
-                    if t.get("hash"):
-                        existing_hashes.add(t["hash"])
-                    new_count += 1
+                existing, new_count = merge_transfers(existing, transfers)
                 if existing:
                     cache["transfers"][addr] = existing
                 chain_new += new_count
@@ -532,11 +534,15 @@ def main():
                 print(f"   ... {processed}/{len(chain_holders)}")
 
         # Update last scanned block for this chain
-        cache["last_blocks"][cache_key] = current_block
+        if chain_failed == 0:
+            cache["last_blocks"][cache_key] = current_block
         new_transfers_total += chain_new
 
         with_transfers = sum(1 for h in chain_holders if h["address"].lower() in cache["transfers"])
         print(f"   ✅ {processed} scanned, {chain_new} new transfers, {with_transfers} with history")
+
+    if successful_scans == 0:
+        raise RuntimeError("No flow scans succeeded; snapshot and cache left unchanged")
 
     # Prune transfers older than 365 days
     cutoff_ts = now - (FULL_SCAN_DAYS * 86400)
@@ -622,6 +628,9 @@ def main():
 
     # Update data
     data["flows"] = new_flows
+    data["meta"]["flows_updated"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(now))
+    data["meta"]["flow_coverage"] = {"successful_scans": successful_scans, "failed_scans": failed_scans,
+                                     "history_days": FULL_SCAN_DAYS, "partial": failed_scans > 0}
     data["meta"]["generated"] = time.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     atomic_json_dump(data, DATA_PATH)

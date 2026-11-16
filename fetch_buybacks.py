@@ -81,6 +81,9 @@ def main():
         ]
         b["stargate_total_tokens"] = sum(e["tokens"] for e in stargate)
         b["stargate_total_usd"] = sum(e["usd"] for e in stargate)
+        total_supply = data.get("meta", {}).get("total_supply") or data.get("total_supply")
+        if total_supply:
+            b["supply_pct"] = round(b["stargate_total_tokens"] / total_supply * 100, 4)
         b["tracker_updated"] = datetime.utcnow().strftime("%Y-%m-%d")
         atomic_json_dump(data, DATA_FILE)
         print(f"✅ fetch_buybacks: {len(stargate)} months, total {b['stargate_total_tokens']:,} ZRO / ${b['stargate_total_usd']:,}")
